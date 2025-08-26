@@ -1,0 +1,22 @@
+# Unity generated files
+Library/
+Logs/
+UserSettings/
+Temp/
+obj/
+
+# Visual Studio files
+.vs/
+
+# Build artifacts
+*.zip
+*.mov
+
+# OS files
+.DS_Store
+Thumbs.db
+
+*.mov
+*.zip
+/Library/
+
