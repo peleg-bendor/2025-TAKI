@@ -34,6 +34,27 @@ namespace TakiGame {
 			InitializeComponents ();
 			ConnectEvents ();
 			deckUI.ShowLoadingMessage ();
+			// UI will update automatically when deck is initialized via events
+		}
+
+		/// <summary>
+		/// Force UI update after initial loading (called with small delay)
+		/// </summary>
+		void ForceInitialUIUpdate () {
+			UpdateUI ();
+			Debug.Log ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}");
+		}
+
+		/// <summary>
+		/// Auto-initialize deck when cards are loaded (for immediate play readiness)
+		/// </summary>
+		void AutoInitializeDeck () {
+			if (cardLoader != null && cardLoader.HasValidDeck && deck != null) {
+				List<CardData> allCards = cardLoader.GetAllCardsForDeck ();
+				deck.InitializeDeck (allCards);
+				Debug.Log ($"Auto-initialized deck with {allCards.Count} cards");
+				UpdateUI (); // Update UI immediately after deck initialization
+			}
 		}
 
 		/// <summary>
@@ -88,6 +109,8 @@ namespace TakiGame {
 			if (cardLoader != null) {
 				cardLoader.OnCardsLoaded += (cards) => {
 					deckUI.ShowDeckLoadedMessage (cards.Count);
+					// Auto-initialize deck with loaded cards
+					AutoInitializeDeck ();
 				};
 
 				cardLoader.OnLoadError += (error) => {
