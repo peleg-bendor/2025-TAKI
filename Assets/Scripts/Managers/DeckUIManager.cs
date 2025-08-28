@@ -3,34 +3,37 @@ using TMPro;
 
 namespace TakiGame {
 	/// <summary>
-	/// Handles all UI updates related to deck display
-	/// NO game logic, NO deck operations, NO resource management
+	/// Handles ONLY deck-related UI updates - NO conflicts with GameplayUIManager
+	/// Focuses on DrawPileCountText, DiscardPileCountText, and GameMessageText for deck events only
 	/// </summary>
 	public class DeckUIManager : MonoBehaviour {
 
-		[Header ("UI References")]
-		[Tooltip ("Text showing number of cards in draw pile")]
+		[Header ("Deck Count UI")]
+		[Tooltip ("DrawPileCountText - shows number of cards in draw pile")]
 		public TextMeshProUGUI drawPileCountText;
 
-		[Tooltip ("Text showing number of cards in discard pile")]
+		[Tooltip ("DiscardPileCountText - shows number of cards in discard pile")]
 		public TextMeshProUGUI discardPileCountText;
 
-		[Tooltip ("Text for game messages and feedback")]
+		[Header ("Deck Event Messages")]
+		[Tooltip ("GameMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
 		public TextMeshProUGUI gameMessageText;
 
-		[Tooltip ("Panel that shows the draw pile")]
+		[Header ("Deck Visual Panels")]
+		[Tooltip ("DrawPilePanel - visual container for draw pile")]
 		public Transform drawPilePanel;
 
-		[Tooltip ("Panel that shows the discard pile")]
+		[Tooltip ("DiscardPilePanel - visual container for discard pile")]
 		public Transform discardPilePanel;
 
-		[Header ("UI Settings")]
-		[Tooltip ("How long to display temporary messages")]
-		public float messageDisplayTime = 3.0f;
+		[Header ("Message Settings")]
+		[Tooltip ("How long to display temporary deck messages")]
+		public float messageDisplayTime = 2.0f;
 
 		// Message management
 		private float messageTimer = 0f;
 		private bool hasTemporaryMessage = false;
+		private string originalMessage = "";
 
 		/// <summary>
 		/// Update the deck count displays
@@ -48,75 +51,64 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Show a temporary message to the player
+		/// Show deck-specific message (loading, shuffling, errors)
+		/// NOTE: Does NOT interfere with gameplay messages - only deck events
 		/// </summary>
-		/// <param name="message">Message to display</param>
-		/// <param name="isTemporary">If true, message will auto-clear after time</param>
-		public void ShowMessage (string message, bool isTemporary = true) {
+		/// <param name="message">Deck message to display</param>
+		/// <param name="isTemporary">If true, message will auto-clear</param>
+		public void ShowDeckMessage (string message, bool isTemporary = true) {
 			if (gameMessageText != null) {
+				// Store original message if we're showing a temporary one
+				if (isTemporary && !hasTemporaryMessage) {
+					originalMessage = gameMessageText.text;
+				}
+
 				gameMessageText.text = message;
 			}
 
-			Debug.Log ($"Game Message: {message}");
+			Debug.Log ($"Deck Message: {message}");
 
 			if (isTemporary) {
 				hasTemporaryMessage = true;
 				messageTimer = messageDisplayTime;
 			} else {
 				hasTemporaryMessage = false;
+				originalMessage = message; // Update the "permanent" message
 			}
 		}
 
 		/// <summary>
-		/// Clear the current message
+		/// Clear temporary deck message and restore previous
 		/// </summary>
-		public void ClearMessage () {
+		void ClearTemporaryMessage () {
 			if (gameMessageText != null) {
-				gameMessageText.text = "";
+				gameMessageText.text = originalMessage;
 			}
 			hasTemporaryMessage = false;
 			messageTimer = 0f;
 		}
 
 		/// <summary>
-		/// Show permanent status message (doesn't auto-clear)
-		/// </summary>
-		/// <param name="message">Status message to display</param>
-		public void ShowStatusMessage (string message) {
-			ShowMessage (message, false);
-		}
-
-		/// <summary>
-		/// Update the visual representation of the top discard card
-		/// TODO: Implement in Milestone 6 with card prefabs
-		/// </summary>
-		/// <param name="topCard">The card currently on top of discard pile</param>
-		public void UpdateDiscardPileDisplay (CardData topCard) {
-			// For now, just show the card info in the message
-			// Later this will update a card prefab visual
-			if (topCard != null) {
-				Debug.Log ($"Top discard card: {topCard.GetDisplayText ()}");
-			}
-		}
-
-		/// <summary>
-		/// Handle UI updates for deck events
+		/// Handle message timing
 		/// </summary>
 		void Update () {
 			// Handle temporary message timer
 			if (hasTemporaryMessage && messageTimer > 0f) {
 				messageTimer -= Time.deltaTime;
 				if (messageTimer <= 0f) {
-					ClearMessage ();
+					ClearTemporaryMessage ();
 				}
 			}
 		}
+
+		// ===== DECK-SPECIFIC EVENT MESSAGES =====
+		// These methods are called by DeckManager for specific deck events
 
 		/// <summary>
 		/// Show loading message
 		/// </summary>
 		public void ShowLoadingMessage () {
-			ShowStatusMessage ("Loading deck...");
+			ShowDeckMessage ("Loading deck...", false);
 		}
 
 		/// <summary>
@@ -124,50 +116,92 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="cardCount">Number of cards loaded</param>
 		public void ShowDeckLoadedMessage (int cardCount) {
-			ShowMessage ($"Deck loaded: {cardCount} cards ready!", true);
+			ShowDeckMessage ($"Deck loaded: {cardCount} cards", true);
 		}
 
 		/// <summary>
 		/// Show deck initialization message
 		/// </summary>
 		public void ShowDeckInitializedMessage () {
-			ShowMessage ("New deck shuffled and ready!", true);
+			ShowDeckMessage ("New deck shuffled!", true);
 		}
 
 		/// <summary>
 		/// Show reshuffle message
 		/// </summary>
 		public void ShowReshuffleMessage () {
-			ShowMessage ("Reshuffled discard pile into draw pile!", true);
+			ShowDeckMessage ("Reshuffled discard pile!", true);
 		}
 
 		/// <summary>
-		/// Show error message
+		/// Show deck error message
 		/// </summary>
 		/// <param name="errorMessage">Error to display</param>
-		public void ShowErrorMessage (string errorMessage) {
-			ShowMessage ($"ERROR: {errorMessage}", true);
+		public void ShowDeckErrorMessage (string errorMessage) {
+			ShowDeckMessage ($"ERROR: {errorMessage}", true);
 		}
 
 		/// <summary>
-		/// Show game start message
+		/// Show game start message (from deck perspective)
 		/// </summary>
 		/// <param name="startingCard">The first card placed</param>
 		public void ShowGameStartMessage (CardData startingCard) {
 			if (startingCard != null) {
-				ShowMessage ($"Game started! First card: {startingCard.GetDisplayText ()}", true);
+				ShowDeckMessage ($"Starting card: {startingCard.GetDisplayText ()}", true);
 			} else {
-				ShowMessage ("Game started!", true);
+				ShowDeckMessage ("Game started!", true);
 			}
 		}
 
-		// Validation methods to check if UI elements are assigned
+		/// <summary>
+		/// Update discard pile visual (placeholder for Milestone 6)
+		/// </summary>
+		/// <param name="topCard">Current top card</param>
+		public void UpdateDiscardPileDisplay (CardData topCard) {
+			// For now, just log the card
+			// In Milestone 6, this will update visual card prefab
+			if (topCard != null) {
+				Debug.Log ($"Top discard card updated: {topCard.GetDisplayText ()}");
+			}
+		}
+
+		/// <summary>
+		/// Set permanent message (won't be cleared by temporary messages)
+		/// </summary>
+		/// <param name="message">Permanent message</param>
+		public void SetPermanentMessage (string message) {
+			originalMessage = message;
+			if (!hasTemporaryMessage && gameMessageText != null) {
+				gameMessageText.text = message;
+			}
+		}
+
+		/// <summary>
+		/// Clear all messages
+		/// </summary>
+		public void ClearAllMessages () {
+			if (gameMessageText != null) {
+				gameMessageText.text = "";
+			}
+			originalMessage = "";
+			hasTemporaryMessage = false;
+			messageTimer = 0f;
+		}
+
+		/// <summary>
+		/// Validate that required UI elements are assigned
+		/// </summary>
+		/// <returns>True if basic UI elements are present</returns>
 		public bool HasRequiredUIElements () {
 			bool hasElements = drawPileCountText != null && discardPileCountText != null;
 			if (!hasElements) {
-				Debug.LogWarning ("Missing required UI elements in DeckUIManager");
+				Debug.LogWarning ("DeckUIManager: Missing required UI elements!");
 			}
 			return hasElements;
 		}
+
+		// Properties
+		public bool HasActiveMessage => hasTemporaryMessage;
+		public string CurrentMessage => gameMessageText?.text ?? "";
 	}
 }

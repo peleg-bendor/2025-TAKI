@@ -102,7 +102,7 @@ namespace TakiGame {
 
 				deck.OnDeckEmpty += () => {
 					OnDeckEmpty?.Invoke ();
-					deckUI.ShowErrorMessage ("No more cards available!");
+					deckUI.ShowDeckErrorMessage ("No more cards available!");
 				};
 			}
 
@@ -114,7 +114,7 @@ namespace TakiGame {
 				};
 
 				cardLoader.OnLoadError += (error) => {
-					deckUI.ShowErrorMessage (error);
+					deckUI.ShowDeckErrorMessage (error);
 				};
 			}
 
@@ -199,7 +199,7 @@ namespace TakiGame {
 		/// <param name="message">Message to display</param>
 		/// <param name="isTemporary">Whether message should auto-clear</param>
 		public void ShowMessage (string message, bool isTemporary = true) {
-			deckUI?.ShowMessage (message, isTemporary);
+			deckUI?.ShowDeckMessage (message, isTemporary);
 		}
 
 		/// <summary>

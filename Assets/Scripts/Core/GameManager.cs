@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace TakiGame {
 	/// <summary>
-	/// Main coordinator for all gameplay systems using multi-enum architecture
-	/// Manages the overall game flow and connects all gameplay components
+	/// Main coordinator for all gameplay systems - Updated for clean UI architecture
 	/// </summary>
 	public class GameManager : MonoBehaviour {
 
@@ -18,7 +17,7 @@ namespace TakiGame {
 		[Tooltip ("Computer AI decision making")]
 		public BasicComputerAI computerAI;
 
-		[Tooltip ("Gameplay UI updates")]
+		[Tooltip ("Gameplay UI updates - owns turn, player actions, color selection")]
 		public GameplayUIManager gameplayUI;
 
 		[Tooltip ("Deck management system")]
@@ -28,7 +27,7 @@ namespace TakiGame {
 		[Tooltip ("Starting player for new games")]
 		public PlayerType startingPlayer = PlayerType.Human;
 
-		[Tooltip ("Player's hand of cards")]
+		[Tooltip ("Player's hand of cards (Player1 = Human)")]
 		public List<CardData> playerHand = new List<CardData> ();
 
 		// Events for external systems
@@ -85,7 +84,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Connect events between all systems using new architecture
+		/// Connect events between all systems - Updated for new UI architecture
 		/// </summary>
 		void ConnectEvents () {
 			// Deck Manager events
@@ -117,6 +116,14 @@ namespace TakiGame {
 				computerAI.OnAIColorSelected += OnAIColorSelected;
 				computerAI.OnAIDecisionMade += OnAIDecisionMade;
 			}
+
+			// GameplayUI events - NEW: Connect button events
+			if (gameplayUI != null) {
+				gameplayUI.OnPlayCardClicked += OnPlayCardButtonClicked;
+				gameplayUI.OnDrawCardClicked += OnDrawCardButtonClicked;
+				gameplayUI.OnEndTurnClicked += OnEndTurnButtonClicked;
+				gameplayUI.OnColorSelected += OnColorSelectedByPlayer;
+			}
 		}
 
 		/// <summary>
@@ -141,8 +148,9 @@ namespace TakiGame {
 		/// Reset all game systems for a new game
 		/// </summary>
 		void ResetGameSystems () {
-			// Clear hands
+			// Clear hands and selection
 			playerHand.Clear ();
+
 			if (computerAI != null) {
 				computerAI.ClearHand ();
 			}
@@ -165,20 +173,85 @@ namespace TakiGame {
 			isGameInitialized = false;
 		}
 
+		// ===== PLAYER ACTION HANDLERS (NEW) =====
+
+		/// <summary>
+		/// Handle play card button clicked
+		/// </summary>
+		void OnPlayCardButtonClicked () {
+			if (!isGameInitialized || !gameState.CanPlayerAct ()) {
+				Debug.LogWarning ("Cannot play card: Not player's turn or game not initialized");
+				gameplayUI.ShowComputerMessage ("Not your turn!");
+				return;
+			}
+
+			// For now, we'll play the first valid card (Milestone 6 will add card selection)
+			CardData cardToPlay = FindFirstValidCard ();
+
+			if (cardToPlay != null) {
+				PlayCard (cardToPlay);
+			} else {
+				Debug.LogWarning ("No valid cards to play!");
+				gameplayUI.ShowComputerMessage ("No valid cards to play!");
+			}
+		}
+
+		/// <summary>
+		/// Handle draw card button clicked
+		/// </summary>
+		void OnDrawCardButtonClicked () {
+			DrawCard ();
+		}
+
+		/// <summary>
+		/// Handle end turn button clicked
+		/// </summary>
+		void OnEndTurnButtonClicked () {
+			EndPlayerTurn ();
+		}
+
+		/// <summary>
+		/// Handle color selection by player
+		/// </summary>
+		/// <param name="selectedColor">Color selected by player</param>
+		void OnColorSelectedByPlayer (CardColor selectedColor) {
+			if (gameState != null) {
+				gameState.ChangeActiveColor (selectedColor);
+				gameState.ChangeInteractionState (InteractionState.Normal);
+			}
+			Debug.Log ($"Player selected color: {selectedColor}");
+		}
+
+		/// <summary>
+		/// Find first valid card in player's hand (temporary for Milestone 5)
+		/// </summary>
+		/// <returns>First playable card or null</returns>
+		CardData FindFirstValidCard () {
+			CardData topCard = deckManager.GetTopDiscardCard ();
+			if (topCard == null) return null;
+
+			foreach (CardData card in playerHand) {
+				if (gameState.IsValidMove (card, topCard)) {
+					return card;
+				}
+			}
+			return null;
+		}
+
 		/// <summary>
 		/// Handle completion of initial game setup
 		/// </summary>
-		/// <param name="player1Hand">Player's initial hand</param>
+		/// <param name="player1Hand">Player's initial hand (Human)</param>
 		/// <param name="player2Hand">Computer's initial hand</param>
 		/// <param name="startingCard">Starting discard card</param>
 		void OnInitialGameSetupComplete (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) {
-			// Assign hands
+			// Assign hands (Player1 = Human, Player2 = Computer)
 			playerHand = player1Hand;
 			if (computerAI != null) {
 				computerAI.AddCardsToHand (player2Hand);
 			}
 
-			// Set active color from starting card (using user's Wild initial approach)
+			// Set active color from starting card
 			if (startingCard != null && gameState != null) {
 				gameState.ChangeActiveColor (startingCard.color);
 			}
@@ -211,9 +284,7 @@ namespace TakiGame {
 			CardData topCard = deckManager.GetTopDiscardCard ();
 			if (!gameState.IsValidMove (card, topCard)) {
 				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()}");
-				if (gameplayUI != null) {
-					gameplayUI.ShowTemporaryMessage ("Invalid move!", 2f);
-				}
+				gameplayUI.ShowComputerMessage ("Invalid move!");
 				return;
 			}
 
@@ -261,6 +332,7 @@ namespace TakiGame {
 			if (drawnCard != null) {
 				playerHand.Add (drawnCard);
 				UpdateAllUI ();
+				gameplayUI.ShowComputerMessage ($"You drew: {drawnCard.GetDisplayText ()}");
 				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()}");
 			}
 
@@ -288,21 +360,25 @@ namespace TakiGame {
 					if (turnManager != null) {
 						turnManager.SkipTurn ();
 					}
+					gameplayUI.ShowComputerMessage ("Computer's turn skipped!");
 					break;
 
 				case CardType.ChangeColor:
-					// Trigger color selection (for now, random)
-					SelectRandomColor ();
+					// Trigger color selection
+					gameState.ChangeInteractionState (InteractionState.ColorSelection);
+					gameplayUI.ShowColorSelection (true);
 					break;
 
 				case CardType.PlusTwo:
 					// Make opponent draw 2 cards
 					MakeOpponentDrawCards (2);
+					gameplayUI.ShowComputerMessage ("Computer draws 2 cards!");
 					break;
 
 				case CardType.Plus:
 					// Make opponent draw 1 card
 					MakeOpponentDrawCards (1);
+					gameplayUI.ShowComputerMessage ("Computer draws 1 card!");
 					break;
 
 				case CardType.ChangeDirection:
@@ -310,6 +386,7 @@ namespace TakiGame {
 					if (gameState != null) {
 						gameState.ChangeTurnDirection ();
 					}
+					gameplayUI.ShowComputerMessage ("Turn direction changed!");
 					break;
 
 					// TODO: Implement Taki and SuperTaki in later milestones
@@ -339,19 +416,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Select random color (temporary implementation)
-		/// TODO: Implement proper color selection UI in later milestone
-		/// </summary>
-		void SelectRandomColor () {
-			CardColor [] colors = { CardColor.Red, CardColor.Blue, CardColor.Green, CardColor.Yellow };
-			CardColor newColor = colors [Random.Range (0, colors.Length)];
-			if (gameState != null) {
-				gameState.ChangeActiveColor (newColor);
-			}
-			Debug.Log ($"Color changed to: {newColor}");
-		}
-
-		/// <summary>
 		/// Update all UI elements with current game state
 		/// </summary>
 		void UpdateAllUI () {
@@ -370,7 +434,8 @@ namespace TakiGame {
 			}
 		}
 
-		// Event handlers for system events using new architecture
+		// ===== EVENT HANDLERS =====
+
 		void OnTurnStateChanged (TurnState newTurnState) {
 			if (gameplayUI != null) {
 				gameplayUI.UpdateTurnDisplay (newTurnState);
@@ -378,15 +443,15 @@ namespace TakiGame {
 		}
 
 		void OnInteractionStateChanged (InteractionState newInteractionState) {
-			if (gameplayUI != null && gameState != null) {
-				gameplayUI.UpdateGameStateDisplay (gameState.gameStatus, newInteractionState);
+			// Handle interaction state changes
+			if (gameplayUI != null) {
+				gameplayUI.ShowColorSelection (newInteractionState == InteractionState.ColorSelection);
 			}
 		}
 
 		void OnGameStatusChanged (GameStatus newGameStatus) {
-			if (gameplayUI != null && gameState != null) {
-				gameplayUI.UpdateGameStateDisplay (newGameStatus, gameState.interactionState);
-			}
+			// Handle game status changes in UI
+			UpdateAllUI ();
 		}
 
 		void OnActiveColorChanged (CardColor newColor) {
@@ -452,7 +517,7 @@ namespace TakiGame {
 		void OnAIDecisionMade (string decision) {
 			// AI made a decision - show in UI
 			if (gameplayUI != null) {
-				gameplayUI.ShowTemporaryMessage (decision, 1.5f);
+				gameplayUI.ShowComputerMessage (decision);
 			}
 		}
 
@@ -509,7 +574,8 @@ namespace TakiGame {
 			return isValid;
 		}
 
-		// Public API for external systems
+		// ===== PUBLIC API =====
+
 		public void RequestDrawCard () => DrawCard ();
 		public void RequestPlayCard (CardData card) => PlayCard (card);
 		public void RequestNewGame () => StartNewGame ();
