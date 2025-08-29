@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace TakiGame {
 	/// <summary>
-	/// Main coordinator for all gameplay systems - Updated for clean UI architecture
+	/// Main coordinator - Separate initialization from game start
+	/// No longer initializes game systems until player chooses game mode
 	/// </summary>
 	public class GameManager : MonoBehaviour {
 
@@ -30,47 +31,109 @@ namespace TakiGame {
 		[Tooltip ("Player's hand of cards (Player1 = Human)")]
 		public List<CardData> playerHand = new List<CardData> ();
 
+		[Header ("Visual Card System")]
+		[Tooltip ("Hand manager for player cards (Player1HandPanel)")]
+		public HandManager playerHandManager;
+
+		[Tooltip ("Hand manager for computer cards (Player2HandPanel)")]
+		public HandManager computerHandManager;
+
 		// Events for external systems
 		public System.Action OnGameStarted;
 		public System.Action<PlayerType> OnGameEnded;
 		public System.Action<PlayerType> OnTurnStarted;
 		public System.Action<CardData> OnCardPlayed;
 
-		// Game state
-		private bool isGameInitialized = false;
+		// System state - More granular state tracking
+		private bool areComponentsValidated = false;
+		private bool areSystemsInitialized = false;
+		private bool isGameActive = false;
 
 		void Start () {
-			InitializeGameSystems ();
+			// ONLY validate components exist - DON'T initialize game systems yet
+			ValidateAndConnectComponents ();
 		}
 
 		/// <summary>
-		/// Initialize all game systems and connections
+		/// Validate components exist and connect basic references - called at scene load
+		/// NO game initialization, NO deck loading, NO UI setup
 		/// </summary>
-		void InitializeGameSystems () {
-			Debug.Log ("Initializing game systems...");
+		void ValidateAndConnectComponents () {
+			Debug.Log ("Validating and connecting components...");
 
-			// Validate components
+			// Validate components exist
 			if (!ValidateComponents ()) {
 				Debug.LogError ("GameManager: Missing required components!");
 				return;
 			}
 
-			// Connect component dependencies
+			// Connect basic component references (lightweight)
 			ConnectComponentReferences ();
+
+			areComponentsValidated = true;
+			Debug.Log ("Components validated and connected - Ready for game mode selection");
+		}
+
+		/// <summary>
+		/// Initialize game systems for single player - called by MenuNavigation
+		/// THIS is where the real initialization happens
+		/// </summary>
+		public void InitializeSinglePlayerSystems () {
+			if (!areComponentsValidated) {
+				Debug.LogError ("Cannot initialize: Components not validated!");
+				return;
+			}
+
+			Debug.Log ("Initializing single player game systems...");
 
 			// Connect events between systems
 			ConnectEvents ();
 
-			// Initialize UI
+			// Initialize visual card system
+			InitializeVisualCardSystem ();
+
+			// Initialize UI for gameplay
 			if (gameplayUI != null) {
 				gameplayUI.ResetUIForNewGame ();
 			}
 
-			Debug.Log ("Game systems initialized");
+			areSystemsInitialized = true;
+			Debug.Log ("Single player systems initialized - Ready to start game");
 		}
 
 		/// <summary>
-		/// Connect references between components
+		/// PUBLIC METHOD: Start a new single player game - Called by MenuNavigation
+		/// </summary>
+		public void StartNewSinglePlayerGame () {
+			// Initialize systems if not already done
+			if (!areSystemsInitialized) {
+				InitializeSinglePlayerSystems ();
+			}
+
+			Debug.Log ("Starting new single player game...");
+
+			if (deckManager == null) {
+				Debug.LogError ("Cannot start game: DeckManager not assigned!");
+				return;
+			}
+
+			// Reset all systems for new game
+			ResetGameSystems ();
+
+			// Setup initial game state through deck manager
+			deckManager.SetupInitialGame ();
+		}
+
+		/// <summary>
+		/// PUBLIC METHOD: Initialize multiplayer systems - Future implementation
+		/// </summary>
+		public void InitializeMultiPlayerSystems () {
+			// TODO: Implement multiplayer system initialization
+			Debug.Log ("Multiplayer systems initialization - Not yet implemented");
+		}
+
+		/// <summary>
+		/// Connect references between components (lightweight)
 		/// </summary>
 		void ConnectComponentReferences () {
 			// Connect GameState reference to other components
@@ -84,7 +147,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Connect events between all systems - Updated for new UI architecture
+		/// Connect events between all systems (happens during game mode initialization)
 		/// </summary>
 		void ConnectEvents () {
 			// Deck Manager events
@@ -93,7 +156,7 @@ namespace TakiGame {
 				deckManager.OnCardDrawn += OnCardDrawnFromDeck;
 			}
 
-			// Game State events - updated for multi-enum architecture
+			// Game State events
 			if (gameState != null) {
 				gameState.OnTurnStateChanged += OnTurnStateChanged;
 				gameState.OnInteractionStateChanged += OnInteractionStateChanged;
@@ -117,31 +180,13 @@ namespace TakiGame {
 				computerAI.OnAIDecisionMade += OnAIDecisionMade;
 			}
 
-			// GameplayUI events - NEW: Connect button events
+			// GameplayUI events
 			if (gameplayUI != null) {
 				gameplayUI.OnPlayCardClicked += OnPlayCardButtonClicked;
 				gameplayUI.OnDrawCardClicked += OnDrawCardButtonClicked;
 				gameplayUI.OnEndTurnClicked += OnEndTurnButtonClicked;
 				gameplayUI.OnColorSelected += OnColorSelectedByPlayer;
 			}
-		}
-
-		/// <summary>
-		/// Start a new game
-		/// </summary>
-		public void StartNewGame () {
-			Debug.Log ("Starting new game...");
-
-			if (deckManager == null) {
-				Debug.LogError ("Cannot start game: DeckManager not assigned!");
-				return;
-			}
-
-			// Reset all systems
-			ResetGameSystems ();
-
-			// Setup initial game state through deck manager
-			deckManager.SetupInitialGame ();
 		}
 
 		/// <summary>
@@ -165,28 +210,31 @@ namespace TakiGame {
 				turnManager.ResetTurns ();
 			}
 
-			// Reset UI
-			if (gameplayUI != null) {
-				gameplayUI.ResetUIForNewGame ();
-			}
-
-			isGameInitialized = false;
+			isGameActive = false;
 		}
 
-		// ===== PLAYER ACTION HANDLERS (NEW) =====
+		// ===== PLAYER ACTION HANDLERS =====
 
 		/// <summary>
 		/// Handle play card button clicked
 		/// </summary>
 		void OnPlayCardButtonClicked () {
-			if (!isGameInitialized || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot play card: Not player's turn or game not initialized");
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				Debug.LogWarning ("Cannot play card: Not player's turn or game not active");
 				gameplayUI.ShowComputerMessage ("Not your turn!");
 				return;
 			}
 
-			// For now, we'll play the first valid card (Milestone 6 will add card selection)
-			CardData cardToPlay = FindFirstValidCard ();
+			// Get selected card from visual hand manager
+			CardData cardToPlay = null;
+			if (playerHandManager != null) {
+				cardToPlay = playerHandManager.GetSelectedCard ();
+			}
+
+			//// Fallback to first valid card if no selection
+			//if (cardToPlay == null) {
+			//	cardToPlay = FindFirstValidCard ();
+			//}
 
 			if (cardToPlay != null) {
 				PlayCard (cardToPlay);
@@ -223,22 +271,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Find first valid card in player's hand (temporary for Milestone 5)
-		/// </summary>
-		/// <returns>First playable card or null</returns>
-		CardData FindFirstValidCard () {
-			CardData topCard = deckManager.GetTopDiscardCard ();
-			if (topCard == null) return null;
-
-			foreach (CardData card in playerHand) {
-				if (gameState.IsValidMove (card, topCard)) {
-					return card;
-				}
-			}
-			return null;
-		}
-
-		/// <summary>
 		/// Handle completion of initial game setup
 		/// </summary>
 		/// <param name="player1Hand">Player's initial hand (Human)</param>
@@ -256,7 +288,7 @@ namespace TakiGame {
 				gameState.ChangeActiveColor (startingCard.color);
 			}
 
-			// Update UI
+			// Update UI (this will now include visual cards)
 			UpdateAllUI ();
 
 			// Start the first turn
@@ -264,7 +296,7 @@ namespace TakiGame {
 				turnManager.InitializeTurns (startingPlayer);
 			}
 
-			isGameInitialized = true;
+			isGameActive = true;
 			OnGameStarted?.Invoke ();
 
 			Debug.Log ($"Game started! Player: {player1Hand.Count} cards, Computer: {player2Hand.Count} cards");
@@ -275,8 +307,8 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="card">Card being played</param>
 		public void PlayCard (CardData card) {
-			if (!isGameInitialized || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot play card: Not player's turn or game not initialized");
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				Debug.LogWarning ("Cannot play card: Not player's turn or game not active");
 				return;
 			}
 
@@ -291,6 +323,11 @@ namespace TakiGame {
 			// Remove card from player's hand
 			playerHand.Remove (card);
 
+			// Clear selection in visual hand
+			if (playerHandManager != null) {
+				playerHandManager.ClearSelection ();
+			}
+
 			// Discard the card
 			deckManager.DiscardCard (card);
 
@@ -300,7 +337,7 @@ namespace TakiGame {
 			// Handle special card effects
 			HandleSpecialCardEffects (card);
 
-			// Update UI
+			// Update UI (this will now update visual hands)
 			UpdateAllUI ();
 
 			// Check for win condition
@@ -323,15 +360,18 @@ namespace TakiGame {
 		/// Handle player drawing a card
 		/// </summary>
 		public void DrawCard () {
-			if (!isGameInitialized || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot draw card: Not player's turn or game not initialized");
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				Debug.LogWarning ("Cannot draw card: Not player's turn or game not active");
 				return;
 			}
 
 			CardData drawnCard = deckManager.DrawCard ();
 			if (drawnCard != null) {
 				playerHand.Add (drawnCard);
-				UpdateAllUI ();
+
+				// Update visual hands
+				UpdateVisualHands ();
+
 				gameplayUI.ShowComputerMessage ($"You drew: {drawnCard.GetDisplayText ()}");
 				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()}");
 			}
@@ -432,6 +472,9 @@ namespace TakiGame {
 					gameState.activeColor
 				);
 			}
+
+			// Update visual card displays
+			UpdateVisualHands ();
 		}
 
 		// ===== EVENT HANDLERS =====
@@ -443,14 +486,12 @@ namespace TakiGame {
 		}
 
 		void OnInteractionStateChanged (InteractionState newInteractionState) {
-			// Handle interaction state changes
 			if (gameplayUI != null) {
 				gameplayUI.ShowColorSelection (newInteractionState == InteractionState.ColorSelection);
 			}
 		}
 
 		void OnGameStatusChanged (GameStatus newGameStatus) {
-			// Handle game status changes in UI
 			UpdateAllUI ();
 		}
 
@@ -541,6 +582,76 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// Initialize visual card system
+		/// </summary>
+		void InitializeVisualCardSystem () {
+			Debug.Log ("Initializing visual card system...");
+
+			// Validate hand managers
+			if (playerHandManager == null) {
+				Debug.LogError ("GameManager: PlayerHandManager not assigned!");
+				return;
+			}
+
+			if (computerHandManager == null) {
+				Debug.LogError ("GameManager: ComputerHandManager not assigned!");
+				return;
+			}
+
+			// Connect hand manager events
+			playerHandManager.OnCardSelected += OnPlayerCardSelected;
+			computerHandManager.OnCardSelected += OnComputerCardSelected;
+
+			Debug.Log ("Visual card system initialized");
+		}
+
+		/// <summary>
+		/// Handle player card selection from visual hand
+		/// </summary>
+		/// <param name="selectedCardController">Selected card controller</param>
+		void OnPlayerCardSelected (CardController selectedCardController) {
+			if (selectedCardController == null) {
+				Debug.Log ("Player deselected card");
+				return;
+			}
+
+			CardData selectedCard = selectedCardController.CardData;
+			if (selectedCard != null) {
+				Debug.Log ($"Player selected visual card: {selectedCard.GetDisplayText ()}");
+
+				// Update UI feedback
+				if (gameplayUI != null) {
+					bool canPlay = gameState?.IsValidMove (selectedCard, GetTopDiscardCard ()) ?? false;
+					string message = canPlay ? $"Selected: {selectedCard.GetDisplayText ()}" : "Invalid move!";
+					gameplayUI.ShowComputerMessage (message);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Handle computer card selection (should not happen)
+		/// </summary>
+		void OnComputerCardSelected (CardController selectedCardController) {
+			Debug.LogWarning ("Computer cards should not be selectable!");
+		}
+
+		/// <summary>
+		/// Update visual hand displays to match current data
+		/// </summary>
+		void UpdateVisualHands () {
+			// Update player hand visual
+			if (playerHandManager != null && playerHand != null) {
+				playerHandManager.UpdateHandDisplay (playerHand);
+			}
+
+			// Update computer hand visual
+			if (computerHandManager != null && computerAI != null) {
+				List<CardData> computerHand = computerAI.GetHandCopy ();
+				computerHandManager.UpdateHandDisplay (computerHand);
+			}
+		}
+
+		/// <summary>
 		/// Validate all required components are assigned
 		/// </summary>
 		bool ValidateComponents () {
@@ -571,6 +682,16 @@ namespace TakiGame {
 				isValid = false;
 			}
 
+			if (playerHandManager == null) {
+				Debug.LogError ("GameManager: PlayerHandManager not assigned!");
+				isValid = false;
+			}
+
+			if (computerHandManager == null) {
+				Debug.LogError ("GameManager: ComputerHandManager not assigned!");
+				isValid = false;
+			}
+
 			return isValid;
 		}
 
@@ -578,19 +699,19 @@ namespace TakiGame {
 
 		public void RequestDrawCard () => DrawCard ();
 		public void RequestPlayCard (CardData card) => PlayCard (card);
-		public void RequestNewGame () => StartNewGame ();
 		public List<CardData> GetPlayerHand () => new List<CardData> (playerHand);
 		public CardData GetTopDiscardCard () => deckManager?.GetTopDiscardCard ();
 		public bool CanPlayerAct () => gameState?.CanPlayerAct () ?? false;
 
-		// Properties using new architecture
-		public bool IsGameActive => gameState?.IsGameActive ?? false;
+		// Properties
+		public bool IsGameActive => isGameActive;
 		public bool IsPlayerTurn => gameState?.IsPlayerTurn ?? false;
 		public PlayerType CurrentPlayer => turnManager?.CurrentPlayer ?? PlayerType.Human;
 		public int PlayerHandSize => playerHand.Count;
 		public int ComputerHandSize => computerAI?.HandSize ?? 0;
 		public CardColor ActiveColor => gameState?.activeColor ?? CardColor.Wild;
-		public bool IsInitialized => isGameInitialized;
+		public bool AreComponentsValidated => areComponentsValidated;
+		public bool AreSystemsInitialized => areSystemsInitialized;
 		public TurnState CurrentTurnState => gameState?.turnState ?? TurnState.Neutral;
 		public InteractionState CurrentInteractionState => gameState?.interactionState ?? InteractionState.Normal;
 		public GameStatus CurrentGameStatus => gameState?.gameStatus ?? GameStatus.Active;

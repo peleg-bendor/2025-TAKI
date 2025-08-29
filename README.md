@@ -1469,3 +1469,99 @@ After Milestone 6 completion, the project will be ready for:
 - **Phase 5**: Special card implementations with visual states
 
 The visual card system will provide the foundation for all advanced card interactions and special card behaviors in subsequent milestones.
+
+
+
+
+
+
+---
+
+
+
+My Notes:
+
+---
+
+"1. Create Card Prefab
+CardPrefab (GameObject + CardController)
+├── CardBackground (Image)
+├── CardFrontImage (Image) 
+├── CardBackImage (Image)
+└── CardButton (Button)
+"
+
+We don't HAVE a Background (and we don't need one)
+
+---
+
+```
+		/// <summary>
+		/// Load card images based on CardData
+		/// For now, we'll use placeholder colored backgrounds
+		/// TODO: Replace with actual scanned card images
+		/// </summary>
+		void LoadCardImages () {
+			if (cardData == null) return;
+
+			// For now, set background color based on card color
+			// TODO: Replace with actual card front/back images
+			if (cardBackground != null) {
+				cardBackground.color = GetColorForCardColor (cardData.color);
+			}
+
+			// Set front image color (placeholder)
+			if (cardFrontImage != null) {
+				cardFrontImage.color = GetColorForCardColor (cardData.color);
+			}
+
+			// Set back image to neutral color (placeholder)
+			if (cardBackImage != null) {
+				cardBackImage.color = Color.gray;
+			}
+		}
+```
+I think we should use the scanned imaged already now, why wait and create more work.
+
+---
+
+In `CardController.cd`:
+I see the line `public Color normalTint = Color.white;` - I don't think there IS a `normalTint`, if a card is not selected then it doesn't need to be modified.
+
+---
+
+
+Assets
+├── Audio
+│   ├── Music
+│   └── Sfx
+├── Data
+│   ├── Cards
+├── Plugins
+├── Prefabs
+│   ├── Cards
+│   └── UI
+├── Resources
+│   ├── Data
+│   │   └── Cards
+│   └── Sprites
+│       ├── Cards
+│       │   └── Backs
+│       ├── Fonts
+│       │   ├── Blue
+│       │   ├── Green
+│       │   ├── Red
+│       │   ├── Special
+│       │   └── Yellow
+│       └── UI
+│           └── Backgrounds
+├── Scenes
+├── Scripts
+└── TextMesh Pro
+Packages
+
+---
+
+Also please give me much more clearer Unity Setup Instructions.
+
+

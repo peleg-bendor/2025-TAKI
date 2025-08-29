@@ -1,17 +1,14 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.Presets;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UIElements.Experimental;
 
 namespace TakiGame {
 
 	/// <summary>
 	/// Manages navigation between different menu screens using a stack-based approach.
 	/// Handles transitions, loading screens, and back navigation.
+	/// Integrates with GameManager to start games at proper time
+	/// Now calls proper GameManager initialization methods
+	/// Separates single player vs multiplayer system initialization
 	/// </summary>
 	public class MenuNavigation : MonoBehaviour {
 		[Header ("Menu Screens")]
@@ -30,16 +27,28 @@ namespace TakiGame {
 		[SerializeField] private GameObject SinglePlayerGameScreen;
 		[SerializeField] private GameObject MultiPlayerGameScreen;
 
+		[Header ("Game Integration")]
+		[Tooltip ("Reference to GameManager for starting single player games")]
+		[SerializeField] private GameManager gameManager;
+
 		[Header ("Variables")]
 		[SerializeField] private float loadingScreenDuration = 2f;
 
 		// Stack to manage screen navigation history
-		private Stack<GameObject> screenStack = new Stack<GameObject> ();
+		private System.Collections.Generic.Stack<GameObject> screenStack = new System.Collections.Generic.Stack<GameObject> ();
 
 		void Awake () {
 			// Initialize with main menu as the base screen
 			screenStack.Push (MainMenuScreen);
 			MainMenuScreen.SetActive (true);
+
+			// Find GameManager if not assigned
+			if (gameManager == null) {
+				gameManager = FindObjectOfType<GameManager> ();
+				if (gameManager == null) {
+					Debug.LogWarning ("MenuNavigation: GameManager not found!");
+				}
+			}
 		}
 
 		/// <summary>
@@ -90,6 +99,49 @@ namespace TakiGame {
 				SetScreenAndClearStack (targetScreen);
 			} else {
 				SetScreen (targetScreen);
+			}
+
+			// Start game AFTER screen is active
+			StartGameIfNeeded (targetScreen);
+		}
+
+		/// <summary>
+		/// Start appropriate game when game screen becomes active
+		/// Now uses proper separation between single player and multiplayer
+		/// </summary>
+		/// <param name="gameScreen">The game screen that just became active</param>
+		private void StartGameIfNeeded (GameObject gameScreen) {
+			if (gameScreen == SinglePlayerGameScreen) {
+				StartSinglePlayerGame ();
+			} else if (gameScreen == MultiPlayerGameScreen) {
+				StartMultiPlayerGame ();
+			}
+		}
+
+		/// <summary>
+		/// Start single player game through GameManager
+		/// Now initializes systems only when needed
+		/// </summary>
+		private void StartSinglePlayerGame () {
+			if (gameManager != null) {
+				Debug.Log ("MenuNavigation: Starting single player game...");
+				// CHANGED: Call the new single player specific method
+				gameManager.StartNewSinglePlayerGame ();
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot start game - GameManager not assigned!");
+			}
+		}
+
+		/// <summary>
+		/// Start multiplayer game (placeholder for future implementation)
+		/// </summary>
+		private void StartMultiPlayerGame () {
+			if (gameManager != null) {
+				Debug.Log ("MenuNavigation: Initializing multiplayer systems...");
+				// FUTURE: This will call gameManager.InitializeMultiPlayerSystems()
+				gameManager.InitializeMultiPlayerSystems ();
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot start multiplayer - GameManager not assigned!");
 			}
 		}
 
@@ -143,10 +195,16 @@ namespace TakiGame {
 
 		#region Game Start Logic
 
+		/// <summary>
+		/// Single player game start - only initializes single player systems
+		/// </summary>
 		public void Btn_PlaySinglePlayerLogic () {
 			StartCoroutine (ShowScreenTemporarily (LoadingScreen, SinglePlayerGameScreen, clearStack: true));
 		}
 
+		/// <summary>
+		/// Multiplayer game start - will initialize multiplayer systems (future)
+		/// </summary>
 		public void Btn_PlayMultiPlayerLogic () {
 			StartCoroutine (ShowScreenTemporarily (LoadingScreen, MultiPlayerGameScreen, clearStack: true));
 		}

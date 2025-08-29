@@ -1,6 +1,8 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.XR;
 
 namespace TakiGame {
 	/// <summary>
@@ -261,6 +263,26 @@ namespace TakiGame {
 			// This will be connected to DeckManager in the coordinator
 			// For now, return null and let the coordinator handle this
 			return null;
+		}
+
+		/// <summary>
+		/// Get a copy of the computer's hand for visual display
+		/// </summary>
+		/// <returns>Copy of computer's hand</returns>
+		public List<CardData> GetHandCopy () {
+			// Return a copy to prevent external modification
+			return new List<CardData> (computerHand);
+		}
+
+		/// <summary>
+		/// Debug method to log computer's current hand
+		/// Useful for testing visual card system
+		/// </summary>
+		public void LogCurrentHand () {
+			Debug.Log ($"Computer AI Hand ({computerHand.Count} cards):");
+			for (int i = 0; i < computerHand.Count; i++) {
+				Debug.Log ($"  [{i}] {computerHand [i].GetDisplayText ()}");
+			}
 		}
 
 		// Properties

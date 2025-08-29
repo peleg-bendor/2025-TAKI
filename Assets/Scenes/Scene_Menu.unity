@@ -179,7 +179,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Message
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1388,6 +1388,7 @@ MonoBehaviour:
   ExitingScreen: {fileID: 1561446172}
   SinglePlayerGameScreen: {fileID: 1707226804}
   MultiPlayerGameScreen: {fileID: 793150722}
+  gameManager: {fileID: 1026764713}
   loadingScreenDuration: 2
 --- !u!4 &286681467
 Transform:
@@ -5345,6 +5346,7 @@ GameObject:
   - component: {fileID: 887133208}
   - component: {fileID: 887133210}
   - component: {fileID: 887133209}
+  - component: {fileID: 887133211}
   m_Layer: 5
   m_Name: Player1HandPanel
   m_TagString: Untagged
@@ -5409,6 +5411,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 887133207}
   m_CullTransparentMesh: 1
+--- !u!114 &887133211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 887133207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c6448c9d85f3dc41abfeb3376615465, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handContainer: {fileID: 887133208}
+  cardPrefab: {fileID: 7544222337847360114, guid: dc80872064f20e142b2c7a2dc2bd1689, type: 3}
+  showFaceUpCards: 1
+  maxSpacing: 120
+  minSpacing: 40
+  tightSpacingThreshold: 8
+  horizontalPadding: 20
 --- !u!1 &888965484
 GameObject:
   m_ObjectHideFlags: 0
@@ -7212,6 +7233,8 @@ MonoBehaviour:
   deckManager: {fileID: 1099715888}
   startingPlayer: 0
   playerHand: []
+  playerHandManager: {fileID: 887133211}
+  computerHandManager: {fileID: 1555578958}
 --- !u!1 &1060675605
 GameObject:
   m_ObjectHideFlags: 0
@@ -10356,6 +10379,7 @@ GameObject:
   - component: {fileID: 1555578955}
   - component: {fileID: 1555578957}
   - component: {fileID: 1555578956}
+  - component: {fileID: 1555578958}
   m_Layer: 5
   m_Name: Player2HandPanel
   m_TagString: Untagged
@@ -10420,6 +10444,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555578954}
   m_CullTransparentMesh: 1
+--- !u!114 &1555578958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1555578954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c6448c9d85f3dc41abfeb3376615465, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handContainer: {fileID: 1555578955}
+  cardPrefab: {fileID: 7544222337847360114, guid: dc80872064f20e142b2c7a2dc2bd1689, type: 3}
+  showFaceUpCards: 0
+  maxSpacing: 120
+  minSpacing: 40
+  tightSpacingThreshold: 8
+  horizontalPadding: 20
 --- !u!1 &1561446172
 GameObject:
   m_ObjectHideFlags: 0
@@ -11400,7 +11443,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1678040292
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11735,7 +11778,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1707226805
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12236,13 +12279,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1829680381}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -1, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 669419366}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 180, y: 180, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
@@ -12302,8 +12345,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
