@@ -4,7 +4,8 @@ using TMPro;
 namespace TakiGame {
 	/// <summary>
 	/// Handles ONLY deck-related UI updates - NO conflicts with GameplayUIManager
-	/// Focuses on DrawPileCountText, DiscardPileCountText, and GameMessageText for deck events only
+	/// NOW INCLUDES pile visual management through PileManager integration
+	/// Focuses on DrawPileCountText, DiscardPileCountText, GameMessageText for deck events only
 	/// </summary>
 	public class DeckUIManager : MonoBehaviour {
 
@@ -18,6 +19,10 @@ namespace TakiGame {
 		[Header ("Deck Event Messages")]
 		[Tooltip ("GameMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
 		public TextMeshProUGUI gameMessageText;
+
+		[Header ("Visual Pile Management")]
+		[Tooltip ("PileManager component for visual pile cards")]
+		public PileManager pileManager;
 
 		[Header ("Deck Visual Panels")]
 		[Tooltip ("DrawPilePanel - visual container for draw pile")]
@@ -35,12 +40,23 @@ namespace TakiGame {
 		private bool hasTemporaryMessage = false;
 		private string originalMessage = "";
 
+		void Start () {
+			// Ensure PileManager is connected
+			if (pileManager == null) {
+				pileManager = GetComponent<PileManager> ();
+				if (pileManager == null) {
+					Debug.LogWarning ("DeckUIManager: PileManager not found! Pile visuals will not work.");
+				}
+			}
+		}
+
 		/// <summary>
-		/// Update the deck count displays
+		/// Update the deck count displays AND pile visuals
 		/// </summary>
 		/// <param name="drawCount">Number of cards in draw pile</param>
 		/// <param name="discardCount">Number of cards in discard pile</param>
 		public void UpdateDeckUI (int drawCount, int discardCount) {
+			// Update text counters
 			if (drawPileCountText != null) {
 				drawPileCountText.text = $"Draw: {drawCount}";
 			}
@@ -48,8 +64,12 @@ namespace TakiGame {
 			if (discardPileCountText != null) {
 				discardPileCountText.text = $"Discard: {discardCount}";
 			}
-		}
 
+			// Update visual piles
+			if (pileManager != null) {
+				pileManager.UpdateDrawPileDisplay (drawCount);
+			}
+		}
 		/// <summary>
 		/// Show deck-specific message (loading, shuffling, errors)
 		/// NOTE: Does NOT interfere with gameplay messages - only deck events
@@ -154,12 +174,18 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update discard pile visual (placeholder for Milestone 6)
+		/// Update discard pile visual with current top card
+		/// NOW FUNCTIONAL - Updates both text and visual pile
 		/// </summary>
 		/// <param name="topCard">Current top card</param>
 		public void UpdateDiscardPileDisplay (CardData topCard) {
-			// For now, just log the card
-			// In Milestone 6, this will update visual card prefab
+			// Update visual pile through PileManager
+			if (pileManager != null) {
+				pileManager.UpdateDiscardPileDisplay (topCard);
+			} else {
+				Debug.LogWarning ("DeckUIManager: Cannot update discard pile visual - PileManager not assigned!");
+			}
+
 			if (topCard != null) {
 				Debug.Log ($"Top discard card updated: {topCard.GetDisplayText ()}");
 			}
@@ -189,11 +215,30 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// Reset UI for new game - includes pile visuals
+		/// </summary>
+		public void ResetUIForNewGame () {
+			// Reset text displays
+			UpdateDeckUI (0, 0);
+			ShowLoadingMessage ();
+
+			// Reset pile visuals
+			if (pileManager != null) {
+				pileManager.ResetPiles ();
+			}
+		}
+
+		/// <summary>
 		/// Validate that required UI elements are assigned
 		/// </summary>
 		/// <returns>True if basic UI elements are present</returns>
 		public bool HasRequiredUIElements () {
 			bool hasElements = drawPileCountText != null && discardPileCountText != null;
+
+			if (pileManager == null) {
+				Debug.LogWarning ("DeckUIManager: PileManager not assigned - pile visuals will not work!");
+			}
+
 			if (!hasElements) {
 				Debug.LogWarning ("DeckUIManager: Missing required UI elements!");
 			}
@@ -203,5 +248,7 @@ namespace TakiGame {
 		// Properties
 		public bool HasActiveMessage => hasTemporaryMessage;
 		public string CurrentMessage => gameMessageText?.text ?? "";
+		public bool HasPileManager => pileManager != null;
+		public bool HasVisualPiles => pileManager?.HasDrawPileVisual == true || pileManager?.HasDiscardPileVisual == true;
 	}
 }
