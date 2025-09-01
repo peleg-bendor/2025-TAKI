@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace TakiGame {
-	/// <summary>
+	/// <summary> 
 	/// Handles individual card prefab behavior and visual representation
 	/// FIXED: Uses correct image paths matching actual folder structure
 	/// </summary>

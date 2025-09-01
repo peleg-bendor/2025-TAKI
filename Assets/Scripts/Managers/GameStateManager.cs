@@ -47,7 +47,7 @@ namespace TakiGame {
 			TurnState previousState = turnState;
 			turnState = newTurnState;
 
-			Debug.Log ($"Turn state changed: {previousState} -> {newTurnState}");
+			TakiLogger.LogGameState ($"Turn state changed: {previousState} -> {newTurnState}");
 			OnTurnStateChanged?.Invoke (newTurnState);
 		}
 
@@ -61,7 +61,7 @@ namespace TakiGame {
 			InteractionState previousState = interactionState;
 			interactionState = newInteractionState;
 
-			Debug.Log ($"Interaction state changed: {previousState} -> {newInteractionState}");
+			TakiLogger.LogGameState ($"Interaction state changed: {previousState} -> {newInteractionState}");
 			OnInteractionStateChanged?.Invoke (newInteractionState);
 		}
 
@@ -75,7 +75,7 @@ namespace TakiGame {
 			GameStatus previousStatus = gameStatus;
 			gameStatus = newGameStatus;
 
-			Debug.Log ($"Game status changed: {previousStatus} -> {newGameStatus}");
+			TakiLogger.LogGameState ($"Game status changed: {previousStatus} -> {newGameStatus}");
 			OnGameStatusChanged?.Invoke (newGameStatus);
 		}
 
@@ -89,7 +89,7 @@ namespace TakiGame {
 			CardColor previousColor = activeColor;
 			activeColor = newColor;
 
-			Debug.Log ($"Active color changed: {previousColor} -> {newColor}");
+			TakiLogger.LogGameState ($"Active color changed: {previousColor} -> {newColor}");
 			OnActiveColorChanged?.Invoke (newColor);
 		}
 
@@ -100,7 +100,7 @@ namespace TakiGame {
 			turnDirection = turnDirection == TurnDirection.Clockwise ?
 							TurnDirection.CounterClockwise : TurnDirection.Clockwise;
 
-			Debug.Log ($"Turn direction changed to: {turnDirection}");
+			TakiLogger.LogGameState ($"Turn direction changed to: {turnDirection}");
 			OnTurnDirectionChanged?.Invoke (turnDirection);
 		}
 
@@ -113,14 +113,14 @@ namespace TakiGame {
 		/// <returns>True if the move is legal</returns>
 		public bool IsValidMove (CardData cardToPlay, CardData topDiscardCard) {
 			if (cardToPlay == null || topDiscardCard == null) {
-				Debug.LogWarning ("Cannot validate move: Null card provided");
+				TakiLogger.LogWarning ("Cannot validate move: Null card provided", TakiLogger.LogCategory.Rules);
 				return false;
 			}
 
 			// Use the CanPlayOn method from CardData
 			bool isValid = cardToPlay.CanPlayOn (topDiscardCard, activeColor);
 
-			Debug.Log ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
+			TakiLogger.LogRules ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
 
 			return isValid;
 		}
@@ -165,7 +165,7 @@ namespace TakiGame {
 			ChangeTurnState (TurnState.Neutral);
 			ChangeInteractionState (InteractionState.Normal);
 
-			Debug.Log ($"Game Over! Winner: {winner}");
+			TakiLogger.LogGameState ($"Game Over! Winner: {winner}");
 			OnGameWon?.Invoke (winner);
 		}
 
@@ -179,7 +179,7 @@ namespace TakiGame {
 			activeColor = CardColor.Wild; // No color set initially
 			turnDirection = TurnDirection.Clockwise;
 
-			Debug.Log ("Game state reset for new game");
+			TakiLogger.LogGameState ("Game state reset for new game");
 		}
 
 		/// <summary>
@@ -231,7 +231,7 @@ namespace TakiGame {
 					return turnState.ToString ();
 			}
 		}
-
+		
 		// Properties for external access using new architecture
 		public bool IsGameActive => gameStatus == GameStatus.Active;
 		public bool IsPlayerTurn => turnState == TurnState.PlayerTurn;

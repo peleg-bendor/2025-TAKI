@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace TakiGame {
-	/// <summary>
+	/// <summary> 
 	/// Manages hand display and card prefab instantiation
 	/// Handles both player and computer hands with different facing
 	/// Manual positioning system with adaptive spacing

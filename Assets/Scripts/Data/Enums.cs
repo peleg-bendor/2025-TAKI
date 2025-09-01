@@ -1,6 +1,6 @@
 namespace TakiGame {
 	/// <summary>
-	/// Card colors in TAKI game
+	/// Card colors in TAKI game 
 	/// </summary>
 	public enum CardColor {
 		Red,

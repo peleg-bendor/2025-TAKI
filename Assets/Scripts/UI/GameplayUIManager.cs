@@ -40,9 +40,12 @@ namespace TakiGame {
 		[Tooltip ("Player2HandSizeText - computer player hand size")]
 		public TextMeshProUGUI player2HandSizeText;
 
-		[Header ("Computer Feedback")]
-		[Tooltip ("Player2MessageText - shows computer actions")]
-		public TextMeshProUGUI player2MessageText;
+		[Header ("Player Messages")]
+		[Tooltip ("GameMessageText - shows messages to player (instructions, warnings)")]
+		public TextMeshProUGUI playerMessageText;
+
+		[Tooltip ("Player2MessageText - shows computer actions and thinking")]
+		public TextMeshProUGUI computerMessageText;
 
 		[Header ("Color Selection")]
 		[Tooltip ("ColorSelectionPanel - show/hide for color selection")]
@@ -85,67 +88,67 @@ namespace TakiGame {
 		/// Connect button events to internal handlers - with validation
 		/// </summary>
 		void ConnectButtonEvents () {
-			Debug.Log ("Connecting button events with STRICT FLOW validation...");
+			TakiLogger.LogUI ("Connecting button events with STRICT FLOW validation...");
 
 			if (playCardButton != null) {
 				playCardButton.onClick.AddListener (() => {
-					Debug.Log ("=== PLAY CARD BUTTON CLICKED ===");
-					Debug.Log ($"Button enabled state: {playButtonEnabled}");
-					Debug.Log ($"Button interactable: {playCardButton.interactable}");
+					TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED ===");
+					TakiLogger.LogTurnFlow ($"Button enabled state: {playButtonEnabled}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button interactable: {playCardButton.interactable}", TakiLogger.LogLevel.Verbose);
 
 					if (!playButtonEnabled) {
-						Debug.LogWarning ("PLAY CARD clicked but button should be disabled!");
+						TakiLogger.LogWarning ("PLAY CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("Cannot play card right now!");
 						return;
 					}
 
 					OnPlayCardClicked?.Invoke ();
 				});
-				Debug.Log ("Play Card button event connected");
+				TakiLogger.LogSystem ("Play Card button event connected");
 			} else {
-				Debug.LogError ("Play Card button is NULL!");
+				TakiLogger.LogError ("Play Card button is NULL!", TakiLogger.LogCategory.UI);
 			}
 
 			if (drawCardButton != null) {
 				drawCardButton.onClick.AddListener (() => {
-					Debug.Log ("=== DRAW CARD BUTTON CLICKED ===");
-					Debug.Log ($"Button enabled state: {drawButtonEnabled}");
-					Debug.Log ($"Button interactable: {drawCardButton.interactable}");
+					TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED ===");
+					TakiLogger.LogTurnFlow ($"Button enabled state: {drawButtonEnabled}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button interactable: {drawCardButton.interactable}", TakiLogger.LogLevel.Verbose);
 
 					if (!drawButtonEnabled) {
-						Debug.LogWarning ("DRAW CARD clicked but button should be disabled!");
+						TakiLogger.LogWarning ("DRAW CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("Cannot draw card right now!");
 						return;
 					}
 
 					OnDrawCardClicked?.Invoke ();
 				});
-				Debug.Log ("Draw Card button event connected");
+				TakiLogger.LogSystem ("Draw Card button event connected");
 			} else {
-				Debug.LogError ("Draw Card button is NULL!");
+				TakiLogger.LogError ("Draw Card button is NULL!", TakiLogger.LogCategory.UI);
 			}
 
 			if (endTurnButton != null) {
 				endTurnButton.onClick.AddListener (() => {
-					Debug.Log ("=== END TURN BUTTON CLICKED ===");
-					Debug.Log ($"Button enabled state: {endTurnButtonEnabled}");
-					Debug.Log ($"Button interactable: {endTurnButton.interactable}");
+					TakiLogger.LogTurnFlow ("=== END TURN BUTTON CLICKED ===");
+					TakiLogger.LogTurnFlow ($"Button enabled state: {endTurnButtonEnabled}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button interactable: {endTurnButton.interactable}", TakiLogger.LogLevel.Verbose);
 
 					if (!endTurnButtonEnabled) {
-						Debug.LogWarning ("END TURN clicked but button should be disabled!");
+						TakiLogger.LogWarning ("END TURN clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("You must take an action first!");
 						return;
 					}
 
 					// Immediately disable all buttons to prevent multiple clicks
-					Debug.Log ("IMMEDIATELY disabling all buttons after END TURN click");
+					TakiLogger.LogTurnFlow ("IMMEDIATELY disabling all buttons after END TURN click");
 					UpdateStrictButtonStates (false, false, false);
 
 					OnEndTurnClicked?.Invoke ();
 				});
-				Debug.Log ("End Turn button event connected");
+				TakiLogger.LogSystem ("End Turn button event connected");
 			} else {
-				Debug.LogError ("End Turn button is NULL!");
+				TakiLogger.LogError ("End Turn button is NULL!", TakiLogger.LogCategory.UI);
 			}
 
 			// Color selection buttons
@@ -162,7 +165,7 @@ namespace TakiGame {
 				selectYellowButton.onClick.AddListener (() => SelectColor (CardColor.Yellow));
 			}
 
-			Debug.Log ("All button events connected with strict flow validation");
+			TakiLogger.LogSystem ("All button events connected with strict flow validation");
 		}
 
 		/// <summary>
@@ -190,10 +193,10 @@ namespace TakiGame {
 		/// <param name="enableDraw">Enable/disable DRAW button</param>
 		/// <param name="enableEndTurn">Enable/disable END TURN button</param>
 		public void UpdateStrictButtonStates (bool enablePlay, bool enableDraw, bool enableEndTurn) {
-			Debug.Log ("=== UPDATING STRICT BUTTON STATES ===");
-			Debug.Log ($"PLAY: {(enablePlay ? "ENABLED" : "DISABLED")}");
-			Debug.Log ($"DRAW: {(enableDraw ? "ENABLED" : "DISABLED")}");
-			Debug.Log ($"END TURN: {(enableEndTurn ? "ENABLED" : "DISABLED")}");
+			TakiLogger.LogTurnFlow ("=== UPDATING STRICT BUTTON STATES ===");
+			TakiLogger.LogTurnFlow ($"PLAY: {(enablePlay ? "ENABLED" : "DISABLED")}");
+			TakiLogger.LogTurnFlow ($"DRAW: {(enableDraw ? "ENABLED" : "DISABLED")}");
+			TakiLogger.LogTurnFlow ($"END TURN: {(enableEndTurn ? "ENABLED" : "DISABLED")}");
 
 			// Update internal state tracking
 			playButtonEnabled = enablePlay;
@@ -203,17 +206,17 @@ namespace TakiGame {
 			// Update actual button states
 			if (playCardButton != null) {
 				playCardButton.interactable = enablePlay;
-				Debug.Log ($"Play Card button updated: {(enablePlay ? "ENABLED" : "DISABLED")}");
+				TakiLogger.LogTurnFlow ($"Play Card button updated: {(enablePlay ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
 			}
 
 			if (drawCardButton != null) {
 				drawCardButton.interactable = enableDraw;
-				Debug.Log ($"Draw Card button updated: {(enableDraw ? "ENABLED" : "DISABLED")}");
+				TakiLogger.LogTurnFlow ($"Draw Card button updated: {(enableDraw ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
 			}
 
 			if (endTurnButton != null) {
 				endTurnButton.interactable = enableEndTurn;
-				Debug.Log ($"End Turn button updated: {(enableEndTurn ? "ENABLED" : "DISABLED")}");
+				TakiLogger.LogTurnFlow ($"End Turn button updated: {(enableEndTurn ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
 			}
 
 			// Pause button should always be available (when implemented)
@@ -221,58 +224,58 @@ namespace TakiGame {
 				pauseButton.interactable = true;
 			}
 
-			Debug.Log ("Strict button state update complete");
+			TakiLogger.LogTurnFlow ("Strict button state update complete", TakiLogger.LogLevel.Debug);
 		}
 
 		/// <summary>
 		/// Update turn display
 		/// </summary>
 		public void UpdateTurnDisplay (TurnState turnState) {
-			Debug.Log ($"=== UPDATING TURN DISPLAY for {turnState} ===");
+			TakiLogger.LogUI ($"=== UPDATING TURN DISPLAY for {turnState} ===", TakiLogger.LogLevel.Debug);
 
 			if (turnIndicatorText != null) {
 				string turnMessage = GetTurnMessage (turnState);
 				turnIndicatorText.text = turnMessage;
-				Debug.Log ($"Turn indicator text: '{turnMessage}'");
+				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Verbose);
 			}
 
 			// Do NOT automatically update button states here
 			// Button states are controlled by GameManager's strict flow system
-			Debug.Log ("Turn display updated - button states controlled by strict flow system");
+			TakiLogger.LogTurnFlow ("Turn display updated - button states controlled by strict flow system", TakiLogger.LogLevel.Debug);
 		}
 
 		/// <summary>
 		/// Validate current button states for debugging
 		/// </summary>
 		public void ValidateButtonStates () {
-			Debug.Log ("=== VALIDATING STRICT BUTTON STATES ===");
-			Debug.Log ($"Internal state - Play: {playButtonEnabled}, Draw: {drawButtonEnabled}, EndTurn: {endTurnButtonEnabled}");
+			TakiLogger.LogDiagnostics ("=== VALIDATING STRICT BUTTON STATES ===");
+			TakiLogger.LogDiagnostics ($"Internal state - Play: {playButtonEnabled}, Draw: {drawButtonEnabled}, EndTurn: {endTurnButtonEnabled}");
 
 			if (playCardButton != null) {
 				bool actualPlay = playCardButton.interactable;
-				Debug.Log ($"Play Card - Expected: {playButtonEnabled}, Actual: {actualPlay}, Match: {playButtonEnabled == actualPlay}");
+				TakiLogger.LogDiagnostics ($"Play Card - Expected: {playButtonEnabled}, Actual: {actualPlay}, Match: {playButtonEnabled == actualPlay}");
 				if (playButtonEnabled != actualPlay) {
-					Debug.LogWarning ("MISMATCH in Play Card button state!");
+					TakiLogger.LogWarning ("MISMATCH in Play Card button state!", TakiLogger.LogCategory.UI);
 				}
 			}
 
 			if (drawCardButton != null) {
 				bool actualDraw = drawCardButton.interactable;
-				Debug.Log ($"Draw Card - Expected: {drawButtonEnabled}, Actual: {actualDraw}, Match: {drawButtonEnabled == actualDraw}");
+				TakiLogger.LogDiagnostics ($"Draw Card - Expected: {drawButtonEnabled}, Actual: {actualDraw}, Match: {drawButtonEnabled == actualDraw}");
 				if (drawButtonEnabled != actualDraw) {
-					Debug.LogWarning ("MISMATCH in Draw Card button state!");
+					TakiLogger.LogWarning ("MISMATCH in Draw Card button state!", TakiLogger.LogCategory.UI);
 				}
 			}
 
 			if (endTurnButton != null) {
 				bool actualEndTurn = endTurnButton.interactable;
-				Debug.Log ($"End Turn - Expected: {endTurnButtonEnabled}, Actual: {actualEndTurn}, Match: {endTurnButtonEnabled == actualEndTurn}");
+				TakiLogger.LogDiagnostics ($"End Turn - Expected: {endTurnButtonEnabled}, Actual: {actualEndTurn}, Match: {endTurnButtonEnabled == actualEndTurn}");
 				if (endTurnButtonEnabled != actualEndTurn) {
-					Debug.LogWarning ("MISMATCH in End Turn button state!");
+					TakiLogger.LogWarning ("MISMATCH in End Turn button state!", TakiLogger.LogCategory.UI);
 				}
 			}
 
-			Debug.Log ("Button state validation complete");
+			TakiLogger.LogDiagnostics ("Button state validation complete");
 		}
 
 		/// <summary>
@@ -280,8 +283,8 @@ namespace TakiGame {
 		/// Used when action was successful and player must end turn
 		/// </summary>
 		public void ForceEnableEndTurn () {
-			Debug.Log ("=== FORCE ENABLING END TURN BUTTON ===");
-			Debug.Log ("Action was successful - player must now END TURN");
+			TakiLogger.LogTurnFlow ("=== FORCE ENABLING END TURN BUTTON ===");
+			TakiLogger.LogTurnFlow ("Action was successful - player must now END TURN");
 
 			// Enable only END TURN button
 			UpdateStrictButtonStates (false, false, true);
@@ -291,8 +294,8 @@ namespace TakiGame {
 		/// ENHANCED: Emergency button state fix (for debugging)
 		/// </summary>
 		public void EmergencyButtonFix (bool enablePlay, bool enableDraw, bool enableEndTurn) {
-			Debug.Log ("=== EMERGENCY BUTTON STATE FIX ===");
-			Debug.Log ("WARNING: Emergency fix called - check turn flow logic");
+			TakiLogger.LogDiagnostics ("=== EMERGENCY BUTTON STATE FIX ===");
+			TakiLogger.LogWarning ("WARNING: Emergency fix called - check turn flow logic", TakiLogger.LogCategory.UI);
 
 			UpdateStrictButtonStates (enablePlay, enableDraw, enableEndTurn);
 			ValidateButtonStates ();
@@ -303,17 +306,18 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Log Complete UI State")]
 		public void LogCompleteUIState () {
-			Debug.Log ("=== COMPLETE UI STATE DEBUG ===");
-			Debug.Log ($"Turn indicator: '{(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}'");
-			Debug.Log ($"Computer message: '{(player2MessageText != null ? player2MessageText.text : "NULL")}'");
-			Debug.Log ($"Color selection active: {(colorSelectionPanel != null ? colorSelectionPanel.activeSelf : false)}");
+			TakiLogger.LogDiagnostics ("=== COMPLETE UI STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ($"Turn indicator: '{(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}'");
+			TakiLogger.LogDiagnostics ($"Player message: '{(playerMessageText != null ? playerMessageText.text : "NULL")}'");
+			TakiLogger.LogDiagnostics ($"Computer message: '{(computerMessageText != null ? computerMessageText.text : "NULL")}'");
+			TakiLogger.LogDiagnostics ($"Color selection active: {(colorSelectionPanel != null ? colorSelectionPanel.activeSelf : false)}");
 
 			if (currentColorIndicator != null) {
-				Debug.Log ($"Color indicator: {currentColorIndicator.color}");
+				TakiLogger.LogDiagnostics ($"Color indicator: {currentColorIndicator.color}");
 			}
 
 			ValidateButtonStates ();
-			Debug.Log ("=== UI STATE DEBUG COMPLETE ===");
+			TakiLogger.LogDiagnostics ("=== UI STATE DEBUG COMPLETE ===");
 		}
 
 		/// <summary>
@@ -321,21 +325,28 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Test Button States")]
 		public void TestButtonStates () {
-			Debug.Log ("=== TESTING BUTTON STATES MANUALLY ===");
+			TakiLogger.LogDiagnostics ("=== TESTING BUTTON STATES MANUALLY ===");
 
-			Debug.Log ("Testing: All disabled");
+			TakiLogger.LogDiagnostics ("Testing: All disabled");
 			UpdateStrictButtonStates (false, false, false);
 			ValidateButtonStates ();
 
-			Debug.Log ("Testing: Can play and draw");
+			TakiLogger.LogDiagnostics ("Testing: Can play and draw");
 			UpdateStrictButtonStates (true, true, false);
 			ValidateButtonStates ();
 
-			Debug.Log ("Testing: Must end turn");
+			TakiLogger.LogDiagnostics ("Testing: Must end turn");
 			UpdateStrictButtonStates (false, false, true);
 			ValidateButtonStates ();
 
-			Debug.Log ("Button state testing complete");
+			TakiLogger.LogDiagnostics ("Button state testing complete");
+		}
+
+		[ContextMenu ("Test Message Routing")]
+		public void TestMessageRouting () {
+			ShowPlayerMessage ("TEST: Player instruction message");
+			ShowComputerMessage ("TEST: Computer action message");
+			TakiLogger.LogDiagnostics ("Message routing test complete - check UI text elements");
 		}
 
 		/// <summary>
@@ -380,12 +391,23 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Show computer action message
+		/// Show message to player (instructions, warnings, guidance)
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		public void ShowPlayerMessage (string message) {
+			if (playerMessageText != null) {
+				playerMessageText.text = message;
+			}
+		}
+
+		/// <summary>
+		/// Show computer action message (AI thinking, actions)
+		/// UPDATED: Now uses computerMessageText instead of gameMessageText
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		public void ShowComputerMessage (string message) {
-			if (player2MessageText != null) {
-				player2MessageText.text = message;
+			if (computerMessageText != null) {
+				computerMessageText.text = message;
 			}
 		}
 
@@ -400,7 +422,7 @@ namespace TakiGame {
 
 			// Disable all action buttons during color selection
 			if (show) {
-				Debug.Log ("Color selection active - disabling all action buttons");
+				TakiLogger.LogUI ("Color selection active - disabling all action buttons");
 				UpdateStrictButtonStates (false, false, false);
 			}
 		}
@@ -419,15 +441,15 @@ namespace TakiGame {
 			// Notify external systems
 			OnColorSelected?.Invoke (selectedColor);
 
-			Debug.Log ($"Player selected color: {selectedColor}");
+			TakiLogger.LogUI ($"Player selected color: {selectedColor}");
 		}
 
 		/// <summary>
 		/// LEGACY: Basic button state update (kept for compatibility)
 		/// </summary>
 		public void UpdateButtonStates (bool enabled) {
-			Debug.Log ($"=== LEGACY BUTTON UPDATE to {(enabled ? "ENABLED" : "DISABLED")} ===");
-			Debug.LogWarning ("WARNING: Using legacy UpdateButtonStates - prefer UpdateStrictButtonStates");
+			TakiLogger.LogUI ($"=== LEGACY BUTTON UPDATE to {(enabled ? "ENABLED" : "DISABLED")} ===", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogWarning ("WARNING: Using legacy UpdateButtonStates - prefer UpdateStrictButtonStates", TakiLogger.LogCategory.UI);
 
 			// Convert to strict button control
 			if (enabled) {
@@ -451,11 +473,13 @@ namespace TakiGame {
 				turnIndicatorText.text = winnerText;
 			}
 
-			ShowComputerMessage ("Game Over");
+			ShowPlayerMessage ("");
+
+			ShowComputerMessage ("");
 
 			// Disable all action buttons on game over
 			UpdateStrictButtonStates (false, false, false);
-			Debug.Log ("Game over - all buttons disabled");
+			TakiLogger.LogGameState ("Game over - all buttons disabled");
 		}
 
 		/// <summary>
@@ -466,7 +490,6 @@ namespace TakiGame {
 				turnIndicatorText.text = "New Game";
 			}
 
-			ShowComputerMessage ("Starting new game...");
 			UpdateActiveColorDisplay (CardColor.Wild);
 			UpdateHandSizeDisplay (0, 0);
 			ShowColorSelection (false);
@@ -501,8 +524,8 @@ namespace TakiGame {
 		/// <param name="interactionState">Current interaction state</param>
 		/// <param name="activeColor">Current active color</param>
 		public void UpdateAllDisplays (TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor) {
-			Debug.Log ("=== UPDATING ALL DISPLAYS ===");
-			Debug.Log ($"Turn: {turnState}, Status: {gameStatus}, Interaction: {interactionState}, Color: {activeColor}");
+			TakiLogger.LogUI ("=== UPDATING ALL DISPLAYS ===", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogUI ($"Turn: {turnState}, Status: {gameStatus}, Interaction: {interactionState}, Color: {activeColor}", TakiLogger.LogLevel.Debug);
 
 			UpdateTurnDisplay (turnState);
 			UpdateActiveColorDisplay (activeColor);
@@ -522,7 +545,7 @@ namespace TakiGame {
 				UpdateStrictButtonStates (false, false, false);
 			}
 
-			Debug.Log ("All displays updated");
+			TakiLogger.LogUI ("All displays updated", TakiLogger.LogLevel.Debug);
 		}
 
 		///// <summary>
@@ -530,31 +553,31 @@ namespace TakiGame {
 		///// </summary>
 		//[ContextMenu ("Log UI State")]
 		//public void LogUIState () {
-		//	Debug.Log ("=== COMPLETE UI STATE DEBUG ===");
-		//	Debug.Log ($"buttonsEnabled: {buttonsEnabled}");
-		//	Debug.Log ($"Turn indicator text: '{(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}'");
-		//	Debug.Log ($"Computer message text: '{(player2MessageText != null ? player2MessageText.text : "NULL")}'");
-		//	Debug.Log ($"Color selection active: {(colorSelectionPanel != null ? colorSelectionPanel.activeSelf : false)}");
+		//	TakiLogger.LogDiagnostics ("=== COMPLETE UI STATE DEBUG ===");
+		//	TakiLogger.LogDiagnostics ($"buttonsEnabled: {buttonsEnabled}");
+		//	TakiLogger.LogDiagnostics ($"Turn indicator text: '{(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}'");
+		//	TakiLogger.LogDiagnostics ($"Computer message text: '{(gameMessageText != null ? gameMessageText.text : "NULL")}'");
+		//	TakiLogger.LogDiagnostics ($"Color selection active: {(colorSelectionPanel != null ? colorSelectionPanel.activeSelf : false)}");
 
 		//	ValidateButtonStates ();
 
 		//	if (currentColorIndicator != null) {
-		//		Debug.Log ($"Current color indicator: {currentColorIndicator.color}");
+		//		TakiLogger.LogDiagnostics ($"Current color indicator: {currentColorIndicator.color}");
 		//	}
 
-		//	Debug.Log ("=== UI STATE DEBUG COMPLETE ===");
+		//	TakiLogger.LogDiagnostics ("=== UI STATE DEBUG COMPLETE ===");
 		//}
 
 		/// <summary>
 		/// Force button state refresh (for emergency fixing)
 		/// </summary>
 		public void ForceButtonRefresh (bool enableState) {
-			Debug.Log ($"=== FORCE BUTTON REFRESH to {(enableState ? "ENABLED" : "DISABLED")} ===");
+			TakiLogger.LogDiagnostics ($"=== FORCE BUTTON REFRESH to {(enableState ? "ENABLED" : "DISABLED")} ===");
 			UpdateButtonStates (enableState);
 			ValidateButtonStates ();
 		}
 
-		// Properties
+		// Properties 
 		public bool PlayButtonEnabled => playButtonEnabled;
 		public bool DrawButtonEnabled => drawButtonEnabled;
 		public bool EndTurnButtonEnabled => endTurnButtonEnabled;

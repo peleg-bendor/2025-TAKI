@@ -5,7 +5,7 @@ namespace TakiGame {
 	/// <summary>
 	/// Handles ONLY deck-related UI updates - NO conflicts with GameplayUIManager
 	/// NOW INCLUDES pile visual management through PileManager integration
-	/// Focuses on DrawPileCountText, DiscardPileCountText, GameMessageText for deck events only
+	/// Focuses on DrawPileCountText, DiscardPileCountText, DeckMessageText for deck events only
 	/// </summary>
 	public class DeckUIManager : MonoBehaviour {
 
@@ -17,8 +17,8 @@ namespace TakiGame {
 		public TextMeshProUGUI discardPileCountText;
 
 		[Header ("Deck Event Messages")]
-		[Tooltip ("GameMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
-		public TextMeshProUGUI gameMessageText;
+		[Tooltip ("DeckMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
+		public TextMeshProUGUI deckMessageText;
 
 		[Header ("Visual Pile Management")]
 		[Tooltip ("PileManager component for visual pile cards")]
@@ -45,7 +45,7 @@ namespace TakiGame {
 			if (pileManager == null) {
 				pileManager = GetComponent<PileManager> ();
 				if (pileManager == null) {
-					Debug.LogWarning ("DeckUIManager: PileManager not found! Pile visuals will not work.");
+					TakiLogger.LogWarning ("DeckUIManager: PileManager not found! Pile visuals will not work.", TakiLogger.LogCategory.Deck);
 				}
 			}
 		}
@@ -77,16 +77,16 @@ namespace TakiGame {
 		/// <param name="message">Deck message to display</param>
 		/// <param name="isTemporary">If true, message will auto-clear</param>
 		public void ShowDeckMessage (string message, bool isTemporary = true) {
-			if (gameMessageText != null) {
+			if (deckMessageText != null) {
 				// Store original message if we're showing a temporary one
 				if (isTemporary && !hasTemporaryMessage) {
-					originalMessage = gameMessageText.text;
+					originalMessage = deckMessageText.text;
 				}
 
-				gameMessageText.text = message;
+				deckMessageText.text = message;
 			}
 
-			Debug.Log ($"Deck Message: {message}");
+			TakiLogger.LogDeck ($"Deck Message: {message}");
 
 			if (isTemporary) {
 				hasTemporaryMessage = true;
@@ -101,8 +101,8 @@ namespace TakiGame {
 		/// Clear temporary deck message and restore previous
 		/// </summary>
 		void ClearTemporaryMessage () {
-			if (gameMessageText != null) {
-				gameMessageText.text = originalMessage;
+			if (deckMessageText != null) {
+				deckMessageText.text = originalMessage;
 			}
 			hasTemporaryMessage = false;
 			messageTimer = 0f;
@@ -183,11 +183,11 @@ namespace TakiGame {
 			if (pileManager != null) {
 				pileManager.UpdateDiscardPileDisplay (topCard);
 			} else {
-				Debug.LogWarning ("DeckUIManager: Cannot update discard pile visual - PileManager not assigned!");
+				TakiLogger.LogWarning ("DeckUIManager: Cannot update discard pile visual - PileManager not assigned!", TakiLogger.LogCategory.Deck);
 			}
 
 			if (topCard != null) {
-				Debug.Log ($"Top discard card updated: {topCard.GetDisplayText ()}");
+				TakiLogger.LogDeck ($"Top discard card updated: {topCard.GetDisplayText ()}", TakiLogger.LogLevel.Verbose);
 			}
 		}
 
@@ -197,8 +197,8 @@ namespace TakiGame {
 		/// <param name="message">Permanent message</param>
 		public void SetPermanentMessage (string message) {
 			originalMessage = message;
-			if (!hasTemporaryMessage && gameMessageText != null) {
-				gameMessageText.text = message;
+			if (!hasTemporaryMessage && deckMessageText != null) {
+				deckMessageText.text = message;
 			}
 		}
 
@@ -206,8 +206,8 @@ namespace TakiGame {
 		/// Clear all messages
 		/// </summary>
 		public void ClearAllMessages () {
-			if (gameMessageText != null) {
-				gameMessageText.text = "";
+			if (deckMessageText != null) {
+				deckMessageText.text = "";
 			}
 			originalMessage = "";
 			hasTemporaryMessage = false;
@@ -236,18 +236,18 @@ namespace TakiGame {
 			bool hasElements = drawPileCountText != null && discardPileCountText != null;
 
 			if (pileManager == null) {
-				Debug.LogWarning ("DeckUIManager: PileManager not assigned - pile visuals will not work!");
+				TakiLogger.LogWarning ("DeckUIManager: PileManager not assigned - pile visuals will not work!", TakiLogger.LogCategory.Deck);
 			}
 
 			if (!hasElements) {
-				Debug.LogWarning ("DeckUIManager: Missing required UI elements!");
+				TakiLogger.LogWarning ("DeckUIManager: Missing required UI elements!", TakiLogger.LogCategory.UI);
 			}
 			return hasElements;
 		}
 
-		// Properties
+		// Properties 
 		public bool HasActiveMessage => hasTemporaryMessage;
-		public string CurrentMessage => gameMessageText?.text ?? "";
+		public string CurrentMessage => deckMessageText?.text ?? "";
 		public bool HasPileManager => pileManager != null;
 		public bool HasVisualPiles => pileManager?.HasDrawPileVisual == true || pileManager?.HasDiscardPileVisual == true;
 	}

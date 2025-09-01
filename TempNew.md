@@ -341,7 +341,7 @@ namespace TakiGame {
 			}
 		}
 
-		// Properties 
+		// Properties
 		public int HandSize => computerHand.Count;
 		public bool HasCards => computerHand.Count > 0;
 		public List<CardData> Hand => new List<CardData> (computerHand); // Safe copy

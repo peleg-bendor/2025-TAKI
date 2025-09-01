@@ -248,7 +248,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Manual setup for testing
+		/// Manual setup for testing 
 		/// </summary>
 		void Start () {
 			// Auto-find components if not assigned

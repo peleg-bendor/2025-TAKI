@@ -3,7 +3,7 @@
 
 ### ⚠️ CRITICAL NOTES
 - **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **Current Status**: Phase 1 Complete ✅, Phase 2 Complete ✅, Phase 3 Complete ✅, Phase 4 Complete ✅, Currently at Milestone 8 🎯
+- **Current Status**: Phase 1-4 Complete ✅, Currently at **Code Cleanup & Logging Improvements** 🎯
 - **Target Platform**: PC/Desktop Unity Build
 - **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
 
@@ -15,7 +15,6 @@
 ```
 Scripts/
 ├── Controllers/
-│   └── CardDataTester.cs
 ├── Core/
 │   ├── AI/
 │   │   └── BasicComputerAI.cs
@@ -78,7 +77,7 @@ Resources/
 └── TextMesh Pro
 ```
 
-### Scene Hierarchy (UPDATED NAMES):
+### Scene Hierarchy:
 ```
 Scene_Menu
 ├── Main Camera
@@ -103,18 +102,19 @@ Scene_Menu
 │   │   │           └── Player1HandSizeText - Hand size display
 │   │   ├── Player2Panel (Computer Player)
 │   │   │   ├── Player2HandPanel - (Components: HandManager)
-│   │   │   └── GameMessagePanel (RENAMED from Player2MessagePanel)
-│   │   │       ├── GameMessageText (RENAMED from Player2MessageText) - Game feedback
+│   │   │   └── Player2ActionPanel
+│   │   │       ├── Player2MessageText - Computer actions and thinking
 │   │   │       └── Player2HandSizePanel 
 │   │   │           └── Player2HandSizeText - Computer hand size
 │   │   ├── GameBoardPanel
 │   │   │   ├── DrawPilePanel
+│   │   │   │   └── DrawPileCountText - Draw pile count
 │   │   │   └── DiscardPilePanel
+│   │   │       └── DiscardPileCountText - Discard pile count
 │   │   ├── GameInfoPanel
 │   │   │   ├── TurnIndicatorText - Current turn display
-│   │   │   ├── DrawPileCountText - Draw pile count
-│   │   │   ├── DiscardPileCountText - Discard pile count
-│   │   │   └── DeckMessageText (RENAMED from GameMessageText) - Deck event messages
+│   │   │   ├── DeckMessageText - Deck event messages
+│   │   │   └── GameMessageText - General game feedback
 │   │   ├── ColorSelectionPanel - Color choice UI
 │   │   │   ├── Btn_SelectRed
 │   │   │   ├── Btn_SelectBlue
@@ -133,7 +133,6 @@ Scene_Menu
 ├── MenuManager
 ├── BackgroundMusic
 ├── SFXController
-├── CardDataTester
 └── GameManager
 ```
 
@@ -260,57 +259,70 @@ Scene_Menu
 
 ---
 
-## Phase 5: Code Quality & Documentation 🎯
+## Phase 5: Code Quality & Polish 🎯
 
-## 🎯 **Current Milestone 8: Project Documentation & Code Cleanup**
+## 🎯 **Current Focus: Code Cleanup & Logging Improvements**
 
-### **Primary Goal**: Create comprehensive script documentation and clean up excessive logging
-**Status**: 🎯 **CURRENT FOCUS** - Starting implementation
+### **Primary Goal**: Clean up excessive logging and implement proper log level system
+**Status**: 🎯 **IMMEDIATE FOCUS** - Ready for implementation
 
-### **Step A: Complete Script Documentation System** 🎯 IMMEDIATE
-**Objective**: Create master documentation for all scripts to streamline development workflow
+### **Objectives**:
+1. **Implement Log Level System**: Create configurable logging with different verbosity levels
+2. **Clean Console Output**: Reduce debug spam while preserving essential information
+3. **Organize Debug Messages**: Categorize logs by system (Turn Flow, Card Play, AI, UI, etc.)
+4. **Preserve Critical Logs**: Keep important game state and error messages
+5. **Add Production Mode**: Toggle for minimal logging in release builds
 
-**Tasks**:
-1. **Create Script Summary Document**: Document all 25+ scripts with:
-   - Purpose and responsibility
-   - Key methods and properties
-   - Dependencies and integrations
-   - Usage patterns and examples
-2. **Build Prompt Optimization System**: Create reference guide for:
-   - Which scripts are needed for specific tasks
-   - Script interaction patterns
-   - Common modification scenarios
-3. **Analyze Current Architecture**: Thorough review of:
-   - Component relationships and dependencies
-   - Event system connections
-   - Data flow patterns
-   - Performance characteristics
+### **Implementation Tasks**:
 
-### **Step B: Logging System Cleanup** 
-**Objective**: Reduce verbose logging to essential debugging information only
+#### **A. Create Log Management System**:
+```csharp
+// New utility class for centralized logging
+public enum LogLevel { None, Error, Warning, Info, Debug, Verbose }
+public static class TakiLogger {
+    public static LogLevel currentLogLevel = LogLevel.Info;
+    public static void LogTurnFlow(string message) { /* conditional logging */ }
+    public static void LogCardPlay(string message) { /* conditional logging */ }
+    public static void LogAI(string message) { /* conditional logging */ }
+    public static void LogUI(string message) { /* conditional logging */ }
+}
+```
 
-**Tasks**:
-- **Identify Log Categories**: Separate critical logs from debug spam
-- **Implement Log Levels**: Create system for different verbosity levels
-- **Clean Up Debug Messages**: Remove excessive logs that clutter console
-- **Preserve Essential Logging**: Keep important game state and error messages
-- **Add Production Mode**: Toggle for minimal logging in release builds
+#### **B. Categorize Existing Logs**:
+- **Turn Flow**: All strict turn flow messages
+- **Card Play**: Card validation and play messages  
+- **AI System**: Computer decision making
+- **UI Updates**: Button states and display changes
+- **Game State**: Critical state transitions
+- **Errors**: Always show regardless of log level
+
+#### **C. Update All Scripts**:
+- Replace `Debug.Log()` calls with categorized logging
+- Add log level configuration to GameManager
+- Create inspector toggle for production mode
+- Preserve error and warning messages always
+
+#### **D. Performance Optimization**:
+- Remove string concatenation in disabled log calls
+- Use conditional compilation for release builds
+- Cache frequently logged strings
+- Optimize debug message formatting
 
 ---
 
 ## Phase 6: Game Flow Enhancement
 
-### Milestone 9: Pause System Implementation
+### Next Milestone: Pause System Implementation
 **Objective**: Implement functional pause button with proper game state management
 
 **Tasks**:
 - Create pause screen UI overlay
-- Implement pause/resume functionality in GameStateManager
+- Implement pause/resume functionality in GameStateManager  
 - Handle pause state in turn system and AI
 - Add pause button integration
 - Test pause during different game states
 
-### Milestone 10: Game End Screen System
+### Future Milestone: Game End Screen System
 **Objective**: Professional game over experience with proper flow control
 
 **Tasks**:
@@ -327,29 +339,11 @@ Scene_Menu
   - Verify button functionality
   - Ensure proper state resets
 
-### Milestone 11: UI Hierarchy Restructuring
-**Objective**: Clean up UI naming to match actual functionality
-
-**Tasks**:
-- **Unity Engine Renaming**:
-  - `GameMessageText` → `DeckMessageText`
-  - `Player2MessagePanel` → `GameMessagePanel`  
-  - `Player2MessageText` → `GameMessageText`
-- **Script Reference Updates**:
-  - Update all script references to renamed UI elements
-  - Verify all GameObject.Find() calls
-  - Update inspector references in prefabs
-  - Test all UI connections post-rename
-- **Documentation Updates**:
-  - Update development plan with new names
-  - Update script documentation
-  - Update any comments referencing old names
-
 ---
 
 ## Phase 7: Special Cards Implementation
 
-### Milestone 12: Basic Special Cards - Real Implementation
+### Future Milestone: Basic Special Cards - Real Implementation
 **Objective**: Implement actual special card effects (after basic gameplay confirmed working)
 
 **Implementation Order**:
@@ -361,7 +355,7 @@ Scene_Menu
 6. **Taki Card**: Multi-card play sequence of same color
 7. **SuperTaki Card**: Multi-card play sequence of any color
 
-### Milestone 13: Advanced Special Card Mechanics
+### Future Milestone: Advanced Special Card Mechanics
 **Objective**: Complex card interactions and chaining
 
 **Tasks**:
@@ -375,7 +369,7 @@ Scene_Menu
 
 ## Phase 8: Final Polish & Release Preparation
 
-### Milestone 14: Final Polish & Testing
+### Future Milestone: Final Polish & Testing
 **Objective**: Complete game polish for release
 
 **Tasks**:
@@ -390,14 +384,15 @@ Scene_Menu
 
 ## Current Architecture Highlights
 
-### **Strict Turn Flow System** (NEW - Milestone 7):
+### **Strict Turn Flow System** (Enhanced):
 ```csharp
-// Bulletproof turn control
+// Bulletproof turn control with comprehensive logging
 - Player takes ONE action (PLAY or DRAW)
 - Action buttons immediately disabled on click
 - END TURN button enabled only after action
 - Clear feedback for all game states
 - Special card effects logged but simplified for testing
+- Enhanced button state tracking and validation
 ```
 
 ### **Multi-Enum State Management**:
@@ -416,13 +411,12 @@ HandManager: Dynamic hand layout, card positioning, user interaction
 PileManager: Draw/discard pile visual representation
 ```
 
-### **UI Ownership Architecture** (TO BE UPDATED):
+### **Clean UI Messaging System**:
 ```csharp
-// Clear separation of UI responsibilities (with new naming)
-GameplayUIManager: Turn display, player actions, game feedback
-DeckUIManager: Draw/discard counts, deck event messages only  
-HandManager: Player/computer hand visual display
-PileManager: Draw/discard pile visual cards
+// Proper message routing with updated hierarchy
+GameplayUIManager.ShowPlayerMessage(): Instructions and warnings to player
+GameplayUIManager.ShowComputerMessage(): AI actions and thinking messages
+DeckUIManager: Deck-specific events and counts only
 ```
 
 ---
@@ -436,31 +430,30 @@ PileManager: Draw/discard pile visual cards
 - **Multi-Enum State**: Separate enums for different state aspects
 - **Visual-Data Separation**: CardData separate from visual representation
 - **Strict Turn Flow**: One action per turn with enforced completion
-- **Clean Logging**: Minimal, essential debugging information only
+- **Clean Logging**: Categorized, level-controlled debugging information
 
-### New Development Workflow
-1. **Check Script Documentation**: Use master script reference before modifications
-2. **Identify Required Scripts**: Use prompt optimization guide for efficient development
-3. **Test in Controlled Environment**: Use strict turn flow for safe testing
-4. **Minimal Logging**: Keep console clean for actual debugging needs
-5. **Document Changes**: Update script documentation when making modifications
+### Current Development Workflow
+1. **Start with Code Cleanup**: Implement log level system before new features
+2. **Test in Controlled Environment**: Use strict turn flow for safe testing
+3. **Minimal Console Spam**: Keep debugging focused and relevant
+4. **Document Changes**: Update development plan when making modifications
+5. **Preserve Architecture**: Maintain clean separation of concerns
 
 ---
 
 ## Success Metrics
 
-### Milestone 8 Success Criteria 🎯 CURRENT TARGET
-- ✅ **Complete Script Documentation**: Master reference document for all 25+ scripts
-- ✅ **Prompt Optimization System**: Efficient workflow for script selection
-- ✅ **Clean Logging System**: Console shows only essential information
-- ✅ **Performance Analysis**: Understanding of current system performance
-- ✅ **Workflow Improvement**: Faster development with better organization
+### Immediate Success Criteria (Code Cleanup) 🎯 CURRENT TARGET
+- ✅ **Clean Console Output**: Only essential information during gameplay
+- ✅ **Categorized Logging**: Different log types for different systems
+- ✅ **Configurable Verbosity**: Adjustable log levels for debugging
+- ✅ **Performance Improvement**: No unnecessary string operations
+- ✅ **Production Ready**: Clean output suitable for release
 
-### Phase 5-6 Success Criteria
+### Phase 6 Success Criteria
 - ✅ **Functional Pause System**: Working pause/resume with proper state management
 - ✅ **Professional Game End**: Smooth winner announcement and menu flow
-- ✅ **Clean UI Naming**: Intuitive UI element names matching functionality
-- ✅ **Code Quality**: Clean, maintainable, well-documented codebase
+- ✅ **Stable Gameplay**: No crashes or UI inconsistencies
 
 ### Phase 7 Success Criteria
 - ✅ **Real Special Cards**: All special card effects implemented correctly
@@ -475,7 +468,7 @@ PileManager: Draw/discard pile visual cards
 - Clean, maintainable, well-documented code architecture  
 - Code ready for multiplayer extension  
 - Professional visual presentation with real card images
-- Efficient development workflow with comprehensive documentation
+- Efficient development workflow with clean debugging
 
 ---
 
@@ -485,34 +478,93 @@ PileManager: Draw/discard pile visual cards
 - **Phase 1**: Complete foundation (Menu + UI Framework)
 - **Phase 2**: Complete card system (Data + Deck + Turn Management)  
 - **Phase 3**: Complete visual system (Interactive cards + Hand management + Pile visuals)
-- **Phase 4**: Complete strict turn flow system with immediate button control
+- **Phase 4**: Complete strict turn flow system with enhanced button control
 - All 110 cards loading with real scanned images
 - Multi-enum state management working perfectly
 - Bulletproof turn-based gameplay with visual cards
 - Computer AI making strategic decisions
 - Professional visual card system with adaptive layouts
 - Safe testing environment with comprehensive logging
+- Enhanced UI message routing system
 
-**🎯 CURRENT FOCUS - Milestone 8**:
-- **IMMEDIATE**: Create comprehensive script documentation system
-- Clean up excessive logging for better debugging experience
-- Optimize development workflow with script reference guides
-- Prepare foundation for remaining implementation phases
+**🎯 CURRENT FOCUS**:
+- **IMMEDIATE**: Code cleanup and logging improvements
+- Implement proper log level system for clean console output
+- Categorize debug messages by system type
+- Optimize performance by reducing unnecessary logging
+- Create production-ready logging configuration
 
 **🚀 UPCOMING PHASES**:
 - Pause system and game end screens
-- UI naming cleanup and hierarchy restructuring  
-- Real special card implementation (after basic gameplay confirmed)
+- Real special card implementation (after logging cleanup)
 - Final polish and release preparation
 
-**📋 NEW PRIORITY ORDER**:
-A. Script documentation & workflow optimization
-B. Code cleanup & logging improvements  
-C. Pause button implementation
-D. Game end screen system
-E. UI hierarchy restructuring
-F. Special cards implementation
-G. Final polish & release preparation
+**📋 PRIORITY ORDER**:
+1. Code cleanup & logging improvements (Current Focus)
+2. Pause button implementation
+3. Game end screen system
+4. Special cards implementation  
+5. Final polish & release preparation
+
+I've updated the TAKI Game Development Plan to accurately reflect your current progress. Here are the key changes:
+
+## ✅ **Completed and Removed**:
+- **Milestone 11** (UI Hierarchy Restructuring) - Removed entirely ✅
+- **Script Documentation milestone** - Removed entirely ✅  
+- Updated scene hierarchy to reflect your current structure
+
+## 🎯 **Current Focus Updated**:
+- **Primary objective**: Code Cleanup & Logging Improvements
+- **Immediate tasks**: Implement log level system, clean console output, categorize debug messages
+- **Goal**: Transform excessive logging into organized, configurable system
+
+## 📋 **Key Changes Made**:
+
+### **Updated Status Summary**:
+- All Phase 1-4 work marked as complete
+- Current focus clearly identified as logging cleanup
+- Future phases properly sequenced
+
+### **Enhanced Architecture Documentation**:
+- Added your strict turn flow system details
+- Updated UI messaging system with proper routing
+- Reflected your current component structure
+
+### **Clean Development Path**:
+```
+Current: Code Cleanup & Logging → 
+Next: Pause System → 
+Then: Game End Screens → 
+Future: Special Cards Implementation
+```
+
+### **Specific Implementation Plan**:
+- Create `TakiLogger` utility class with log levels
+- Categorize logs by system (Turn Flow, Card Play, AI, UI)
+- Add production mode toggle
+- Optimize performance by removing debug string operations
+
+The plan now accurately reflects where you are and provides a clear path forward, focusing on the logging cleanup as your immediate next step before moving on to pause functionality and special cards implementation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 AMAZING! Work MUCH better now!
@@ -620,3 +672,8 @@ E. Lightly reconstruct some things in the hierarchy:
 F. Finally, when we know the basic rule gameplay truly works, we can move on to implementing the special cards
 
 G. Final polish :)
+
+
+
+
+Before Milestone 8, we are jumping to Milestone 11: UI Hierarchy Restructuring first

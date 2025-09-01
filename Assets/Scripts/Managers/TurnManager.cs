@@ -66,7 +66,7 @@ namespace TakiGame {
 				CancelComputerTurn ();
 			}
 
-			Debug.Log ($"Turn started for: {player}");
+			TakiLogger.LogTurnManagement ($"Turn started for: {player}");
 			OnTurnChanged?.Invoke (player);
 		}
 
@@ -74,7 +74,7 @@ namespace TakiGame {
 		/// End the current player's turn and switch to next player
 		/// </summary>
 		public void EndTurn () {
-			Debug.Log ($"Turn ended for: {currentPlayer}");
+			TakiLogger.LogTurnManagement ($"Turn ended for: {currentPlayer}");
 			SwitchToNextPlayer ();
 		}
 
@@ -93,12 +93,12 @@ namespace TakiGame {
 		/// Skip the current player's turn (for Stop cards)
 		/// </summary>
 		public void SkipTurn () {
-			Debug.Log ($"Turn skipped for: {currentPlayer}");
+			TakiLogger.LogTurnManagement ($"Turn skipped for: {currentPlayer}");
 			// Switch to next player, then immediately switch again to skip them
 			PlayerType skippedPlayer = currentPlayer == PlayerType.Human ?
 									   PlayerType.Computer : PlayerType.Human;
 
-			Debug.Log ($"Player {skippedPlayer} turn is skipped");
+			TakiLogger.LogTurnManagement ($"Player {skippedPlayer} turn is skipped");
 
 			// Don't actually start the skipped player's turn, just switch back
 			SwitchToNextPlayer ();
@@ -109,7 +109,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="player">Player to give turn to</param>
 		public void ForceTurnTo (PlayerType player) {
-			Debug.Log ($"Turn forced to: {player}");
+			TakiLogger.LogTurnManagement ($"Turn forced to: {player}");
 			StartTurn (player);
 		}
 
@@ -124,14 +124,14 @@ namespace TakiGame {
 				gameState.ChangeTurnState (TurnState.Neutral);
 			}
 
-			Debug.Log ("Turns paused");
+			TakiLogger.LogTurnManagement ("Turns paused");
 		}
 
 		/// <summary>
 		/// Resume turns after pause
 		/// </summary>
 		public void ResumeTurns () {
-			Debug.Log ("Turns resumed");
+			TakiLogger.LogTurnManagement ("Turns resumed");
 			StartTurn (currentPlayer);
 		}
 
@@ -143,7 +143,7 @@ namespace TakiGame {
 			if (isTurnTimerActive) {
 				turnTimer -= Time.deltaTime;
 				if (turnTimer <= 0) {
-					Debug.Log ("Human player turn timed out");
+					TakiLogger.LogTurnManagement ("Human player turn timed out");
 					OnTurnTimeOut?.Invoke (PlayerType.Human);
 					StopTurnTimer ();
 					EndTurn (); // Auto-end turn on timeout
@@ -154,7 +154,7 @@ namespace TakiGame {
 			if (isComputerTurnScheduled) {
 				if (Time.time >= computerTurnStartTime) {
 					isComputerTurnScheduled = false;
-					Debug.Log ("Computer turn ready");
+					TakiLogger.LogTurnManagement ("Computer turn ready");
 					OnComputerTurnReady?.Invoke ();
 				}
 			}
@@ -166,7 +166,7 @@ namespace TakiGame {
 		void StartTurnTimer () {
 			turnTimer = playerTurnTimeLimit;
 			isTurnTimerActive = true;
-			Debug.Log ($"Turn timer started: {playerTurnTimeLimit} seconds");
+			TakiLogger.LogTurnManagement ($"Turn timer started: {playerTurnTimeLimit} seconds");
 		}
 
 		/// <summary>
@@ -183,7 +183,7 @@ namespace TakiGame {
 		void ScheduleComputerTurn () {
 			isComputerTurnScheduled = true;
 			computerTurnStartTime = Time.time + computerTurnDelay;
-			Debug.Log ($"Computer turn scheduled with {computerTurnDelay}s delay");
+			TakiLogger.LogTurnManagement ($"Computer turn scheduled with {computerTurnDelay}s delay");
 		}
 
 		/// <summary>
@@ -198,7 +198,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="firstPlayer">Player who goes first</param>
 		public void InitializeTurns (PlayerType firstPlayer = PlayerType.Human) {
-			Debug.Log ($"Turn system initialized. First player: {firstPlayer}");
+			TakiLogger.LogTurnManagement ($"Turn system initialized. First player: {firstPlayer}");
 			StartTurn (firstPlayer);
 		}
 
@@ -232,7 +232,7 @@ namespace TakiGame {
 				gameState.ChangeTurnState (TurnState.Neutral);
 			}
 
-			Debug.Log ("Turn manager reset");
+			TakiLogger.LogTurnManagement ("Turn manager reset");
 		}
 
 		/// <summary>
@@ -243,7 +243,7 @@ namespace TakiGame {
 			return gameState != null && gameState.turnState != TurnState.Neutral;
 		}
 
-		// Properties
+		// Properties 
 		public bool IsHumanTurn => currentPlayer == PlayerType.Human;
 		public bool IsComputerTurn => currentPlayer == PlayerType.Computer;
 		public bool IsTurnTimerActive => isTurnTimerActive;

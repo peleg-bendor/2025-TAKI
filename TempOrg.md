@@ -38,17 +38,17 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="topDiscardCard">Current top card of discard pile</param>
 		public void MakeDecision (CardData topDiscardCard) {
-			TakiLogger.LogAI ($"=== AI MAKING DECISION ===");
-			TakiLogger.LogAI ($"AI Hand size: {computerHand.Count}");
-			TakiLogger.LogAI ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
+			Debug.Log ($"=== AI MAKING DECISION ===");
+			Debug.Log ($"AI Hand size: {computerHand.Count}");
+			Debug.Log ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
 
 			if (topDiscardCard == null) {
-				TakiLogger.LogError ("AI cannot make decision: No top discard card provided", TakiLogger.LogCategory.AI);
+				Debug.LogError ("AI cannot make decision: No top discard card provided");
 				OnAIDecisionMade?.Invoke ("Error: No discard card");
 				return;
 			}
 
-			TakiLogger.LogAI ($"AI thinking... (Hand size: {computerHand.Count})", TakiLogger.LogLevel.Debug);
+			Debug.Log ($"AI thinking... (Hand size: {computerHand.Count})");
 			OnAIDecisionMade?.Invoke ("AI is thinking...");
 
 			// Store the top card for ExecuteDecision to use
@@ -65,26 +65,26 @@ namespace TakiGame {
 		/// Execute the AI decision after thinking time
 		/// </summary>
 		void ExecuteDecision () {
-			TakiLogger.LogAI ($"=== AI EXECUTING DECISION ===");
+			Debug.Log ($"=== AI EXECUTING DECISION ===");
 
 			if (currentTopDiscardCard == null) {
-				TakiLogger.LogError ("ExecuteDecision: No current top discard card stored", TakiLogger.LogCategory.AI);
+				Debug.LogError ("ExecuteDecision: No current top discard card stored");
 				DrawCard ();
 				return;
 			}
 
 			// Find all valid cards to play
 			List<CardData> validCards = GetValidCards (currentTopDiscardCard);
-			TakiLogger.LogAI ($"AI found {validCards.Count} valid cards from {computerHand.Count} total");
+			Debug.Log ($"AI found {validCards.Count} valid cards from {computerHand.Count} total");
 
 			if (validCards.Count > 0) {
 				// Select best card to play
 				CardData selectedCard = SelectBestCard (validCards);
-				TakiLogger.LogAI ($"AI selected card: {selectedCard?.GetDisplayText ()}", TakiLogger.LogLevel.Info);
+				Debug.Log ($"AI selected card: {selectedCard?.GetDisplayText ()}");
 				PlayCard (selectedCard);
 			} else {
 				// No valid cards, must draw
-				TakiLogger.LogAI ("AI has no valid moves - drawing card");
+				Debug.Log ("AI has no valid moves - drawing card");
 				DrawCard ();
 			}
 
@@ -101,32 +101,32 @@ namespace TakiGame {
 			List<CardData> validCards = new List<CardData> ();
 
 			if (gameState == null) {
-				TakiLogger.LogError ("Cannot get valid cards: GameState is null", TakiLogger.LogCategory.AI);
+				Debug.LogError ("Cannot get valid cards: GameState is null");
 				return validCards;
 			}
 
 			if (topDiscardCard == null) {
-				TakiLogger.LogError ("Cannot get valid cards: topDiscardCard is null", TakiLogger.LogCategory.AI);
+				Debug.LogError ("Cannot get valid cards: topDiscardCard is null");
 				return validCards;
 			}
 
-			TakiLogger.LogAI ($"Checking {computerHand.Count} cards against {topDiscardCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+			Debug.Log ($"Checking {computerHand.Count} cards against {topDiscardCard.GetDisplayText ()}");
 
 			foreach (CardData card in computerHand) {
 				if (card == null) {
-					TakiLogger.LogWarning ("Found null card in AI hand - skipping", TakiLogger.LogCategory.AI);
+					Debug.LogWarning ("Found null card in AI hand - skipping");
 					continue;
 				}
 
 				bool isValid = gameState.IsValidMove (card, topDiscardCard);
-				TakiLogger.LogRules ($"  {card.GetDisplayText ()} -> {isValid}", TakiLogger.LogLevel.Verbose);
+				Debug.Log ($"  {card.GetDisplayText ()} -> {isValid}");
 
 				if (isValid) {
 					validCards.Add (card);
 				}
 			}
 
-			TakiLogger.LogAI ($"AI found {validCards.Count} valid cards to play", TakiLogger.LogLevel.Debug);
+			Debug.Log ($"AI found {validCards.Count} valid cards to play");
 			return validCards;
 		}
 
@@ -155,19 +155,19 @@ namespace TakiGame {
 			if (useSpecialCard) {
 				// Select from special cards
 				selectedCard = SelectFromSpecialCards (specialCards);
-				TakiLogger.LogAI ($"AI chose special card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				Debug.Log ($"AI chose special card strategy: {selectedCard.GetDisplayText ()}");
 			} else if (numberCards.Count > 0) {
 				// Select from number cards
 				selectedCard = SelectFromNumberCards (numberCards);
-				TakiLogger.LogAI ($"AI chose number card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				Debug.Log ($"AI chose number card strategy: {selectedCard.GetDisplayText ()}");
 			} else if (specialCards.Count > 0) {
 				// Fall back to special cards if no number cards available
 				selectedCard = SelectFromSpecialCards (specialCards);
-				TakiLogger.LogAI ($"AI fell back to special cards: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				Debug.Log ($"AI fell back to special cards: {selectedCard.GetDisplayText ()}");
 			} else {
 				// Random selection as last resort
 				selectedCard = validCards [Random.Range (0, validCards.Count)];
-				TakiLogger.LogAI ($"AI made random selection: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				Debug.Log ($"AI made random selection: {selectedCard.GetDisplayText ()}");
 			}
 
 			return selectedCard;
@@ -216,19 +216,19 @@ namespace TakiGame {
 		/// <param name="card">Card to play</param>
 		void PlayCard (CardData card) {
 			if (card == null) {
-				TakiLogger.LogError ("AI PlayCard called with null card", TakiLogger.LogCategory.AI);
+				Debug.LogError ("AI PlayCard called with null card");
 				return;
 			}
 
 			// Check if card is actually in hand
 			if (!computerHand.Contains (card)) {
-				TakiLogger.LogError ($"AI trying to play card not in hand: {card.GetDisplayText ()}", TakiLogger.LogCategory.AI);
+				Debug.LogError ($"AI trying to play card not in hand: {card.GetDisplayText ()}");
 				return;
 			}
 
 			// Remove card from hand
 			bool removed = computerHand.Remove (card);
-			TakiLogger.LogCardPlay ($"AI plays: {card.GetDisplayText ()} (Removed: {removed}, Hand size now: {computerHand.Count})");
+			Debug.Log ($"AI plays: {card.GetDisplayText ()} (Removed: {removed}, Hand size now: {computerHand.Count})");
 
 			OnAIDecisionMade?.Invoke ($"AI played {card.GetDisplayText ()}");
 			OnAICardSelected?.Invoke (card);
@@ -238,7 +238,7 @@ namespace TakiGame {
 		/// AI draws a card when no valid moves
 		/// </summary>
 		void DrawCard () {
-			TakiLogger.LogCardPlay ($"AI draws a card (no valid moves) - Current hand: {computerHand.Count}");
+			Debug.Log ($"AI draws a card (no valid moves) - Current hand: {computerHand.Count}");
 			OnAIDecisionMade?.Invoke ("AI drew a card");
 			OnAIDrawCard?.Invoke ();
 		}
@@ -264,14 +264,14 @@ namespace TakiGame {
 			// Select most common color, or random if tie/no cards
 			if (colorCounts.Count > 0) {
 				var bestColor = colorCounts.OrderByDescending (kvp => kvp.Value).First ().Key;
-				TakiLogger.LogAI ($"AI selected color: {bestColor} (appears {colorCounts [bestColor]} times in hand)", TakiLogger.LogLevel.Info);
+				Debug.Log ($"AI selected color: {bestColor} (appears {colorCounts [bestColor]} times in hand)");
 				OnAIColorSelected?.Invoke (bestColor);
 				return bestColor;
 			} else {
 				// Random color selection
 				CardColor [] colors = { CardColor.Red, CardColor.Blue, CardColor.Green, CardColor.Yellow };
 				CardColor randomColor = colors [Random.Range (0, colors.Length)];
-				TakiLogger.LogAI ($"AI selected random color: {randomColor}", TakiLogger.LogLevel.Info);
+				Debug.Log ($"AI selected random color: {randomColor}");
 				OnAIColorSelected?.Invoke (randomColor);
 				return randomColor;
 			}
@@ -283,7 +283,7 @@ namespace TakiGame {
 		/// <param name="cards">Cards to add</param>
 		public void AddCardsToHand (List<CardData> cards) {
 			computerHand.AddRange (cards);
-			TakiLogger.LogAI ($"AI received {cards.Count} cards. Hand size: {computerHand.Count}", TakiLogger.LogLevel.Debug);
+			Debug.Log ($"AI received {cards.Count} cards. Hand size: {computerHand.Count}");
 		}
 
 		/// <summary>
@@ -293,7 +293,7 @@ namespace TakiGame {
 		public void AddCardToHand (CardData card) {
 			if (card != null) {
 				computerHand.Add (card);
-				TakiLogger.LogAI ($"AI received card: {card.GetDisplayText ()}. Hand size: {computerHand.Count}", TakiLogger.LogLevel.Debug);
+				Debug.Log ($"AI received card: {card.GetDisplayText ()}. Hand size: {computerHand.Count}");
 			}
 		}
 
@@ -302,7 +302,7 @@ namespace TakiGame {
 		/// </summary>
 		public void ClearHand () {
 			computerHand.Clear ();
-			TakiLogger.LogAI ("AI hand cleared", TakiLogger.LogLevel.Debug);
+			Debug.Log ("AI hand cleared");
 		}
 
 		/// <summary>
@@ -319,9 +319,9 @@ namespace TakiGame {
 		/// Useful for testing visual card system
 		/// </summary>
 		public void LogCurrentHand () {
-			TakiLogger.LogDiagnostics ($"Computer AI Hand ({computerHand.Count} cards):");
+			Debug.Log ($"Computer AI Hand ({computerHand.Count} cards):");
 			for (int i = 0; i < computerHand.Count; i++) {
-				TakiLogger.LogDiagnostics ($"  [{i}] {computerHand [i].GetDisplayText ()}");
+				Debug.Log ($"  [{i}] {computerHand [i].GetDisplayText ()}");
 			}
 		}
 
@@ -330,18 +330,18 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Log AI State")]
 		public void LogAIDebugState () {
-			TakiLogger.LogDiagnostics ("=== AI DEBUG STATE ===");
-			TakiLogger.LogDiagnostics ($"Hand size: {computerHand.Count}");
-			TakiLogger.LogDiagnostics ($"Has GameState: {gameState != null}");
-			TakiLogger.LogDiagnostics ($"Current top card: {currentTopDiscardCard?.GetDisplayText () ?? "NULL"}");
+			Debug.Log ("=== AI DEBUG STATE ===");
+			Debug.Log ($"Hand size: {computerHand.Count}");
+			Debug.Log ($"Has GameState: {gameState != null}");
+			Debug.Log ($"Current top card: {currentTopDiscardCard?.GetDisplayText () ?? "NULL"}");
 
-			TakiLogger.LogDiagnostics ("Cards in hand:");
+			Debug.Log ("Cards in hand:");
 			for (int i = 0; i < computerHand.Count; i++) {
-				TakiLogger.LogDiagnostics ($"  [{i}] {computerHand [i]?.GetDisplayText () ?? "NULL"}");
+				Debug.Log ($"  [{i}] {computerHand [i]?.GetDisplayText () ?? "NULL"}");
 			}
 		}
 
-		// Properties 
+		// Properties
 		public int HandSize => computerHand.Count;
 		public bool HasCards => computerHand.Count > 0;
 		public List<CardData> Hand => new List<CardData> (computerHand); // Safe copy

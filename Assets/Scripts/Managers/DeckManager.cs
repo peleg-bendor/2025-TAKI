@@ -42,7 +42,7 @@ namespace TakiGame {
 		/// </summary>
 		void ForceInitialUIUpdate () {
 			UpdateUI ();
-			Debug.Log ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}");
+			TakiLogger.LogDeck ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}", TakiLogger.LogLevel.Verbose);
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace TakiGame {
 			if (cardLoader != null && cardLoader.HasValidDeck && deck != null) {
 				List<CardData> allCards = cardLoader.GetAllCardsForDeck ();
 				deck.InitializeDeck (allCards);
-				Debug.Log ($"Auto-initialized deck with {allCards.Count} cards");
+				TakiLogger.LogDeck ($"Auto-initialized deck with {allCards.Count} cards");
 				UpdateUI (); // Update UI immediately after deck initialization
 			}
 		}
@@ -63,7 +63,7 @@ namespace TakiGame {
 		void InitializeComponents () {
 			// Validate component references
 			if (!ValidateComponents ()) {
-				Debug.LogError ("DeckManager: Missing required component references!");
+				TakiLogger.LogError ("DeckManager: Missing required component references!", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -71,7 +71,7 @@ namespace TakiGame {
 			gameSetup.cardLoader = cardLoader;
 			gameSetup.deck = deck;
 
-			Debug.Log ("DeckManager components initialized");
+			TakiLogger.LogSystem ("DeckManager components initialized", TakiLogger.LogLevel.Debug);
 		}
 
 		/// <summary>
@@ -218,29 +218,29 @@ namespace TakiGame {
 			bool isValid = true;
 
 			if (deck == null) {
-				Debug.LogError ("DeckManager: Deck component reference is missing!");
+				TakiLogger.LogError ("DeckManager: Deck component reference is missing!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (cardLoader == null) {
-				Debug.LogError ("DeckManager: CardDataLoader component reference is missing!");
+				TakiLogger.LogError ("DeckManager: CardDataLoader component reference is missing!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (deckUI == null) {
-				Debug.LogError ("DeckManager: DeckUIManager component reference is missing!");
+				TakiLogger.LogError ("DeckManager: DeckUIManager component reference is missing!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (gameSetup == null) {
-				Debug.LogError ("DeckManager: GameSetupManager component reference is missing!");
+				TakiLogger.LogError ("DeckManager: GameSetupManager component reference is missing!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			return isValid;
 		}
 
-		// ===== PROPERTIES - Delegate to components =====
+		// ===== PROPERTIES - Delegate to components ===== 
 
 		public int DrawPileCount => deck?.DrawPileCount ?? 0;
 		public int DiscardPileCount => deck?.DiscardPileCount ?? 0;

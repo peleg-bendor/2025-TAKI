@@ -43,6 +43,13 @@ namespace TakiGame {
 		[Tooltip ("Hand manager for computer cards (Player2HandPanel)")]
 		public HandManager computerHandManager;
 
+		[Header ("Logging Configuration")]
+		[Tooltip ("Log level for console output")]
+		public TakiLogger.LogLevel logLevel = TakiLogger.LogLevel.Info;
+
+		[Tooltip ("Enable production mode (minimal logging)")]
+		public bool productionMode = false;
+
 		// ENHANCED: Turn flow control state
 		[Header ("Turn Flow Control")]
 		private bool hasPlayerTakenAction = false;
@@ -62,25 +69,37 @@ namespace TakiGame {
 		private bool isGameActive = false;
 
 		void Start () {
+			// Configure logging system
+			ConfigureLogging ();
+
 			// ONLY validate components exist - DON'T initialize game systems yet
 			ValidateAndConnectComponents ();
+		}
+
+		/// <summary>
+		/// Configure TakiLogger system
+		/// </summary>
+		void ConfigureLogging () {
+			TakiLogger.SetLogLevel (logLevel);
+			TakiLogger.SetProductionMode (productionMode);
+			TakiLogger.LogSystem ("TakiLogger configured: " + TakiLogger.GetLoggerInfo ());
 		}
 
 		/// <summary>
 		/// Validate components exist and connect basic references
 		/// </summary>
 		void ValidateAndConnectComponents () {
-			Debug.Log ("Validating and connecting components...");
+			TakiLogger.LogSystem ("Validating and connecting components...");
 
 			// Validate components exist
 			if (!ValidateComponents ()) {
-				Debug.LogError ("GameManager: Missing required components!");
+				TakiLogger.LogError ("GameManager: Missing required components!", TakiLogger.LogCategory.System);
 				return;
 			}
 
 			ConnectComponentReferences ();
 			areComponentsValidated = true;
-			Debug.Log ("Components validated and connected - Ready for game mode selection");
+			TakiLogger.LogSystem ("Components validated and connected - Ready for game mode selection");
 		}
 
 		/// <summary>
@@ -89,11 +108,11 @@ namespace TakiGame {
 		/// </summary>
 		public void InitializeSinglePlayerSystems () {
 			if (!areComponentsValidated) {
-				Debug.LogError ("Cannot initialize: Components not validated!");
+				TakiLogger.LogError ("Cannot initialize: Components not validated!", TakiLogger.LogCategory.System);
 				return;
 			}
 
-			Debug.Log ("Initializing single player game systems...");
+			TakiLogger.LogSystem ("Initializing single player game systems...");
 
 			// Connect events between systems
 			ConnectEvents ();
@@ -107,7 +126,7 @@ namespace TakiGame {
 			}
 
 			areSystemsInitialized = true;
-			Debug.Log ("Single player systems initialized - Ready to start game");
+			TakiLogger.LogSystem ("Single player systems initialized - Ready to start game");
 		}
 
 		/// <summary>
@@ -119,10 +138,10 @@ namespace TakiGame {
 				InitializeSinglePlayerSystems ();
 			}
 
-			Debug.Log ("Starting new single player game...");
+			TakiLogger.LogSystem ("Starting new single player game...");
 
 			if (deckManager == null) {
-				Debug.LogError ("Cannot start game: DeckManager not assigned!");
+				TakiLogger.LogError ("Cannot start game: DeckManager not assigned!", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -138,7 +157,7 @@ namespace TakiGame {
 		/// </summary>
 		public void InitializeMultiPlayerSystems () {
 			// TODO: Implement multiplayer system initialization
-			Debug.Log ("Multiplayer systems initialization - Not yet implemented");
+			TakiLogger.LogSystem ("Multiplayer systems initialization - Not yet implemented");
 		}
 
 		/// <summary>
@@ -233,14 +252,14 @@ namespace TakiGame {
 			canPlayerPlay = true;
 			canPlayerEndTurn = false;
 
-			Debug.Log ("=== TURN FLOW STATE RESET ===");
+			TakiLogger.LogTurnFlow ("TURN FLOW STATE RESET");
 		}
 
 		/// <summary>
 		/// ENHANCED: Start player turn with strict flow control
 		/// </summary>
 		void StartPlayerTurnFlow () {
-			Debug.Log ("=== STARTING PLAYER TURN WITH STRICT FLOW ===");
+			TakiLogger.LogTurnFlow ("STARTING PLAYER TURN WITH STRICT FLOW");
 
 			// Reset turn flow state
 			hasPlayerTakenAction = false;
@@ -253,13 +272,13 @@ namespace TakiGame {
 
 			if (validCardCount == 0) {
 				// Player has NO valid cards - must draw
-				Debug.Log ("RULE: Player has no valid cards, must draw a card");
-				gameplayUI?.ShowComputerMessage ("No valid cards - you must DRAW a card!");
+				TakiLogger.LogTurnFlow ("Player has no valid cards, must draw a card");
+				gameplayUI?.ShowPlayerMessage ("No valid cards - you must DRAW a card!");
 				gameplayUI?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
 			} else {
 				// Player has valid cards - can play or draw
-				Debug.Log ($"RULE: Player has {validCardCount} valid cards, may PLAY or DRAW a card");
-				gameplayUI?.ShowComputerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
+				TakiLogger.LogTurnFlow ($"Player has {validCardCount} valid cards, may PLAY or DRAW a card");
+				gameplayUI?.ShowPlayerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
 				gameplayUI?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
 			}
 
@@ -272,20 +291,20 @@ namespace TakiGame {
 		/// <summary>
 		/// Handle play card button clicked (No Auto-Play)
 		/// Play Card button only works with explicit selection
-		/// ENHANCED: Handle play card with strict flow control
+		/// Handle play card with strict flow control
 		/// </summary>
 		void OnPlayCardButtonClicked () {
-			Debug.Log ("=== PLAY CARD BUTTON CLICKED - STRICT FLOW ===");
+			TakiLogger.LogTurnFlow ("PLAY CARD BUTTON CLICKED - STRICT FLOW");
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot play card: Game not active or not player turn");
-				gameplayUI?.ShowComputerMessage ("Not your turn!");
+				TakiLogger.LogWarning ("Cannot play card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
 			if (!canPlayerPlay) {
-				Debug.LogWarning ("Cannot play card: Player already took action");
-				gameplayUI?.ShowComputerMessage ("You already took an action - END TURN!");
+				TakiLogger.LogWarning ("Cannot play card: Player already took action", TakiLogger.LogCategory.TurnFlow);
+				gameplayUI?.ShowPlayerMessage ("You already took an action - END TURN!");
 				return;
 			}
 
@@ -293,16 +312,16 @@ namespace TakiGame {
 			CardData cardToPlay = playerHandManager?.GetSelectedCard ();
 
 			if (cardToPlay != null) {
-				Debug.Log ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
+				TakiLogger.LogCardPlay ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
 				PlayCardWithStrictFlow (cardToPlay);
 			} else {
 				int playableCount = CountPlayableCards ();
 				if (playableCount > 0) {
-					gameplayUI?.ShowComputerMessage ($"Please select a card! You have {playableCount} valid moves.");
+					gameplayUI?.ShowPlayerMessage ($"Please select a card! You have {playableCount} valid moves.");
 				} else {
-					gameplayUI?.ShowComputerMessage ("No valid moves - try drawing a card!");
+					gameplayUI?.ShowPlayerMessage ("No valid moves - try drawing a card!");
 				}
-				Debug.Log ("No card selected - player must choose explicitly");
+				TakiLogger.LogUI ("No card selected - player must choose explicitly");
 			}
 		}
 
@@ -328,36 +347,36 @@ namespace TakiGame {
 		/// Find first valid card in player's hand
 		/// </summary>
 		CardData FindFirstValidCard () {
-            if (playerHand == null || playerHand.Count == 0) {
-                Debug.Log("No cards in player hand");
-                return null;
-            }
+			if (playerHand == null || playerHand.Count == 0) {
+				TakiLogger.LogCardPlay ("No cards in player hand");
+				return null;
+			}
 
-            CardData topCard = GetTopDiscardCard();
-            if (topCard == null) {
-                Debug.LogError("Cannot find valid card - no top discard card");
-                return null;
-            }
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard == null) {
+				TakiLogger.LogError ("Cannot find valid card - no top discard card", TakiLogger.LogCategory.CardPlay);
+				return null;
+			}
 
-            Debug.Log($"Searching for valid card to play on: {topCard.GetDisplayText()} with active color: {gameState.activeColor}");
+			TakiLogger.LogRules ($"Searching for valid card to play on: {topCard.GetDisplayText ()} with active color: {gameState.activeColor}");
 
-            foreach (CardData card in playerHand) {
-                if (gameState?.IsValidMove(card, topCard) == true) {
-                    Debug.Log($"Found valid card: {card.GetDisplayText()}");
-                    return card;
-                }
-            }
+			foreach (CardData card in playerHand) {
+				if (gameState?.IsValidMove (card, topCard) == true) {
+					TakiLogger.LogRules ($"Found valid card: {card.GetDisplayText ()}");
+					return card;
+				}
+			}
 
-            Debug.Log("No valid cards found in hand");
-            return null;
-        }
+			TakiLogger.LogCardPlay ("No valid cards found in hand");
+			return null;
+		}
 
 		/// <summary>
 		/// Get top discard card
 		/// </summary>
 		public CardData GetTopDiscardCard () {
 			if (deckManager == null) {
-				Debug.LogError ("GetTopDiscardCard: DeckManager is null!");
+				TakiLogger.LogError ("GetTopDiscardCard: DeckManager is null!", TakiLogger.LogCategory.System);
 				return null;
 			}
 
@@ -369,17 +388,17 @@ namespace TakiGame {
 		/// ENHANCED: Handle draw card with strict flow control
 		/// </summary>
 		void OnDrawCardButtonClicked () {
-			Debug.Log ("=== DRAW CARD BUTTON CLICKED - STRICT FLOW ===");
+			TakiLogger.LogTurnFlow ("DRAW CARD BUTTON CLICKED - STRICT FLOW");
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot draw card: Game not active or not player turn");
-				gameplayUI?.ShowComputerMessage ("Not your turn!");
+				TakiLogger.LogWarning ("Cannot draw card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
 			if (!canPlayerDraw) {
-				Debug.LogWarning ("Cannot draw card: Player already took action");
-				gameplayUI?.ShowComputerMessage ("You already took an action - END TURN!");
+				TakiLogger.LogWarning ("Cannot draw card: Player already took action", TakiLogger.LogCategory.TurnFlow);
+				gameplayUI?.ShowPlayerMessage ("You already took an action - END TURN!");
 				return;
 			}
 
@@ -391,11 +410,11 @@ namespace TakiGame {
 		/// ENHANCED: Handle end turn with strict flow control
 		/// </summary>
 		void OnEndTurnButtonClicked () {
-			Debug.Log ("=== END TURN BUTTON CLICKED - STRICT FLOW ===");
+			TakiLogger.LogTurnFlow ("END TURN BUTTON CLICKED - STRICT FLOW");
 
 			if (!canPlayerEndTurn) {
-				Debug.LogWarning ("Cannot end turn: Player has not taken an action yet");
-				gameplayUI?.ShowComputerMessage ("You must take an action first (PLAY or DRAW)!");
+				TakiLogger.LogWarning ("Cannot end turn: Player has not taken an action yet", TakiLogger.LogCategory.TurnFlow);
+				gameplayUI?.ShowPlayerMessage ("You must take an action first (PLAY or DRAW)!");
 				return;
 			}
 
@@ -406,27 +425,27 @@ namespace TakiGame {
 		/// Play card with comprehensive special card logging
 		/// </summary>
 		void PlayCardWithStrictFlow (CardData card) {
-			Debug.Log ($"=== PLAYING CARD WITH STRICT FLOW: {card.GetDisplayText ()} ===");
+			TakiLogger.LogCardPlay ($"PLAYING CARD WITH STRICT FLOW: {card.GetDisplayText ()}");
 
 			// Validate the move
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard == null) {
-				Debug.LogError ("Cannot play card: No top discard card available");
-				gameplayUI?.ShowComputerMessage ("Game error - no discard pile!");
+				TakiLogger.LogError ("Cannot play card: No top discard card available", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Game error - no discard pile!");
 				return;
 			}
 
 			bool isValidMove = gameState.IsValidMove (card, topCard);
 			if (!isValidMove) {
-				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}");
-				gameplayUI?.ShowComputerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
+				TakiLogger.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}", TakiLogger.LogCategory.Rules);
+				gameplayUI?.ShowPlayerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
 				return;
 			}
 
 			// Remove card from player's hand
 			bool removed = playerHand.Remove (card);
 			if (!removed) {
-				Debug.LogError ("Could not remove card from player hand!");
+				TakiLogger.LogError ("Could not remove card from player hand!", TakiLogger.LogCategory.CardPlay);
 				return;
 			}
 
@@ -453,35 +472,35 @@ namespace TakiGame {
 			canPlayerEndTurn = true;
 
 			// UI already disabled buttons immediately on click, now enable END TURN
-			Debug.Log ("ENABLING END TURN button after successful card play");
+			TakiLogger.LogTurnFlow ("ENABLING END TURN button after successful card play");
 			gameplayUI?.ForceEnableEndTurn ();
-			gameplayUI?.ShowComputerMessage ("Card played - you must END TURN!");
+			gameplayUI?.ShowPlayerMessage ("Card played - you must END TURN!");
 
 			// Check for win condition
 			if (playerHand.Count == 0) {
-				Debug.Log ("Player wins - hand is empty!");
+				TakiLogger.LogGameState ("Player wins - hand is empty!");
 				gameState.DeclareWinner (PlayerType.Human);
 				return;
 			}
 
 			OnCardPlayed?.Invoke (card);
-			Debug.Log ($"=== CARD PLAY COMPLETE - WAITING FOR END TURN ===");
+			TakiLogger.LogTurnFlow ("CARD PLAY COMPLETE - WAITING FOR END TURN");
 		}
 
 		/// <summary>
 		/// Draw card with strict flow control
 		/// </summary>
 		void DrawCardWithStrictFlow () {
-			Debug.Log ("=== DRAWING CARD WITH STRICT FLOW ===");
+			TakiLogger.LogCardPlay ("DRAWING CARD WITH STRICT FLOW");
 
 			CardData drawnCard = deckManager?.DrawCard ();
 			if (drawnCard != null) {
 				playerHand.Add (drawnCard);
 
-				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()}");
+				TakiLogger.LogCardPlay ($"Player drew: {drawnCard.GetDisplayText ()}");
 
 				// Update visual hands
-				UpdateAllUI (); 
+				UpdateAllUI ();
 				RefreshPlayerHandStates ();
 
 				// Mark action taken and update flow
@@ -491,14 +510,14 @@ namespace TakiGame {
 				canPlayerEndTurn = true;
 
 				// FIXED: UI already disabled buttons immediately on click, now enable END TURN
-				Debug.Log ("ENABLING END TURN button after successful draw");
+				TakiLogger.LogTurnFlow ("ENABLING END TURN button after successful draw");
 				gameplayUI?.ForceEnableEndTurn ();
-				gameplayUI?.ShowComputerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
+				gameplayUI?.ShowPlayerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
 
-				Debug.Log ("RULE: Player has no more valid moves, must end turn");
+				TakiLogger.LogTurnFlow ("Player has no more valid moves, must end turn");
 			} else {
-				Debug.LogError ("Failed to draw card - deck may be empty");
-				gameplayUI?.ShowComputerMessage ("Cannot draw card!");
+				TakiLogger.LogError ("Failed to draw card - deck may be empty", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Cannot draw card!");
 			}
 		}
 
@@ -506,7 +525,7 @@ namespace TakiGame {
 		/// End player turn with strict flow control
 		/// </summary>
 		void EndPlayerTurnWithStrictFlow () {
-			Debug.Log ("=== ENDING PLAYER TURN - STRICT FLOW COMPLETE ===");
+			TakiLogger.LogTurnFlow ("ENDING PLAYER TURN - STRICT FLOW COMPLETE");
 
 			// Clear any selected cards
 			playerHandManager?.ClearSelection ();
@@ -518,10 +537,10 @@ namespace TakiGame {
 			// Turn state change will re-enable appropriate buttons for next player
 
 			if (turnManager != null) {
-				Debug.Log ("Calling TurnManager.EndTurn()");
+				TakiLogger.LogTurnFlow ("Calling TurnManager.EndTurn()");
 				turnManager.EndTurn ();
 			} else {
-				Debug.LogError ("Cannot end turn: TurnManager is null!");
+				TakiLogger.LogError ("Cannot end turn: TurnManager is null!", TakiLogger.LogCategory.TurnFlow);
 			}
 		}
 
@@ -531,63 +550,63 @@ namespace TakiGame {
 		void LogCardEffectRules (CardData card) {
 			switch (card.cardType) {
 				case CardType.Number:
-					Debug.Log ($"RULE: NUMBER card {card.GetDisplayText ()} played - basic card behavior");
-					gameplayUI?.ShowComputerMessage ($"Played NUMBER {card.GetDisplayText ()}");
-					Debug.Log ("RULE: Player must END turn");
+					TakiLogger.LogRules ($"NUMBER card {card.GetDisplayText ()} played - basic card behavior");
+					gameplayUI?.ShowPlayerMessage ($"Played NUMBER {card.GetDisplayText ()}");
+					TakiLogger.LogRules ("Player must END turn");
 					break;
 
 				case CardType.Plus:
-					Debug.Log ($"RULE: PLUS card played - Must either PLAY 1 more card, OR DRAW a card");
-					gameplayUI?.ShowComputerMessage ("PLUS: PLAY or DRAW 1 card");
-					Debug.Log ("RULE: Player must PLAY or DRAW another card (for now: must end turn)");
+					TakiLogger.LogRules ("PLUS card played - Must either PLAY 1 more card, OR DRAW a card");
+					gameplayUI?.ShowPlayerMessage ("PLUS: PLAY or DRAW 1 card");
+					TakiLogger.LogRules ("Player must PLAY or DRAW another card (for now: must end turn)");
 					break;
 
 				case CardType.Stop:
-					Debug.Log ($"RULE: STOP card played - Opponent's next turn is skipped");
-					gameplayUI?.ShowComputerMessage ("STOP: Opponent's turn skipped");
-					Debug.Log ("RULE: Opponent's turn is stopped/skipped, Player starts another NEW turn (for now: must end turn)");
+					TakiLogger.LogRules ("STOP card played - Opponent's next turn is skipped");
+					gameplayUI?.ShowPlayerMessage ("STOP: Opponent's turn skipped");
+					TakiLogger.LogRules ("Opponent's turn is stopped/skipped, Player starts another NEW turn (for now: must end turn)");
 					break;
 
 				case CardType.ChangeDirection:
-					Debug.Log ($"RULE: CHANGE DIRECTION card played - Turn direction changes");
+					TakiLogger.LogRules ("CHANGE DIRECTION card played - Turn direction changes");
 					string oldDirection = gameState?.turnDirection.ToString () ?? "Unknown";
 					if (gameState != null) gameState.ChangeTurnDirection ();
 					string newDirection = gameState?.turnDirection.ToString () ?? "Unknown";
-					gameplayUI?.ShowComputerMessage ($"DIRECTION: {oldDirection} to {newDirection}");
-					Debug.Log ($"RULE: Direction changed from {oldDirection} to {newDirection}");
+					gameplayUI?.ShowPlayerMessage ($"DIRECTION: {oldDirection} to {newDirection}");
+					TakiLogger.LogGameState ($"Direction changed from {oldDirection} to {newDirection}");
 					break;
 
 				case CardType.PlusTwo:
-					Debug.Log ($"RULE: PLUS TWO card played - Opponent draws 2 cards");
-					gameplayUI?.ShowComputerMessage ("PLUS TWO: Opponent draws 2 cards");
-					Debug.Log ("RULE: Player must DRAW 1x2=2 cards (for now: must end turn)");
+					TakiLogger.LogRules ("PLUS TWO card played - Opponent draws 2 cards");
+					gameplayUI?.ShowPlayerMessage ("PLUS TWO: Opponent draws 2 cards");
+					TakiLogger.LogRules ("Player must DRAW 1x2=2 cards (for now: must end turn)");
 					break;
 
 				case CardType.Taki:
-					Debug.Log ($"RULE: TAKI card played - Player may play series of {card.color} cards");
-					gameplayUI?.ShowComputerMessage ($"TAKI: May play series of {card.color} cards");
-					Debug.Log ($"RULE: Player may PLAY a series of cards the color of {card.color} (for now: must end turn)");
+					TakiLogger.LogRules ($"TAKI card played - Player may play series of {card.color} cards");
+					gameplayUI?.ShowPlayerMessage ($"TAKI: May play series of {card.color} cards");
+					TakiLogger.LogRules ($"Player may PLAY a series of cards the color of {card.color} (for now: must end turn)");
 					break;
 
 				case CardType.ChangeColor:
-					Debug.Log ($"RULE: CHANGE COLOR card played - Player must choose new color");
-					gameplayUI?.ShowComputerMessage ("CHANGE COLOR: Must choose new color");
-					Debug.Log ("RULE: Player must choose a color (for now: ColorSelectionPanel will not appear, must end turn)");
+					TakiLogger.LogRules ("CHANGE COLOR card played - Player must choose new color");
+					gameplayUI?.ShowPlayerMessage ("CHANGE COLOR: Must choose new color");
+					TakiLogger.LogRules ("Player must choose a color (for now: ColorSelectionPanel will not appear, must end turn)");
 					break;
 
 				case CardType.SuperTaki:
-					Debug.Log ($"RULE: SUPER TAKI card played - Player may play series of any color");
-					gameplayUI?.ShowComputerMessage ("SUPER TAKI: May play series of any color");
-					Debug.Log ("RULE: Player may PLAY a series of cards of any color (for now: must end turn)");
+					TakiLogger.LogRules ("SUPER TAKI card played - Player may play series of any color");
+					gameplayUI?.ShowPlayerMessage ("SUPER TAKI: May play series of any color");
+					TakiLogger.LogRules ("Player may PLAY a series of cards of any color (for now: must end turn)");
 					break;
 
 				default:
-					Debug.LogWarning ($"Unknown card type: {card.cardType}");
-					gameplayUI?.ShowComputerMessage ($"Unknown card: {card.GetDisplayText ()}");
+					TakiLogger.LogWarning ($"Unknown card type: {card.cardType}", TakiLogger.LogCategory.Rules);
+					gameplayUI?.ShowPlayerMessage ($"Unknown card: {card.GetDisplayText ()}");
 					break;
 			}
 
-			Debug.Log ("RULE: Player has no more valid moves, must end turn");
+			TakiLogger.LogRules ("Player has no more valid moves, must end turn");
 		}
 
 		/// <summary>
@@ -599,7 +618,7 @@ namespace TakiGame {
 				gameState.ChangeActiveColor (selectedColor);
 				gameState.ChangeInteractionState (InteractionState.Normal);
 			}
-			Debug.Log ($"Player selected color: {selectedColor}");
+			TakiLogger.LogGameState ($"Player selected color: {selectedColor}");
 		}
 
 		/// <summary>
@@ -631,52 +650,52 @@ namespace TakiGame {
 			isGameActive = true;
 			OnGameStarted?.Invoke ();
 
-			Debug.Log ($"Game started! Player: {player1Hand.Count} cards, Computer: {player2Hand.Count} cards");
+			TakiLogger.LogSystem ($"Game started! Player: {player1Hand.Count} cards, Computer: {player2Hand.Count} cards");
 		}
 
 		/// <summary>
 		/// Handle player playing a card with comprehensive error checking
 		/// </summary>
 		public void PlayCard (CardData card) {
-			Debug.Log ($"=== PLAY CARD: {card?.GetDisplayText ()} ===");
+			TakiLogger.LogCardPlay ($"PLAY CARD: {card?.GetDisplayText ()}");
 
 			if (card == null) {
-				Debug.LogError ("PlayCard called with null card");
+				TakiLogger.LogError ("PlayCard called with null card", TakiLogger.LogCategory.CardPlay);
 				return;
 			}
 
 			if (!isGameActive) {
-				Debug.LogWarning ("Cannot play card: Game not active");
-				gameplayUI?.ShowComputerMessage ("Game not active!");
+				TakiLogger.LogWarning ("Cannot play card: Game not active", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Game not active!");
 				return;
 			}
 
 			if (!gameState.CanPlayerAct ()) {
-				Debug.LogWarning ($"Cannot play card: Player cannot act. State: {gameState.turnState}");
-				gameplayUI?.ShowComputerMessage ("Not your turn!");
+				TakiLogger.LogWarning ($"Cannot play card: Player cannot act. State: {gameState.turnState}", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
 			// Validate the move
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard == null) {
-				Debug.LogError ("Cannot play card: No top discard card available");
-				gameplayUI?.ShowComputerMessage ("Game error - no discard pile!");
+				TakiLogger.LogError ("Cannot play card: No top discard card available", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Game error - no discard pile!");
 				return;
 			}
 
 			bool isValidMove = gameState.IsValidMove (card, topCard);
-			Debug.Log ($"Rule validation: {card.GetDisplayText ()} on {topCard.GetDisplayText ()} = {isValidMove}");
+			TakiLogger.LogRules ($"Rule validation: {card.GetDisplayText ()} on {topCard.GetDisplayText ()} = {isValidMove}");
 
 			if (!isValidMove) {
-				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}");
-				gameplayUI?.ShowComputerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
+				TakiLogger.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}", TakiLogger.LogCategory.Rules);
+				gameplayUI?.ShowPlayerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
 				return;
 			}
 
 			// Remove card from player's hand
 			bool removed = playerHand.Remove (card);
-			Debug.Log ($"Card removed from hand: {removed}");
+			TakiLogger.LogCardPlay ($"Card removed from hand: {removed}");
 
 			// Clear selection in visual hand
 			if (playerHandManager != null) {
@@ -686,12 +705,12 @@ namespace TakiGame {
 			// Discard the card
 			if (deckManager != null) {
 				deckManager.DiscardCard (card);
-				Debug.Log ($"Card discarded to pile: {card.GetDisplayText ()}");
+				TakiLogger.LogCardPlay ($"Card discarded to pile: {card.GetDisplayText ()}");
 			}
 
 			// Update active color
 			gameState.UpdateActiveColorFromCard (card);
-			Debug.Log ($"Active color updated to: {gameState.activeColor}");
+			TakiLogger.LogGameState ($"Active color updated to: {gameState.activeColor}");
 
 			// Handle special card effects
 			HandleSpecialCardEffects (card);
@@ -704,28 +723,28 @@ namespace TakiGame {
 
 			// Check for win condition
 			if (playerHand.Count == 0) {
-				Debug.Log ("Player wins - hand is empty!");
+				TakiLogger.LogGameState ("Player wins - hand is empty!");
 				gameState.DeclareWinner (PlayerType.Human);
 				return;
 			}
 
 			OnCardPlayed?.Invoke (card);
 
-			// FIXED: Show message instead of auto-ending turn
-			gameplayUI?.ShowComputerMessage ($"Played {card.GetDisplayText ()} - Click 'End Turn' when ready");
+			// Show message instead of auto-ending turn
+			gameplayUI?.ShowPlayerMessage ($"Played {card.GetDisplayText ()} - Click 'End Turn' when ready");
 
-			Debug.Log ($"=== CARD PLAY COMPLETE: {card.GetDisplayText ()} ===");
+			TakiLogger.LogCardPlay ($"CARD PLAY COMPLETE: {card.GetDisplayText ()}");
 		}
 
 		/// <summary>
 		/// LEGACY: Handle player drawing a card No automatic turn ending
 		/// </summary>
 		public void DrawCard () {
-			Debug.Log ("=== DRAW CARD ===");
+			TakiLogger.LogCardPlay ("DRAW CARD");
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot draw card: Not player's turn or game not active");
-				gameplayUI?.ShowComputerMessage ("Not your turn!");
+				TakiLogger.LogWarning ("Cannot draw card: Not player's turn or game not active", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
@@ -735,24 +754,24 @@ namespace TakiGame {
 
 				UpdateAllUI ();
 
-				// FIXED: Force refresh playable states after drawing
+				// Force refresh playable states after drawing
 				Invoke (nameof (RefreshPlayerHandStates), 0.05f);
 
-				gameplayUI.ShowComputerMessage ($"Drew: {drawnCard.GetDisplayText ()} - Click 'End Turn' when ready");
-				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()} - turn continues");
+				gameplayUI.ShowPlayerMessage ($"Drew: {drawnCard.GetDisplayText ()} - Click 'End Turn' when ready");
+				TakiLogger.LogCardPlay ($"Player drew: {drawnCard.GetDisplayText ()} - turn continues");
 			} else {
-				Debug.LogError ("Failed to draw card - deck may be empty");
-				gameplayUI?.ShowComputerMessage ("Cannot draw card!");
+				TakiLogger.LogError ("Failed to draw card - deck may be empty", TakiLogger.LogCategory.CardPlay);
+				gameplayUI?.ShowPlayerMessage ("Cannot draw card!");
 			}
 
-			Debug.Log ("=== DRAW COMPLETE - TURN CONTINUES ===");
+			TakiLogger.LogCardPlay ("DRAW COMPLETE - TURN CONTINUES");
 		}
 
 		/// <summary>
 		/// FIXED: End player turn with comprehensive logging
 		/// </summary>
 		void EndPlayerTurn () {
-			Debug.Log ("=== ENDING PLAYER TURN ===");
+			TakiLogger.LogTurnFlow ("ENDING PLAYER TURN");
 
 			// Clear any selected cards
 			if (playerHandManager != null) {
@@ -760,10 +779,10 @@ namespace TakiGame {
 			}
 
 			if (turnManager != null) {
-				Debug.Log ("Calling TurnManager.EndTurn()");
+				TakiLogger.LogTurnFlow ("Calling TurnManager.EndTurn()");
 				turnManager.EndTurn ();
 			} else {
-				Debug.LogError ("Cannot end turn: TurnManager is null!");
+				TakiLogger.LogError ("Cannot end turn: TurnManager is null!", TakiLogger.LogCategory.TurnFlow);
 			}
 		}
 
@@ -771,7 +790,7 @@ namespace TakiGame {
 		/// Force refresh of player hand playable states (delayed)
 		/// </summary>
 		void RefreshPlayerHandStates () {
-			Debug.Log ("=== REFRESHING PLAYER HAND STATES ===");
+			TakiLogger.LogUI ("REFRESHING PLAYER HAND STATES");
 
 			if (playerHandManager != null) {
 				playerHandManager.RefreshPlayableStates ();
@@ -789,7 +808,7 @@ namespace TakiGame {
 					if (turnManager != null) {
 						turnManager.SkipTurn ();
 					}
-					gameplayUI.ShowComputerMessage ("Computer's turn skipped!");
+					gameplayUI.ShowPlayerMessage ("Computer's turn skipped!");
 					break;
 
 				case CardType.ChangeColor:
@@ -801,13 +820,13 @@ namespace TakiGame {
 				case CardType.PlusTwo:
 					// Make opponent draw 2 cards
 					MakeOpponentDrawCards (2);
-					gameplayUI.ShowComputerMessage ("Computer draws 2 cards!");
+					gameplayUI.ShowPlayerMessage ("Computer draws 2 cards!");
 					break;
 
 				case CardType.Plus:
 					// Make opponent draw 1 card
 					MakeOpponentDrawCards (1);
-					gameplayUI.ShowComputerMessage ("Computer draws 1 card!");
+					gameplayUI.ShowPlayerMessage ("Computer draws 1 card!");
 					break;
 
 				case CardType.ChangeDirection:
@@ -815,7 +834,7 @@ namespace TakiGame {
 					if (gameState != null) {
 						gameState.ChangeTurnDirection ();
 					}
-					gameplayUI.ShowComputerMessage ("Turn direction changed!");
+					gameplayUI.ShowPlayerMessage ("Turn direction changed!");
 					break;
 
 					// TODO: Implement Taki and SuperTaki in later milestones
@@ -833,12 +852,12 @@ namespace TakiGame {
 				if (computerAI != null) {
 					computerAI.AddCardsToHand (drawnCards);
 				}
-				Debug.Log ($"Computer drew {drawnCards.Count} cards");
+				TakiLogger.LogCardPlay ($"Computer drew {drawnCards.Count} cards");
 			} else {
 				// Player draws cards
 				List<CardData> drawnCards = deckManager.DrawCards (count);
 				playerHand.AddRange (drawnCards);
-				Debug.Log ($"Player drew {drawnCards.Count} cards");
+				TakiLogger.LogCardPlay ($"Player drew {drawnCards.Count} cards");
 			}
 
 			UpdateAllUI ();
@@ -873,7 +892,7 @@ namespace TakiGame {
 		/// ENHANCED: Turn state change handler with strict flow control
 		/// </summary>
 		void OnTurnStateChanged (TurnState newTurnState) {
-			Debug.Log ($"GameManager: Turn state changed to {newTurnState}");
+			TakiLogger.LogGameState ($"Turn state changed to {newTurnState}");
 
 			if (gameplayUI != null) {
 				gameplayUI.UpdateTurnDisplay (newTurnState);
@@ -896,7 +915,7 @@ namespace TakiGame {
 		void DelayedButtonSync () {
 			if (gameState != null && gameState.CanPlayerAct () && gameplayUI != null) {
 				gameplayUI.UpdateButtonStates (true);
-				Debug.Log ("DELAYED button sync - ensured buttons are ENABLED");
+				TakiLogger.LogUI ("DELAYED button sync - ensured buttons are ENABLED");
 			}
 		}
 
@@ -923,20 +942,20 @@ namespace TakiGame {
 		/// <summary>
 		/// Handle computer turn ready handler with error checking
 		void OnComputerTurnReady () {
-			Debug.Log ("=== COMPUTER TURN READY ===");
+			TakiLogger.LogAI ("COMPUTER TURN READY");
 
 			if (computerAI == null || deckManager == null) {
-				Debug.LogError ("Computer turn ready but components are null!");
+				TakiLogger.LogError ("Computer turn ready but components are null!", TakiLogger.LogCategory.AI);
 				return;
 			}
 
 			CardData topCard = deckManager.GetTopDiscardCard ();
 			if (topCard == null) {
-				Debug.LogError ("Computer turn ready but no top discard card!");
+				TakiLogger.LogError ("Computer turn ready but no top discard card!", TakiLogger.LogCategory.AI);
 				return;
 			}
 
-			Debug.Log ("Triggering AI decision for top card: " + topCard.GetDisplayText ());
+			TakiLogger.LogAI ("Triggering AI decision for top card: " + topCard.GetDisplayText ());
 			computerAI.MakeDecision (topCard);
 		}
 
@@ -944,37 +963,37 @@ namespace TakiGame {
 		/// AI card selection handler with validation
 		/// </summary>
 		void OnAICardSelected (CardData card) {
-			Debug.Log ("=== AI SELECTED CARD: " + (card != null ? card.GetDisplayText () : "NULL") + " ===");
+			TakiLogger.LogAI ("AI SELECTED CARD: " + (card != null ? card.GetDisplayText () : "NULL"));
 
 			if (card == null || computerAI == null) {
-				Debug.LogError ("AI selected null card or computerAI is null!");
+				TakiLogger.LogError ("AI selected null card or computerAI is null!", TakiLogger.LogCategory.AI);
 				return;
 			}
 
 			if (deckManager != null) {
 				deckManager.DiscardCard (card);
-				Debug.Log ("AI card discarded: " + card.GetDisplayText ());
+				TakiLogger.LogAI ("AI card discarded: " + card.GetDisplayText ());
 			}
 
 			if (gameState != null) {
 				gameState.UpdateActiveColorFromCard (card);
-				Debug.Log ("Active color updated to: " + gameState.activeColor);
+				TakiLogger.LogGameState ("Active color updated to: " + gameState.activeColor);
 			}
 
 			// Log AI card effects (simplified)
-			Debug.Log ($"AI played {card.cardType}: {card.GetDisplayText ()}");
+			TakiLogger.LogAI ($"AI played {card.cardType}: {card.GetDisplayText ()}");
 
 			UpdateAllUI ();
 
 			if (computerAI.HandSize == 0) {
-				Debug.Log ("Computer wins - hand is empty!");
+				TakiLogger.LogGameState ("Computer wins - hand is empty!");
 				if (gameState != null) {
 					gameState.DeclareWinner (PlayerType.Computer);
 				}
 				return;
 			}
 
-			Debug.Log ("Ending computer turn - switching to human");
+			TakiLogger.LogAI ("Ending computer turn - switching to human");
 			if (turnManager != null) {
 				turnManager.EndTurn ();
 			}
@@ -984,23 +1003,23 @@ namespace TakiGame {
 		/// AI draw card handler
 		/// </summary>
 		void OnAIDrawCard () {
-			Debug.Log ("=== AI DRAWING CARD ===");
+			TakiLogger.LogAI ("AI DRAWING CARD");
 
 			if (deckManager == null || computerAI == null) {
-				Debug.LogError ("AI draw card but components are null!");
+				TakiLogger.LogError ("AI draw card but components are null!", TakiLogger.LogCategory.AI);
 				return;
 			}
 
 			CardData drawnCard = deckManager.DrawCard ();
 			if (drawnCard != null) {
 				computerAI.AddCardToHand (drawnCard);
-				Debug.Log ("AI drew card: " + drawnCard.GetDisplayText ());
+				TakiLogger.LogAI ("AI drew card: " + drawnCard.GetDisplayText ());
 				UpdateAllUI ();
 			} else {
-				Debug.LogError ("AI could not draw card - deck empty?");
+				TakiLogger.LogError ("AI could not draw card - deck empty?", TakiLogger.LogCategory.AI);
 			}
 
-			Debug.Log ("Ending computer turn after draw");
+			TakiLogger.LogAI ("Ending computer turn after draw");
 			if (turnManager != null) {
 				turnManager.EndTurn ();
 			}
@@ -1042,17 +1061,17 @@ namespace TakiGame {
 		/// Initialize visual card system
 		/// </summary>
 		void InitializeVisualCardSystem () {
-			Debug.Log ("Initializing visual card system...");
+			TakiLogger.LogSystem ("Initializing visual card system...");
 
 			if (playerHandManager == null || computerHandManager == null) {
-				Debug.LogError ("HandManager references missing!");
+				TakiLogger.LogError ("HandManager references missing!", TakiLogger.LogCategory.System);
 				return;
 			}
 
 			playerHandManager.OnCardSelected += OnPlayerCardSelected;
 			computerHandManager.OnCardSelected += OnComputerCardSelected;
 
-			Debug.Log ("Visual card system initialized");
+			TakiLogger.LogSystem ("Visual card system initialized");
 		}
 
 		/// <summary>
@@ -1061,19 +1080,19 @@ namespace TakiGame {
 		/// <param name="selectedCardController">Selected card controller</param>
 		void OnPlayerCardSelected (CardController selectedCardController) {
 			if (selectedCardController == null) {
-				Debug.Log ("Player deselected card");
+				TakiLogger.LogUI ("Player deselected card");
 				return;
 			}
 
 			CardData selectedCard = selectedCardController.CardData;
 			if (selectedCard != null) {
-				Debug.Log ($"Player selected visual card: {selectedCard.GetDisplayText ()}");
+				TakiLogger.LogUI ($"Player selected visual card: {selectedCard.GetDisplayText ()}");
 
 				// Update UI feedback
 				if (gameplayUI != null) {
 					bool canPlay = gameState?.IsValidMove (selectedCard, GetTopDiscardCard ()) ?? false;
 					string message = canPlay ? $"Selected: {selectedCard.GetDisplayText ()}" : "Invalid move!";
-					gameplayUI.ShowComputerMessage (message);
+					gameplayUI.ShowPlayerMessage (message);
 				}
 			}
 		}
@@ -1082,7 +1101,7 @@ namespace TakiGame {
 		/// Handle computer card selection (should not happen)
 		/// </summary>
 		void OnComputerCardSelected (CardController selectedCardController) {
-			Debug.LogWarning ("Computer cards should not be selectable!");
+			TakiLogger.LogWarning ("Computer cards should not be selectable!", TakiLogger.LogCategory.UI);
 		}
 
 		/// <summary>
@@ -1093,17 +1112,17 @@ namespace TakiGame {
 				// Update player hand visual
 				if (playerHandManager != null && playerHand != null) {
 					playerHandManager.UpdateHandDisplay (playerHand);
-					Debug.Log ($"Updated player hand display: {playerHand.Count} cards");
+					TakiLogger.LogUI ($"Updated player hand display: {playerHand.Count} cards", TakiLogger.LogLevel.Verbose);
 				}
 
 				// Update computer hand visual
 				if (computerHandManager != null && computerAI != null) {
 					List<CardData> computerHand = computerAI.GetHandCopy ();
 					computerHandManager.UpdateHandDisplay (computerHand);
-					Debug.Log ($"Updated computer hand display: {computerHand.Count} cards");
+					TakiLogger.LogUI ($"Updated computer hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Verbose);
 				}
 			} catch (System.Exception e) {
-				Debug.LogError ($"Error updating visual hands: {e.Message}");
+				TakiLogger.LogError ($"Error updating visual hands: {e.Message}", TakiLogger.LogCategory.UI);
 			}
 		}
 
@@ -1114,37 +1133,37 @@ namespace TakiGame {
 			bool isValid = true;
 
 			if (gameState == null) {
-				Debug.LogError ("GameManager: GameStateManager not assigned!");
+				TakiLogger.LogError ("GameManager: GameStateManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (turnManager == null) {
-				Debug.LogError ("GameManager: TurnManager not assigned!");
+				TakiLogger.LogError ("GameManager: TurnManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (computerAI == null) {
-				Debug.LogError ("GameManager: BasicComputerAI not assigned!");
+				TakiLogger.LogError ("GameManager: BasicComputerAI not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (gameplayUI == null) {
-				Debug.LogError ("GameManager: GameplayUIManager not assigned!");
+				TakiLogger.LogError ("GameManager: GameplayUIManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (deckManager == null) {
-				Debug.LogError ("GameManager: DeckManager not assigned!");
+				TakiLogger.LogError ("GameManager: DeckManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (playerHandManager == null) {
-				Debug.LogError ("GameManager: PlayerHandManager not assigned!");
+				TakiLogger.LogError ("GameManager: PlayerHandManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
 			if (computerHandManager == null) {
-				Debug.LogError ("GameManager: ComputerHandManager not assigned!");
+				TakiLogger.LogError ("GameManager: ComputerHandManager not assigned!", TakiLogger.LogCategory.System);
 				isValid = false;
 			}
 
@@ -1157,25 +1176,25 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Force New Game Start")]
 		public void ForceNewGameStart () {
-			Debug.Log ("=== FORCING NEW GAME START ===");
+			TakiLogger.LogDiagnostics ("FORCING NEW GAME START");
 
 			if (!areSystemsInitialized) {
-				Debug.Log ("Initializing systems...");
+				TakiLogger.LogDiagnostics ("Initializing systems...");
 				InitializeSinglePlayerSystems ();
 			}
 
-			Debug.Log ("Starting new game...");
+			TakiLogger.LogDiagnostics ("Starting new game...");
 			StartNewSinglePlayerGame ();
 		}
 
 		[ContextMenu ("Log Turn Flow State")]
 		public void LogTurnFlowState () {
-			Debug.Log ("=== TURN FLOW STATE DEBUG ===");
-			Debug.Log ($"hasPlayerTakenAction: {hasPlayerTakenAction}");
-			Debug.Log ($"canPlayerDraw: {canPlayerDraw}");
-			Debug.Log ($"canPlayerPlay: {canPlayerPlay}");
-			Debug.Log ($"canPlayerEndTurn: {canPlayerEndTurn}");
-			Debug.Log ($"isGameActive: {isGameActive}");
+			TakiLogger.LogDiagnostics ("TURN FLOW STATE DEBUG");
+			TakiLogger.LogDiagnostics ($"hasPlayerTakenAction: {hasPlayerTakenAction}");
+			TakiLogger.LogDiagnostics ($"canPlayerDraw: {canPlayerDraw}");
+			TakiLogger.LogDiagnostics ($"canPlayerPlay: {canPlayerPlay}");
+			TakiLogger.LogDiagnostics ($"canPlayerEndTurn: {canPlayerEndTurn}");
+			TakiLogger.LogDiagnostics ($"isGameActive: {isGameActive}");
 		}
 
 		/// <summary>
@@ -1183,7 +1202,7 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Trigger Computer Turn")]
 		public void TriggerComputerTurnManually () {
-			Debug.Log ("=== MANUAL COMPUTER TURN TRIGGER ===");
+			TakiLogger.LogDiagnostics ("MANUAL COMPUTER TURN TRIGGER");
 			OnComputerTurnReady ();
 		}
 
@@ -1192,10 +1211,10 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Force UI Sync")]
 		public void ForceUISync () {
-			Debug.Log ("=== FORCING UI SYNCHRONIZATION ===");
+			TakiLogger.LogDiagnostics ("FORCING UI SYNCHRONIZATION");
 
 			if (gameState == null || gameplayUI == null) {
-				Debug.LogError ("Cannot sync UI - missing components");
+				TakiLogger.LogError ("Cannot sync UI - missing components", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -1203,7 +1222,7 @@ namespace TakiGame {
 			bool shouldEnableButtons = gameState.CanPlayerAct ();
 			gameplayUI.UpdateButtonStates (shouldEnableButtons);
 
-			Debug.Log ($"UI synced - Turn: {gameState.turnState}, Buttons enabled: {shouldEnableButtons}");
+			TakiLogger.LogDiagnostics ($"UI synced - Turn: {gameState.turnState}, Buttons enabled: {shouldEnableButtons}");
 		}
 
 		/// <summary>
@@ -1211,11 +1230,11 @@ namespace TakiGame {
 		/// </summary>
 		void VerifyTurnSwitch () {
 			if (gameState != null) {
-				Debug.Log ($"Turn verification - Current state: {gameState.turnState}");
+				TakiLogger.LogDiagnostics ($"Turn verification - Current state: {gameState.turnState}");
 				if (gameState.turnState != TurnState.PlayerTurn) {
-					Debug.LogError ("TURN SWITCH FAILED - Still not player turn!");
+					TakiLogger.LogError ("TURN SWITCH FAILED - Still not player turn!", TakiLogger.LogCategory.TurnManagement);
 				} else {
-					Debug.Log ("Turn switch successful - Player turn active");
+					TakiLogger.LogDiagnostics ("Turn switch successful - Player turn active");
 					// Force UI sync if needed
 					ForceUISync ();
 				}
@@ -1229,7 +1248,7 @@ namespace TakiGame {
 		public List<CardData> GetPlayerHand () => new List<CardData> (playerHand);
 		public bool CanPlayerAct () => gameState?.CanPlayerAct () ?? false;
 
-		// Properties
+		// Properties 
 		public bool IsGameActive => isGameActive;
 		public bool IsPlayerTurn => gameState?.IsPlayerTurn ?? false;
 		public PlayerType CurrentPlayer => turnManager?.CurrentPlayer ?? PlayerType.Human;
