@@ -3,7 +3,7 @@
 
 ### ⚠️ CRITICAL NOTES
 - **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **Current Status**: Phase 1 Complete ✅, Phase 2 Complete ✅, Milestone 4 Complete ✅, Currently at Milestone 5 🎯
+- **Current Status**: Phase 1 Complete ✅, Phase 2 Complete ✅, Phase 3 Complete ✅, Currently at Milestone 7 🎯
 - **Target Platform**: PC/Desktop Unity Build
 - **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
 
@@ -35,12 +35,46 @@ Scripts/
 │   ├── GameStateManager.cs
 │   └── TurnManager.cs
 ├── UI/
+│   ├── CardController.cs          ← NEW: Visual card behavior
+│   ├── HandManager.cs             ← NEW: Hand display system
+│   ├── PileManager.cs             ← NEW: Pile visual management
 │   ├── DifficultySlider.cs
 │   ├── GameplayUIManager.cs
 │   └── MenuNavigation.cs
 ├── ButtonSFX.cs
 ├── MusicSlider.cs
 └── SfxSlider.cs
+```
+
+### Assets Structure:
+```
+Assets
+├── Audio
+│   ├── Music
+│   └── Sfx
+├── Data
+│   ├── Cards
+├── Plugins
+└── Prefabs/
+│   └── Cards/
+│   │   └── CardPrefab.prefab      ← NEW: Visual card prefab
+│   └── UI
+Resources/
+├── Data/
+│   └── Cards/                     ← 110 CardData assets
+├── Sprites/
+│   └── Cards/
+│       ├── Backs/
+│       │   └── card_back.png      ← Single back image
+│       └── Fronts/
+│           ├── Red/               ← Red cards
+│           ├── Blue/              ← Blue cards  
+│           ├── Green/             ← Green cards
+│           ├── Yellow/            ← Yellow cards
+│           └── Wild/              ← Wild cards (CHANGED from Special/)
+├── Scenes
+├── Scripts
+└── TextMesh Pro
 ```
 
 ### Scene Hierarchy:
@@ -59,7 +93,7 @@ Scene_Menu
 │   ├── Screen_Exiting
 │   ├── Screen_SinglePlayerGame
 │   │   ├── Player1Panel (Human Player)
-│   │   │   ├── Player1HandPanel - for card prefab instantiation
+│   │   │   ├── Player1HandPanel - HandManager + visual card prefabs
 │   │   │   └── Player1ActionPanel
 │   │   │       ├── Btn_Player1PlayCard - Play selected card
 │   │   │       ├── Btn_Player1DrawCard - Draw from deck
@@ -67,14 +101,14 @@ Scene_Menu
 │   │   │       └── Player1HandSizePanel
 │   │   │           └── Player1HandSizeText - Hand size display
 │   │   ├── Player2Panel (Computer Player)
-│   │   │   ├── Player2HandPanel - for computer card prefabs
+│   │   │   ├── Player2HandPanel - HandManager + face-down card prefabs
 │   │   │   └── Player2MessagePanel
 │   │   │       ├── Player2MessageText - AI action feedback
 │   │   │       └── Player2HandSizePanel 
 │   │   │           └── Player2HandSizeText - Computer hand size
 │   │   ├── GameBoardPanel
-│   │   │   ├── DrawPilePanel - draw pile card display
-│   │   │   └── DiscardPilePanel - discard pile card display
+│   │   │   ├── DrawPilePanel - PileManager + visual draw pile card
+│   │   │   └── DiscardPilePanel - PileManager + visual discard pile card
 │   │   ├── GameInfoPanel
 │   │   │   ├── TurnIndicatorText - Current turn display
 │   │   │   ├── DrawPileCountText - Draw pile count
@@ -90,748 +124,12 @@ Scene_Menu
 │   │   └── Btn_Pause - Future implementation
 │   └── Screen_MultiPlayerGame
 ├── EventSystem
-├── GameObject
+├── GameObject → GameManager (All gameplay components)
 ├── MenuManager
 ├── BackgroundMusic
 ├── SFXController
 ├── CardDataTester
-└── DeckManager
-```
-
-
-#### Scene Hierarchy notes:
-- Screen_SinglePlayerGame - We have player1 and plyer1 instead of human and computer so we can assign the different roles as we please, in this case we want player1 to be a human and player2 to be a computer
-    - Player1Panel
-        - Player1HandPanel - for future card prefabs
-        - Player1ActionPanel
-            - Btn_Player1PlayCard - Player first clicks on one of the cards as to select it, and then, if card is valid to play, can click on this Play Card button
-            - Btn_Player1DrawCard - Player can click on this Draw Card button if there are cards in the discard pile to be drawn
-            - Btn_Player1EndTurn - Player can click on this End Card button on certain logic conditions, like for example if the played a card or drew a card, tho this may be a little more complicated
-            - Player1HandSizePanel
-                - Player1HandSizeText - A TextMeshProUGUI so we can easily see can Player1's Hand Size
-    - Player2Panel
-        - Player2HandPanel - for future card prefabs
-        - Player2MessagePanel
-            - Player2MessageText - In this case, Screen_SinglePlayerGame, Player2 is the computer, so we don't need buttons, instead we can have a TextMeshProUGUI, Player2's Message Texts so we can see what actions the computer is taking
-            - Player2HandSizePanel 
-                - Player2HandSizeText - A TextMeshProUGUI so we can easily see can Player2's Hand Size
-    - GameBoardPanel - At this point, for this game at least, we don;t need any kind of timer for our player
-        - DrawPilePanel - for future card prefabs, I think
-        - DiscardPilePanel - for future card prefabs, I think
-    - GameInfoPanel
-        - TurnIndicatorText - A TextMeshProUGUI, so we know which player's turn it is
-        - DrawPileCountText - A TextMeshProUGUI, so we how many cards we have in our Draw Pile
-        - DiscardPileCountText - A TextMeshProUGUI, so we how many cards we have in our Discard Pile
-        - GameMessageText - A TextMeshProUGUI, where we show Deck events only (loading, shuffling)
-    - ColorSelectionPanel - initially inactive, needs to be active only during Changing Color state
-        - Btn_SelectRed - When this is clicked on -> CurrentColorIndicator will turn to the same color as this button, AKA Red
-        - Btn_SelectBlue - When this is clicked on -> CurrentColorIndicator will turn to the same color as this button, AKA Blue
-        - Btn_SelectGreen - When this is clicked on -> CurrentColorIndicator will turn to the same color as this button, AKA Green
-        - Btn_SelectYellow - When this is clicked on -> CurrentColorIndicator will turn to the same color as this button, AKA Yellow
-    - CurrentColorIndicator - An Image indicating the Current Color
-    - Btn_Exit - This button already has its implemented logic in MenuNavigation script
-    - Btn_Pause - We should not implement this button's logic in the scripts yet, this can wait untill future milestones
-
----
-
-## Phase 1: Foundation Setup ✅ COMPLETE
-
-### Milestone 1: Menu System ✅ COMPLETE
-**Status**: All scenes and navigation working
-
-### Milestone 2: UI Framework Creation ✅ COMPLETE  
-**Status**: Full UI hierarchy established, all panels created
-
----
-
-## Phase 2: Core Card System
-
-### Milestone 3: Data Architecture Implementation ✅ COMPLETE
-**Achievements**:
-- ✅ Complete enum system with **Multi-Enum Architecture**:
-  - `TurnState`: WHO is acting? (PlayerTurn, ComputerTurn, Neutral)
-  - `InteractionState`: WHAT special interaction? (Normal, ColorSelection, TakiSequence, PlusTwoChain) 
-  - `GameStatus`: WHAT is overall status? (Active, Paused, GameOver)
-- ✅ CardData ScriptableObject with helper methods and rule validation
-- ✅ Namespace organization (`TakiGame`)
-- ✅ 110-card complete deck system with automatic generation
-- ✅ UI integration tested and working
-
-### Milestone 4: Complete Deck System ✅ COMPLETE
-**Achievements**:
-- ✅ **Refactored Architecture** using **Single Responsibility Principle**:
-  - `Deck`: Pure card operations (draw, discard, shuffle)
-  - `CardDataLoader`: Resource management (load 110 cards from Resources)
-  - `DeckUIManager`: UI updates only (deck counts, messages) 
-  - `GameSetupManager`: Game initialization logic (deal hands, place starting card)
-  - `DeckManager`: Coordinator pattern (delegates to specialized components)
-- ✅ All 110 cards load and distribute correctly (8+8+1 setup working)
-- ✅ Automatic deck initialization and UI updates
-- ✅ **Wild as initial color** (represents "no color set yet")
-- ✅ Event-driven architecture connecting all components
-- ✅ Clean separation of concerns for future multiplayer readiness
-
----
-
-### Milestone 5: Turn Management System ✅ COMPLETE
-**Objective**: Implement turn-based mechanics with basic computer AI
-
-**Architecture Completed**:
-- ✅ **Multi-Enum Game State Architecture**:
-  - `GameStateManager`: Manages TurnState, InteractionState, GameStatus, active color, rules
-  - `TurnManager`: Handles turn switching, timing, player transitions
-  - `BasicComputerAI`: Simple AI with strategic card selection
-  - `GameplayUIManager`: Turn-related UI updates, player actions, color selection
-  - `GameManager`: Main coordinator for all gameplay systems
-
-**Integration Completed**:
-- ✅ All gameplay components properly integrated on GameManager GameObject
-- ✅ Multi-enum state transitions working correctly
-- ✅ Turn switching between Human ↔ Computer functioning
-- ✅ UI updates reflecting current game state accurately
-- ✅ Computer AI making decisions and playing cards
-- ✅ Basic card play validation working
-- ✅ Draw card functionality working for both players
-- ✅ Hand size tracking and display working
-- ✅ Event system connecting all components properly
-- ✅ Color selection system functional
-- ✅ **Clean UI Ownership Architecture**:
-  - GameplayUIManager: Turn system, player actions, computer feedback
-  - DeckUIManager: Deck counts and deck event messages only
-
----
-
-## Phase 3: Basic Gameplay Loop
-
-## 🎯 **Current Milestone 6 Objectives**
-
-### **Primary Goal**: Create Visual Card System
-Transform the working data-driven card system into interactive visual cards.
-
-### **Key Requirements**:
-1. **Card Prefab Creation**: Visual representation of CardData
-2. **Hand Management**: Dynamic card display in Player1HandPanel/Player2HandPanel
-3. **Card Selection**: Interactive card choosing system
-4. **Integration**: Connect visual cards to existing GameManager methods
-5. **Testing**: Comprehensive testing of visual gameplay
-
----
-
-## 🔧 **Milestone 6 Implementation Plan**
-
-### **Substep 6.1: Card Prefab Creation**
-
-**Create CardPrefab with simplified structure**:
-```
-CardPrefab
-├── CardBack (Image) - Scanned back image for face-down display
-├── CardFront (Image) - Scanned front image for face-up display  
-├── CardButton (Button) - Click interaction only
-└── CardController (Script) - Interaction logic
-```
-
-**CardController Script Responsibilities**:
-- Load correct scanned image based on CardData
-- Handle face-up/face-down state with instant image swapping
-- Click selection: Move card up by 10px (configurable constant, no magic numbers)
-- Visual feedback: Gold shade for valid cards, red shade for invalid cards (selection only)
-- Integration with GameManager for card actions
-- **NO animations, NO hover effects, NO text overlays**
-
-**Visual Specifications**:
-- Card dimensions: Height = 100px, Width = (2/3) * Height (calculated)
-- Selection feedback: Y-position +10px offset when selected
-- Color feedback: Gold tint for playable, red tint for unplayable (selection only)
-
-### **Substep 6.2: Hand Display System**
-
-**Create HandManager Script Features**:
-- Convert `List<CardData> playerHand` to visual card prefabs with scanned images
-- Manual positioning system (NO Layout Group components)
-- Adaptive spacing: Minimal to maximal based on hand size
-- Cards always added to end of hand (no filtering or sorting)
-- Position recalculation after every add/remove operation
-
-**Layout Requirements**:
-- Cards maintain consistent 100px height, calculated width  
-- Spacing algorithm: More cards = tighter spacing, fewer cards = more spacing
-- Manual position calculation for precise control
-- **NO animations** for card movement or transitions
-
-**Integration Points**:
-- GameManager.playerHand → Visual card prefabs in Player1HandPanel
-- Selected card → GameManager.PlayCard(selectedCard)
-- Hand updates → Instant prefab add/remove with position recalculation
-
-### **Substep 6.3: Card Interaction Integration**
-
-**Player Interaction Flow**:
-1. Player clicks card prefab → CardController moves card up 10px and applies color shade
-2. Player clicks "Play Card" button → GameManager validates and plays selected card
-3. Visual hand updates → Remove played card prefab instantly
-4. **Debug logs only** for feedback (no player message UI element)
-
-**Computer Hand Display**:
-- Face-down card prefabs in Player2HandPanel (CardBack image)
-- Card facing controlled by CardController enum/boolean
-- Flip function for instant CardBack ↔ CardFront image swap (**no animations**)
-- Debug logging to show computer's actual CardData for development
-
-**Face-Up/Face-Down System**:
-- CardController manages facing state
-- Instant image swap between CardBack and CardFront
-- Computer cards remain face-down during gameplay
-- Debug logs reveal computer cards for testing
-
-### **Substep 6.4: Comprehensive Testing Phase**
-
-**Heavy Testing Areas** (postponed from earlier milestones):
-- Visual accuracy of card information
-- Card selection responsiveness
-- Hand layout and organization
-- Performance with 8+ cards
-- Integration with turn system
-- Computer hand visual updates
-- Color selection integration
-- All existing functionality preservation
-
----
-
-## Phase 4: Core Rules Implementation
-
-### Milestone 7: Basic Card Rules System
-**Objective**: Implement complete card rule validation and enhanced gameplay
-
-#### Substep 7.1: Enhanced Card Validation
-- Visual highlighting of playable cards
-- Rule explanation tooltips
-- Invalid move prevention at UI level
-
-#### Substep 7.2: Game Rules Engine Enhancement
-- Complete rule implementation for all card types
-- Turn ending logic refinement
-- Win condition detection improvements
-
-#### Substep 7.3: UI Feedback System
-- Enhanced visual feedback for game actions
-- Rule violation explanations
-- Game state communication improvements
-
-### Milestone 8: Color Selection System Enhancement
-**Objective**: Polish ChangeColor card functionality with visual improvements
-
-#### Substep 8.1: Enhanced Color Selection UI
-- Visual integration with card prefabs
-- Improved color selection feedback
-- ColorSelectionPanel polish
-
-#### Substep 8.2: Color System Integration
-- Visual color indicators on cards
-- Color matching visual feedback
-- Enhanced active color display
-
----
-
-## Phase 5: Special Cards Implementation
-
-### Milestone 9: Action Cards - Basic Set
-**Objective**: Implement Plus, Stop, PlusTwo cards
-
-#### Substep 9.1: Plus Card
-- Force player to play second card
-- Handle inability to play second card
-- UI feedback for plus card state
-
-#### Substep 9.2: Stop Card
-- Skip next player's turn
-- Update turn indicator
-- Handle consecutive stop cards
-
-#### Substep 9.3: PlusTwo Card
-- Force next player to draw 2 cards
-- Implement stacking mechanism
-- Handle PlusTwo chains
-- Special game state for chains
-
-#### Substep 9.4: Integration Testing
-- Test all action cards together
-- Computer AI updates for action cards
-- Rule interaction validation
-- Bug fixes and polish
-
-### Milestone 10: Advanced Cards - TAKI System
-**Objective**: Implement TAKI and SuperTaki functionality
-
-#### Substep 10.1: TAKI Card Logic
-- Allow multiple card plays of same color
-- "Closed TAKI" announcement system
-- Open TAKI continuation by next player
-- TAKI sequence UI state
-
-#### Substep 10.2: SuperTaki Implementation
-- Wild TAKI functionality
-- Automatic color adoption
-- Integration with TAKI system
-
-#### Substep 10.3: TAKI UI System
-- Special UI state during TAKI sequence
-- Card selection for TAKI continuation  
-- Visual feedback for TAKI rules
-- Computer AI TAKI strategy
-
----
-
-## Phase 6: Game Polish & Features
-
-### Milestone 11: Win/Lose System
-- Detect game end conditions
-- Winner announcement
-- Score calculation (if desired)
-- Play again functionality
-
-### Milestone 12: Menu Integration  
-- Pause menu during gameplay
-- Return to main menu
-- Restart game functionality  
-- Settings integration
-
-### Milestone 13: Final Polish
-- Bug fixes and optimization
-- UI polish and consistency  
-- Audio integration (if time permits)
-- Build preparation and testing
-
----
-
-## Current Architecture Highlights
-
-### **Multi-Enum State Management**:
-```csharp
-// Clean separation of state concerns
-public enum TurnState { PlayerTurn, ComputerTurn, Neutral }
-public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChain }
-public enum GameStatus { Active, Paused, GameOver }
-```
-
-### **UI Ownership Architecture** (Established in Milestone 5):
-```csharp
-// Clear separation of UI responsibilities
-GameplayUIManager: Turn display, player actions, computer feedback, color selection
-DeckUIManager: Draw/discard counts, deck event messages only
-```
-
-### **Component Integration Success**:
-- **GameManager**: 5 components working together seamlessly
-- **DeckManager**: 4 components coordinating deck operations
-- **Event-Driven**: All systems communicate via events
-- **Coordinator Pattern**: Clean delegation to specialized components
-
----
-
-## Development Guidelines
-
-### Architecture Principles
-- **Separation of Concerns**: Each component has single responsibility
-- **Event-Driven Communication**: Components communicate via events
-- **Coordinator Pattern**: Managers delegate to specialized components  
-- **Multi-Enum State**: Separate enums for different state aspects
-- **Visual-Data Separation**: CardData separate from visual representation
-
-### Testing Strategy - Updated
-1. **Component Testing**: Each component tested independently ✅ COMPLETE
-2. **Integration Testing**: Test component interactions ✅ COMPLETE
-3. **Visual Gameplay Testing**: Full testing with card prefabs 🎯 MILESTONE 6
-4. **Rule Validation Testing**: All card rules working (Milestone 7+)
-
----
-
-## Success Metrics
-
-### Milestone 6 Success Criteria 🎯 CURRENT TARGET
-- ✅ Card prefabs display CardData information correctly
-- ✅ Hand management system functional for both players
-- ✅ Card selection and highlighting working
-- ✅ Integration with existing GameManager methods
-- ✅ Visual feedback for valid/invalid moves
-- ✅ Computer hand display appropriate (face-down cards)
-- ✅ Performance optimized for full card hands
-- ✅ All existing Milestone 5 functionality preserved
-- ✅ Layout and spacing professional appearance
-- ✅ Smooth card interactions and visual feedback
-
-### Overall Project Success  
-- Complete playable TAKI game (Human vs Computer)  
-- All major card types implemented correctly  
-- Intuitive UI with clear visual feedback  
-- Stable gameplay without crashes  
-- Clean, maintainable code architecture  
-- Code ready for multiplayer extension  
-- Professional visual presentation
-
----
-
-## Current Status Summary
-
-**✅ COMPLETED**:
-- Phase 1: Complete foundation (Menu + UI Framework)
-- Phase 2: Complete card system (Data + Deck + Turn Management)
-- All 110 cards loading and functioning
-- Multi-enum state management working
-- Turn-based gameplay functional
-- Computer AI making strategic decisions
-- Clean UI ownership architecture established
-
-**🎯 CURRENT FOCUS - Milestone 6**:
-- Create visual card prefab system
-- Implement hand management and display
-- Add card selection and interaction
-- Comprehensive testing of visual gameplay
-
-**🚀 NEXT PHASES**:
-- Enhanced rule validation with visual feedback
-- Special card implementations
-- Game polish and feature completion
-
----
-
-# My Notes:
-
-Scripts/
-├── Controllers/
-│   └── CardDataTester.cs
-├── Core/
-│   ├── AI/
-│   │   └── BasicComputerAI.cs
-│   └── GameManager.cs
-├── Data/
-│   ├── CardData.cs
-│   └── Enums.cs
-├── Editor/
-│   └── TakiDeckGenerator.cs
-├── Managers/
-│   ├── CardDataLoader.cs
-│   ├── Deck.cs
-│   ├── DeckManager.cs
-│   ├── DeckUIManager.cs
-│   ├── DontDestroyOnLoad.cs
-│   ├── GameSetupManager.cs
-│   ├── GameStateManager.cs
-│   └── TurnManager.cs
-├── UI/
-│   ├── DifficultySlider.cs
-│   ├── GameplayUIManager.cs
-│   └── MenuNavigation.cs
-├── ButtonSFX.cs
-├── MusicSlider.cs
-└── SfxSlider.cs
-
-I'm taking the following notes/making the code changes right after "Step 1: Create All Script Files" and before "Step 2: Set Up GameManager GameObject".
-
-- In `GameStateManager.cs`:
-
-    - I changed `public CardColor activeColor = CardColor.Red;` to:
-        ```
-    	[Tooltip ("Active color that must be matched (White = no color set yet)")]
-		public CardColor activeColor = CardColor.Wild; // Wild = neutral/white initially
-        ```
-        Reasoning: Wild represents "no specific color" which is perfect for initial state.
-
-
-    - I removed `public bool strictRules = true;` - This is redundant.
-
-- In `BasicComputerAI`:
-
-    - Looking into `SelectBestCard`, "higher numbers" doesn't make sense. For TAKI, number value doesn't matter for strategy, so I fixed `SelectFromNumberCards`:
-        ```
-    	/// <summary>
-		/// Select random number card
-		/// </summary>
-		/// <param name="numberCards">Available number cards</param>
-		/// <returns>Selected number card</returns>
-		CardData SelectFromNumberCards (List<CardData> numberCards) {
-			return numberCards [Random.Range (0, numberCards.Count)];
-		}
-        ```
-
-    - `AddCardsToHand` should just call `AddCardToHand` in a loop, I fixed the code:
-        ```
-    	public void AddCardsToHand (List<CardData> cards) {
-			foreach (CardData card in cards) {
-				AddCardToHand (card);
-			}
-			Debug.Log ($"AI received {cards.Count} cards. Hand size: {computerHand.Count}");
-		}
-        ```
-
-- In `GameplayUIManager.cs`:
-
-    - I can see that `public Color wildColor = Color.white;`, and I am debating myself if this direction is good - I think it is, but we need to tread carefully, as I metioned in my note on `GameStateManager`
-
-    - `GetColorForCardColor`, Wild cards shouldn't change color indicator, wild cards should maintain previous color, I fixed the code:
-        ```
-		/// <summary>
-		/// Convert CardColor to Unity Color
-		/// </summary>
-		/// <param name="cardColor">Card color to convert</param>
-		/// <returns>Unity color</returns>
-		Color GetColorForCardColor (CardColor cardColor) {
-			switch (cardColor) {
-				case CardColor.Red:
-					return redColor;
-				case CardColor.Blue:
-					return blueColor;
-				case CardColor.Green:
-					return greenColor;
-				case CardColor.Yellow:
-					return yellowColor;
-				default:
-					return wildColor;
-			}
-		}
-        ```
-
-    - I removed `PulseElement` and `HighlightActiveColor` methods entirely. No animations = faster development, fewer bugs.
-
----
-
-- I've gotten to the conclusion that we have a in regards to the GameState enum: I think we should either seperate it into different enum groups like: 
-        - PlayerTurn, ComputerTurn, + another third neutral option
-        - ColorSelection, TakiSequence, PlusTwoChain,, + another neutral option
-        - GameOver, Paused, + another third neutral option
-    - Or do you maybe have another better idea?
-    - Anyhow, this will require changing many many different files, so we need to go and look over EACH ONE of our files and check.
-New Multi-Enum Architecture Proposal:
-```
-// Who's turn is it?
-public enum TurnState {
-    PlayerTurn,
-    ComputerTurn,
-    Neutral    // During transitions, game over, etc.
-}
-
-// What special interaction is happening?  
-public enum InteractionState {
-    Normal,           // Regular gameplay
-    ColorSelection,   // ChangeColor card played
-    TakiSequence,     // TAKI multi-play active
-    PlusTwoChain      // +2 cards being chained
-}
-
-// What's the overall game status?
-public enum GameStatus {
-    Active,    // Game is running normally
-    Paused,    // Game paused
-    GameOver   // Game ended
-}
-```
-Now we need to update all relevant files accordingly
-
-
----
-
-I have updated all the scripts, I haven't yet gotten to Step 3: Configure GameManager GameObject. Before that I want to start a ne prompt since this one is getting long and heavy - in order to do that I need to update my project's "Set project instructions" and attached "Files".
-
-1.I need your suggestion on what files I should attach and which are not necessary, I know that it's best to give claude the needed and relevant information, so aside from the "Set project instructions", which files should be attached?
-
-2.I want you to give me back in canvas "Set project instructions", but with the following changes:
-
-A. Make sure all our architectural changes, and any important changes are updated in the doucument.
-
-B. We completed "Milestone 4" and are currently in the middle of "Milestone 5" - Update what's completed and what's left to do. Remember that the heavier testing is planned for after creating the card prefabs (in "Milestone 6" if I remember correctly).
-
-C. Add this:
-Project:
-```
-Scripts/
-├── Controllers/
-│   └── CardDataTester.cs
-├── Core/
-│   ├── AI/
-│   │   └── BasicComputerAI.cs
-│   └── GameManager.cs
-├── Data/
-│   ├── CardData.cs
-│   └── Enums.cs
-├── Editor/
-│   └── TakiDeckGenerator.cs
-├── Managers/
-│   ├── CardDataLoader.cs
-│   ├── Deck.cs
-│   ├── DeckManager.cs
-│   ├── DeckUIManager.cs
-│   ├── DontDestroyOnLoad.cs
-│   ├── GameSetupManager.cs
-│   ├── GameStateManager.cs
-│   └── TurnManager.cs
-├── UI/
-│   ├── DifficultySlider.cs
-│   ├── GameplayUIManager.cs
-│   └── MenuNavigation.cs
-├── ButtonSFX.cs
-├── MusicSlider.cs
-└── SfxSlider.cs
-```
-
-D. Add this:
-Hierarchy:
-```
-Scene_Menu
-├── Main Camera
-├── Canvas
-│   ├── Img_Background
-│   ├── Screen_MainMenu
-│   ├── Screen_StudentInfo
-│   ├── Screen_Settings
-│   ├── Screen_SinglePlayer
-│   ├── Screen_MultiPlayer
-│   ├── Screen_ExitValidator
-│   ├── Screen_Loading
-│   ├── Screen_Exiting
-│   ├── Screen_SinglePlayerGame
-│   │   ├── Player1Panel
-│   │   │   ├── Player1HandPanel
-│   │   │   └── Player1ActionPanel
-│   │   │       ├── Btn_Player1PlayCard
-│   │   │       ├── Btn_Player1DrawCard
-│   │   │       └── Btn_Player1EndTurn
-│   │   ├── Player2Panel
-│   │   │   ├── Player2HandPanel
-│   │   │   └── Player2ActionPanel
-│   │   │       ├── Btn_Player2PlayCard
-│   │   │       ├── Btn_Player2DrawCard
-│   │   │       └── Btn_Player2EndTurn
-│   │   ├── GameBoardPanel
-│   │   │   ├── DrawPilePanel
-│   │   │   └── DiscardPilePanel
-│   │   ├── GameInfoPanel
-│   │   │   ├── TurnIndicatorText
-│   │   │   ├── DrawPileCountText
-│   │   │   ├── DiscardPileCountText
-│   │   │   └── GameMessageText
-│   │   ├── ColorSelectionPanel
-│   │   │   ├── Btn_SelectRed
-│   │   │   ├── Btn_SelectBlue
-│   │   │   ├── Btn_SelectGreen
-│   │   │   ├── Btn_SelectYellow
-│   │   │   └── CurrentColorIndicator
-│   │   └── Btn_Exit
-│   └── Screen_MultiPlayerGame
-├── EventSystem
-├── GameObject
-├── MenuManager
-├── BackgroundMusic
-├── SFXController
-├── CardDataTester
-└── DeckManager
-```
-
-
-
-
-
-
-
-
-
-
-# TAKI Game Development Plan - Unity Engine
-## Comprehensive Implementation Guide
-
-### ⚠️ CRITICAL NOTES
-- **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **Current Status**: Phase 1 Complete ✅, Phase 2 Complete ✅, **Currently at Phase 3 - Milestone 6** 🎯
-- **Target Platform**: PC/Desktop Unity Build
-- **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
-
----
-
-## Project Structure
-
-### Scripts Organization:
-```
-Scripts/
-├── Controllers/
-│   └── CardDataTester.cs
-├── Core/
-│   ├── AI/
-│   │   └── BasicComputerAI.cs
-│   └── GameManager.cs
-├── Data/
-│   ├── CardData.cs
-│   └── Enums.cs
-├── Editor/
-│   └── TakiDeckGenerator.cs
-├── Managers/
-│   ├── CardDataLoader.cs
-│   ├── Deck.cs
-│   ├── DeckManager.cs
-│   ├── DeckUIManager.cs
-│   ├── DontDestroyOnLoad.cs
-│   ├── GameSetupManager.cs
-│   ├── GameStateManager.cs
-│   └── TurnManager.cs
-├── UI/
-│   ├── DifficultySlider.cs
-│   ├── GameplayUIManager.cs
-│   └── MenuNavigation.cs
-├── ButtonSFX.cs
-├── MusicSlider.cs
-└── SfxSlider.cs
-```
-
-### Scene Hierarchy:
-```
-Scene_Menu
-├── Main Camera
-├── Canvas
-│   ├── Img_Background
-│   ├── Screen_MainMenu
-│   ├── Screen_StudentInfo
-│   ├── Screen_Settings
-│   ├── Screen_SinglePlayer
-│   ├── Screen_MultiPlayer
-│   ├── Screen_ExitValidator
-│   ├── Screen_Loading
-│   ├── Screen_Exiting
-│   ├── Screen_SinglePlayerGame
-│   │   ├── Player1Panel (Human Player)
-│   │   │   ├── Player1HandPanel - for card prefab instantiation
-│   │   │   └── Player1ActionPanel
-│   │   │       ├── Btn_Player1PlayCard - Play selected card
-│   │   │       ├── Btn_Player1DrawCard - Draw from deck
-│   │   │       ├── Btn_Player1EndTurn - End current turn
-│   │   │       └── Player1HandSizePanel
-│   │   │           └── Player1HandSizeText - Hand size display
-│   │   ├── Player2Panel (Computer Player)
-│   │   │   ├── Player2HandPanel - for computer card prefabs
-│   │   │   └── Player2MessagePanel
-│   │   │       ├── Player2MessageText - AI action feedback
-│   │   │       └── Player2HandSizePanel 
-│   │   │           └── Player2HandSizeText - Computer hand size
-│   │   ├── GameBoardPanel
-│   │   │   ├── DrawPilePanel - draw pile card display
-│   │   │   └── DiscardPilePanel - discard pile card display
-│   │   ├── GameInfoPanel
-│   │   │   ├── TurnIndicatorText - Current turn display
-│   │   │   ├── DrawPileCountText - Draw pile count
-│   │   │   ├── DiscardPileCountText - Discard pile count
-│   │   │   └── GameMessageText - Deck event messages only
-│   │   ├── ColorSelectionPanel - Color choice UI
-│   │   │   ├── Btn_SelectRed
-│   │   │   ├── Btn_SelectBlue
-│   │   │   ├── Btn_SelectGreen
-│   │   │   └── Btn_SelectYellow
-│   │   ├── CurrentColorIndicator - Active color display
-│   │   ├── Btn_Exit - Return to main menu
-│   │   └── Btn_Pause - Future implementation
-│   └── Screen_MultiPlayerGame
-├── EventSystem
-├── GameObject
-├── MenuManager
-├── BackgroundMusic
-├── SFXController
-├── CardDataTester
-└── DeckManager
+└── DeckManager (DeckManager + DeckUIManager + PileManager)
 ```
 
 ---
@@ -864,7 +162,7 @@ Scene_Menu
 - ✅ **Refactored Architecture** using **Single Responsibility Principle**:
   - `Deck`: Pure card operations (draw, discard, shuffle)
   - `CardDataLoader`: Resource management (load 110 cards from Resources)
-  - `DeckUIManager`: UI updates for deck events only
+  - `DeckUIManager`: UI updates only (deck counts, messages) 
   - `GameSetupManager`: Game initialization logic (deal hands, place starting card)
   - `DeckManager`: Coordinator pattern (delegates to specialized components)
 - ✅ All 110 cards load and distribute correctly (8+8+1 setup working)
@@ -874,17 +172,13 @@ Scene_Menu
 - ✅ Clean separation of concerns for future multiplayer readiness
 
 ### Milestone 5: Turn Management System ✅ COMPLETE
-**Objective**: Implement turn-based mechanics with basic computer AI
-
-**Architecture Completed**:
+**Achievements**:
 - ✅ **Multi-Enum Game State Architecture**:
   - `GameStateManager`: Manages TurnState, InteractionState, GameStatus, active color, rules
   - `TurnManager`: Handles turn switching, timing, player transitions
   - `BasicComputerAI`: Simple AI with strategic card selection
   - `GameplayUIManager`: Turn-related UI updates, player actions, color selection
   - `GameManager`: Main coordinator for all gameplay systems
-
-**Integration Completed**:
 - ✅ All gameplay components properly integrated on GameManager GameObject
 - ✅ Multi-enum state transitions working correctly
 - ✅ Turn switching between Human ↔ Computer functioning
@@ -901,156 +195,115 @@ Scene_Menu
 
 ---
 
-## Phase 3: Basic Gameplay Loop 🎯 CURRENT PHASE
+## Phase 3: Visual Card System ✅ COMPLETE
 
-
-
-I have feedback on Milestone 6:
-
-### Milestone 6: Hand Management System 🎯 **CURRENTLY IN PROGRESS**
-**Objective**: Create visual card representation and interactive hand management
-
-#### Substep 6.1: Card Prefab Creation
-**Card Prefab Structure**:
-```
-CardPrefab
-├── CardBackground (Image) - Background with card frame
-├── CardButton (Button) - Click interaction component
-├── CardNumberText (TextMeshProUGUI) - Display card number
-├── CardTypeText (TextMeshProUGUI) - Display card type/name
-├── CardColorIndicator (Image) - Color visual indicator
-└── CardController (Script) - Card interaction logic
-```
-I was thinking of something a little different - I have already scanned all the cards, so I think we only need:
-* CardBack (Image) - Back of all cards scanned image
-* CardFront (Image) - Front of this card scanned image
-Some of the other things you described sound like they might be good for logging, but aren't actually really necessary for the display.
-
-**CardController Features**:
-- Display CardData information visually
-- Handle card selection/deselection
-- Visual feedback for valid/invalid plays
-- Integration with GameManager for card actions
-- Hover effects and animations
-
-My notes:
-- Only the card front and back visuals should be displayed.
-- When player clicks/selects (NOT HOVER) a card, the card's Y location increaces by 10px (no magic numbers) 
-    - If card is valid to play at this moment - the card be be given a slight shade of gold (only when clicked/selected)
-    - If card is invalid to play at this moment - the card be be given a slight shade of red (only when clicked/selected)
-- NO ANIMATIONS AT ALL!!!
-
-#### Substep 6.2: Hand Display System
-**HandManager Script Features**:
-- Dynamic card prefab instantiation in Player1HandPanel
-- Proper card spacing and layout (Horizontal Layout Group)
-- Hand size management and visual organization
-- Card selection highlighting system
-- Integration with GameplayUIManager
-
-My notes:
-- All cards should be height 100px and the width is 2/3 of the height. No magic numbers. These are actually the exact sizes of the pile panels.
-- We need a minimal spacing and a maximal spacing, depends on how many cards are in the hand
-    - the cards should not be filtered, always add to the end of the list
-    - NO ANIMATIONS!
-- After every card change we must make sure to update/readjust the cards positioning
-- golden and red highlighting 
-- IGNORE HOVERING!!!
-
-**Key Responsibilities**:
-- Convert List<CardData> to visual card prefabs
-- Manage card positions and layout
-- Handle card selection state
-- Remove played cards from display
-- Add drawn cards to display
-
-#### Substep 6.3: Card Interaction Integration
-**Player Interaction Flow**:
-1. **Card Selection**: Click card prefab → highlight selection
-2. **Play Validation**: Check if selected card is playable
-3. **Play Card**: Use existing GameManager.PlayCard() method
-4. **Visual Feedback**: Update hand display and game state
-
-My notes:
-- IMPORTANT: We currently don't have any playerMessage element, and I don't want one (not at this pint at least) - so any text feedback can just be logs.
-
-**Computer Hand Display**:
-- Show computer cards as face-down prefabs
-- Display count but not card details
-- Update when computer plays/draws cards
-
-My notes:
-- We should have a kind facingUp or facingDown (maybe an enum, or a variable or something)
-    - when we want to switch the card's facing direction we can use a flip kind of function (but no animations!!!)
-- We want to know the computer's cards in the logs
-
-#### Substep 6.4: Comprehensive Testing
-**Testing Areas** (Heavy testing phase):
-- Visual card display accuracy
-- Card selection and highlighting
-- Play card button integration
-- Hand layout and organization
-- Card removal/addition animations
-- Computer hand visual updates
-- Integration with existing turn system
-- Performance with full card hands
-
-My notes:
-- NO ANIMATIONS!
-
-**Success Criteria**:
-- ✅ Cards display correct information from CardData
-- ✅ Card selection system working smoothly
-- ✅ Integration with existing GameManager methods
-- ✅ Proper hand layout and visual organization
-- ✅ Computer hand display functional
-- ✅ No performance issues with full hands
-- ✅ All existing functionality preserved
+### Milestone 6: Interactive Visual Cards ✅ COMPLETE
+**Achievements**:
+- ✅ **Complete Visual Card System**:
+  - `CardController`: Individual card behavior with real scanned images
+  - `HandManager`: Dynamic hand display with adaptive spacing  
+  - `PileManager`: Draw/discard pile visual cards
+- ✅ **CardPrefab Architecture**:
+  - Face-up/face-down instant image swapping (no animations)
+  - Click selection with 10px Y-offset movement
+  - Gold/red tint feedback for valid/invalid cards
+  - Professional 100px height, calculated 67px width
+- ✅ **Hand Display System**:
+  - Manual positioning with adaptive spacing algorithm
+  - Player hand: Face-up cards with selection
+  - Computer hand: Face-down cards for privacy
+  - Instant prefab add/remove with position recalculation
+- ✅ **Pile Visual System**:
+  - Draw pile: Face-down card when not empty
+  - Discard pile: Face-up current top card
+  - Integrated with DeckUIManager through PileManager
+- ✅ **Image Architecture Consistency**:
+  - Fixed folder structure: `Wild/` instead of `Special/`
+  - Consistent naming: Wild cards no color suffix
+  - All cards use real scanned images from Resources
+- ✅ **Performance & Integration**:
+  - Smooth gameplay with 8+ cards in hand
+  - All existing Milestone 5 functionality preserved
+  - Event-driven integration with GameManager
+  - No memory leaks or performance issues
 
 ---
 
 ## Phase 4: Core Rules Implementation
 
-### Milestone 7: Basic Card Rules System
-**Objective**: Implement complete card rule validation and enhanced gameplay
+## 🎯 **Current Milestone 7: Enhanced Card Rules System**
 
-#### Substep 7.1: Enhanced Card Validation
-- Visual highlighting of playable cards
-- Rule explanation tooltips
-- Invalid move prevention at UI level
+### **Primary Goal**: Implement complete card rule validation with visual feedback
+**Status**: 🎯 **CURRENT FOCUS** - Starting implementation
 
-#### Substep 7.2: Game Rules Engine Enhancement
-- Complete rule implementation for all card types
-- Turn ending logic refinement
+### **Current Implementation Status**:
+**WORKING BASIC RULES**:
+- ✅ Color matching validation
+- ✅ Number matching validation
+- ✅ Wild card acceptance (SuperTaki, ChangeColor)
+- ✅ Basic special card type matching
+
+**NEEDS INVESTIGATION & ENHANCEMENT**:
+- 🔍 Special card effects implementation status
+- 🔍 Rule violation feedback clarity  
+- 🔍 Edge case handling completeness
+- 🔍 Computer AI rule awareness accuracy
+
+### **Implementation Plan**:
+
+#### **Substep 7.1: Rule System Analysis & Inventory** 🎯 IMMEDIATE
+**Objective**: Dissect existing code to understand current rule implementation
+
+**Tasks**:
+1. **Analyze CardData.CanPlayOn()** - Document current rule logic
+2. **Test GameStateManager.IsValidMove()** - Verify rule integration
+3. **Inventory Special Card Effects** - List what works vs what doesn't
+4. **Map Rule Gaps** - Identify missing or incomplete validations
+5. **Document Current Behavior** - Create comprehensive rule status report
+
+#### **Substep 7.2: Visual Rule Feedback Enhancement**
+**Objective**: Improve player understanding of valid/invalid moves
+
+**Tasks**:
+- Enhanced CardController visual feedback system
+- Rule violation explanation tooltips/messages
+- Proactive highlighting of playable cards
+- Color-coded feedback for different rule types
+- Integration with GameplayUIManager for rule explanations
+
+#### **Substep 7.3: Special Card Rules Completion**
+**Objective**: Complete implementation of all special card effects
+
+**Tasks**:
+- Plus card: Draw 1, continue turn logic
+- Stop card: Skip opponent turn
+- PlusTwo card: Draw 2, stacking mechanism
+- ChangeDirection card: Turn order reversal
+- Taki/SuperTaki: Multi-card play sequences
+- ChangeColor: Color selection with validation
+
+#### **Substep 7.4: Rule Engine Polish & Testing**
+**Objective**: Comprehensive rule validation testing and refinement
+
+**Tasks**:
+- Edge case testing for all card combinations
+- Computer AI rule awareness verification
 - Win condition detection improvements
-
-#### Substep 7.3: UI Feedback System
-- Enhanced visual feedback for game actions
-- Rule violation explanations
-- Game state communication improvements
-
-### Milestone 8: Color Selection System Enhancement
-**Objective**: Polish ChangeColor card functionality with visual improvements
-
-#### Substep 8.1: Enhanced Color Selection UI
-- Visual integration with card prefabs
-- Improved color selection feedback
-- ColorSelectionPanel polish
-
-#### Substep 8.2: Color System Integration
-- Visual color indicators on cards
-- Color matching visual feedback
-- Enhanced active color display
+- Rule interaction testing between special cards
+- Performance optimization for rule checking
 
 ---
 
 ## Phase 5: Special Cards Implementation
 
-### Milestone 9: Action Cards - Basic Set
-**Objective**: Implement Plus, Stop, PlusTwo cards with full visual feedback
+### Milestone 8: Action Cards - Basic Set
+**Objective**: Complete Plus, Stop, PlusTwo, ChangeDirection cards
 
-### Milestone 10: Advanced Cards - TAKI System
-**Objective**: Implement TAKI and SuperTaki functionality with special UI states
+### Milestone 9: Advanced Cards - TAKI System  
+**Objective**: Implement TAKI and SuperTaki functionality
+
+### Milestone 10: Color Selection Enhancement
+**Objective**: Polish ChangeColor card with visual improvements
 
 ---
 
@@ -1072,18 +325,29 @@ public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChai
 public enum GameStatus { Active, Paused, GameOver }
 ```
 
-### **UI Ownership Architecture** (Established in Milestone 5):
+### **Visual Card Architecture** (NEW - Milestone 6):
+```csharp
+// Complete visual card system
+CardController: Individual card behavior, image loading, selection
+HandManager: Dynamic hand layout, card positioning, user interaction
+PileManager: Draw/discard pile visual representation
+```
+
+### **UI Ownership Architecture**:
 ```csharp
 // Clear separation of UI responsibilities
 GameplayUIManager: Turn display, player actions, computer feedback, color selection
-DeckUIManager: Draw/discard counts, deck event messages only
+DeckUIManager: Draw/discard counts, deck event messages only  
+HandManager: Player/computer hand visual display
+PileManager: Draw/discard pile visual cards
 ```
 
 ### **Component Integration Success**:
-- **GameManager**: 5 components working together seamlessly
-- **DeckManager**: 4 components coordinating deck operations
+- **GameManager**: 7 components working together (added HandManager x2)
+- **DeckManager**: 5 components coordinating (added PileManager)
 - **Event-Driven**: All systems communicate via events
 - **Coordinator Pattern**: Clean delegation to specialized components
+- **Visual-Data Separation**: CardData independent of visual representation
 
 ---
 
@@ -1095,28 +359,27 @@ DeckUIManager: Draw/discard counts, deck event messages only
 - **Coordinator Pattern**: Managers delegate to specialized components  
 - **Multi-Enum State**: Separate enums for different state aspects
 - **Visual-Data Separation**: CardData separate from visual representation
+- **No Animations**: Instant visual updates only (performance & simplicity)
 
-### Testing Strategy - Updated
+### Testing Strategy
 1. **Component Testing**: Each component tested independently ✅ COMPLETE
 2. **Integration Testing**: Test component interactions ✅ COMPLETE
-3. **Visual Gameplay Testing**: Full testing with card prefabs 🎯 MILESTONE 6
-4. **Rule Validation Testing**: All card rules working (Milestone 7+)
+3. **Visual Gameplay Testing**: Full testing with card prefabs ✅ COMPLETE  
+4. **Rule Validation Testing**: Comprehensive rule system testing 🎯 CURRENT
 
 ---
 
 ## Success Metrics
 
-### Milestone 6 Success Criteria 🎯 CURRENT TARGET
-- ✅ Card prefabs display CardData information correctly
-- ✅ Hand management system functional for both players
-- ✅ Card selection and highlighting working
-- ✅ Integration with existing GameManager methods
-- ✅ Visual feedback for valid/invalid moves
-- ✅ Computer hand display appropriate (face-down cards)
-- ✅ Performance optimized for full card hands
-- ✅ All existing Milestone 5 functionality preserved
-- ✅ Layout and spacing professional appearance
-- ✅ Smooth card interactions and visual feedback
+### Milestone 7 Success Criteria 🎯 CURRENT TARGET
+- 🔍 **Complete Rule Inventory**: Document all current rule implementations
+- ✅ **Enhanced Visual Feedback**: Clear indication of valid/invalid moves
+- ✅ **Rule Violation Explanations**: Player understands why moves are invalid
+- ✅ **Special Card Effects**: All basic special cards work correctly  
+- ✅ **Computer AI Compliance**: AI respects all game rules accurately
+- ✅ **Edge Case Handling**: Robust rule validation for unusual scenarios
+- ✅ **Performance**: Rule checking doesn't impact gameplay smoothness
+- ✅ **Integration**: Rules work seamlessly with visual card system
 
 ### Overall Project Success  
 - Complete playable TAKI game (Human vs Computer)  
@@ -1125,443 +388,761 @@ DeckUIManager: Draw/discard counts, deck event messages only
 - Stable gameplay without crashes  
 - Clean, maintainable code architecture  
 - Code ready for multiplayer extension  
-- Professional visual presentation
+- Professional visual presentation with real card images
 
 ---
 
 ## Current Status Summary
 
 **✅ COMPLETED**:
-- Phase 1: Complete foundation (Menu + UI Framework)
-- Phase 2: Complete card system (Data + Deck + Turn Management)
-- All 110 cards loading and functioning
-- Multi-enum state management working
-- Turn-based gameplay functional
+- **Phase 1**: Complete foundation (Menu + UI Framework)
+- **Phase 2**: Complete card system (Data + Deck + Turn Management)  
+- **Phase 3**: Complete visual system (Interactive cards + Hand management + Pile visuals)
+- All 110 cards loading with real scanned images
+- Multi-enum state management working perfectly
+- Turn-based gameplay with visual cards functional
 - Computer AI making strategic decisions
-- Clean UI ownership architecture established
+- Professional visual card system with adaptive layouts
 
-**🎯 CURRENT FOCUS - Milestone 6**:
-- Create visual card prefab system
-- Implement hand management and display
-- Add card selection and interaction
-- Comprehensive testing of visual gameplay
+**🎯 CURRENT FOCUS - Milestone 7**:
+- **IMMEDIATE**: Analyze current rule implementation status
+- Enhance visual feedback for rule validation
+- Complete special card effects implementation
+- Comprehensive rule system testing and polish
 
 **🚀 NEXT PHASES**:
-- Enhanced rule validation with visual feedback
-- Special card implementations
-- Game polish and feature completion
+- Advanced special card mechanics (TAKI sequences)
+- Game polish and win/lose system
+- Menu integration and final testing
+- Build preparation and deployment
 
 
 
 
-# TAKI Game Development - Set Project Instructions
 
-## 📋 **Current Project Status**
-- **Phase 1**: Foundation Setup ✅ COMPLETE
-- **Phase 2**: Core Card System ✅ COMPLETE  
-- **Current Focus**: **Phase 3 - Milestone 6: Hand Management System** 🎯
-- **Architecture**: Multi-enum state management with clean UI ownership
-- **Platform**: Unity PC/Desktop build
-- **Scope**: Singleplayer Human vs Computer
 
----
 
-## 🏗️ **Completed Architecture (Milestone 5)**
 
-### **Multi-Enum State Management**
-```csharp
-namespace TakiGame {
-    public enum TurnState { PlayerTurn, ComputerTurn, Neutral }
-    public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChain }
-    public enum GameStatus { Active, Paused, GameOver }
-}
+
+# Diagnostic Results Documentation Template
+
+## DIAGNOSTIC RUN #1 - INITIAL SYSTEM CHECK
+**Date**: 14:20  
+**Unity Version**: Ver 1  
+**Test Duration**: ___________
+
+### F1 - FULL DIAGNOSTICS RESULTS
+
+#### Component References Check
+- [ ] GameManager: OK
+- [ ] DeckManager: OK
+- [ ] GameStateManager: OK
+- [ ] TurnManager: OK
+- [ ] BasicComputerAI: OK
+- [ ] PlayerHandManager: OK
+- [ ] ComputerHandManager: OK
+- [ ] GameplayUI: OK
+
+**Critical Issues Found**:
+```
+[Copy exact error messages here] - No errors
 ```
 
-### **Component Integration Success**
-**GameManager GameObject Components**:
-- GameManager (coordinator)
-- GameStateManager (multi-enum state)
-- TurnManager (turn switching)
-- BasicComputerAI (strategic decisions)
-- GameplayUIManager (player UI)
-
-**DeckManager GameObject Components**:
-- DeckManager (coordinator)
-- Deck (card operations)
-- CardDataLoader (110 cards from Resources)
-- DeckUIManager (deck event UI)
-- GameSetupManager (game initialization)
-
-### **UI Ownership Architecture**
-**Clear separation established**:
-- **GameplayUIManager**: Turn display, player actions, computer feedback, color selection
-- **DeckUIManager**: Deck counts and deck event messages ONLY
-
-### **Event-Driven Communication**
-All systems communicate via events, no direct references between unrelated components.
-
----
-
-## 🎯 **Current Milestone 6 Objectives**
-
-### **Primary Goal**: Create Visual Card System
-Transform the working data-driven card system into interactive visual cards.
-
-### **Key Requirements**:
-1. **Card Prefab Creation**: Visual representation of CardData
-2. **Hand Management**: Dynamic card display in Player1HandPanel/Player2HandPanel
-3. **Card Selection**: Interactive card choosing system
-4. **Integration**: Connect visual cards to existing GameManager methods
-5. **Testing**: Comprehensive testing of visual gameplay
-
----
-
-## 🔧 **Milestone 6 Implementation Plan**
-
-### **Substep 6.1: Card Prefab Creation**
-
-**Create CardPrefab with simplified structure**:
-```
-CardPrefab
-├── CardBack (Image) - Scanned back image for face-down display
-├── CardFront (Image) - Scanned front image for face-up display  
-├── CardButton (Button) - Click interaction only
-└── CardController (Script) - Interaction logic
-```
-
-**CardController Script Responsibilities**:
-- Load correct scanned image based on CardData
-- Handle face-up/face-down state with instant image swapping
-- Click selection: Move card up by 10px (configurable constant, no magic numbers)
-- Visual feedback: Gold shade for valid cards, red shade for invalid cards (selection only)
-- Integration with GameManager for card actions
-- **NO animations, NO hover effects, NO text overlays**
-
-**Visual Specifications**:
-- Card dimensions: Height = 100px, Width = (2/3) * Height (calculated)
-- Selection feedback: Y-position +10px offset when selected
-- Color feedback: Gold tint for playable, red tint for unplayable (selection only)
-
-### **Substep 6.2: Hand Display System**
-
-**Create HandManager Script Features**:
-- Convert `List<CardData> playerHand` to visual card prefabs with scanned images
-- Manual positioning system (NO Layout Group components)
-- Adaptive spacing: Minimal to maximal based on hand size
-- Cards always added to end of hand (no filtering or sorting)
-- Position recalculation after every add/remove operation
-
-**Layout Requirements**:
-- Cards maintain consistent 100px height, calculated width  
-- Spacing algorithm: More cards = tighter spacing, fewer cards = more spacing
-- Manual position calculation for precise control
-- **NO animations** for card movement or transitions
-
-**Integration Points**:
-- GameManager.playerHand → Visual card prefabs in Player1HandPanel
-- Selected card → GameManager.PlayCard(selectedCard)
-- Hand updates → Instant prefab add/remove with position recalculation
-
-### **Substep 6.3: Card Interaction Integration**
-
-**Player Interaction Flow**:
-1. Player clicks card prefab → CardController moves card up 10px and applies color shade
-2. Player clicks "Play Card" button → GameManager validates and plays selected card
-3. Visual hand updates → Remove played card prefab instantly
-4. **Debug logs only** for feedback (no player message UI element)
-
-**Computer Hand Display**:
-- Face-down card prefabs in Player2HandPanel (CardBack image)
-- Card facing controlled by CardController enum/boolean
-- Flip function for instant CardBack ↔ CardFront image swap (**no animations**)
-- Debug logging to show computer's actual CardData for development
-
-**Face-Up/Face-Down System**:
-- CardController manages facing state
-- Instant image swap between CardBack and CardFront
-- Computer cards remain face-down during gameplay
-- Debug logs reveal computer cards for testing
-
-### **Substep 6.4: Comprehensive Testing Phase**
-
-**Heavy Testing Areas** (postponed from earlier milestones):
-- Visual accuracy of card information
-- Card selection responsiveness
-- Hand layout and organization
-- Performance with 8+ cards
-- Integration with turn system
-- Computer hand visual updates
-- Color selection integration
-- All existing functionality preservation
-
----
-
-## 🔄 **Integration with Existing Systems**
-
-### **GameManager Integration**
-**Current methods to connect with**:
-- `GameManager.PlayCard(CardData card)` - Already working
-- `GameManager.DrawCard()` - Already working
-- `GameManager.playerHand` - List to convert to visuals
-- Event system - Already functional for UI updates
-
-### **GameplayUIManager Integration**
-**Existing button events to maintain**:
-- OnPlayCardClicked - Connect to selected card system
-- OnDrawCardClicked - Already working
-- OnColorSelected - Already working
-- Button state management - Already working
-
-### **No Changes Needed**:
-- DeckManager system (working perfectly)
-- Turn management system (working perfectly)
-- Computer AI system (working perfectly)
-- State management (working perfectly)
-
----
-
-## 📝 **Code Quality Standards**
-
-### **Naming Conventions**
-```csharp
-namespace TakiGame {
-    public class CardController : MonoBehaviour {
-        [Header("Card Display")]
-        public Image cardBackground;
-        public Button cardButton;
-        public TextMeshProUGUI cardNumberText;
-        
-        private CardData cardData;
-        private bool isSelected = false;
-    }
-}
-```
-
-### **Architecture Principles**
-- **Single Responsibility**: Each script has one clear purpose
-- **Event-Driven**: Use events for component communication
-- **No Unicode**: ASCII characters only in all code/text
-- **Visual-Data Separation**: CardData remains separate from visual prefab
-- **Existing System Preservation**: Don't break Milestone 5 functionality
-
----
-
-## 🚫 **Critical Constraints**
-
-### **Do Not Modify**:
-- GameManager core methods (working correctly)
-- DeckManager system (stable and functional)
-- Multi-enum state system (working perfectly)
-- UI ownership architecture (cleanly separated)
-- Turn management flow (tested and stable)
-
-### **Unicode Restrictions**:
-- No special characters in any new scripts
-- ASCII-only text in UI displays
-- Simple characters in all variable names and comments
-
-### **Performance Requirements**:
-- Handle 8+ card hands smoothly
-- Efficient prefab instantiation/destruction
-- No memory leaks from card prefabs
-- Responsive card selection (<100ms feedback)
-
----
-
-## 🎯 **Success Criteria for Milestone 6**
-
-### **Visual System**:
-- ✅ Card prefabs accurately display CardData information
-- ✅ Professional visual appearance with proper layout
-- ✅ Responsive card selection with clear feedback
-- ✅ Smooth hand organization and spacing
-
-### **Interaction System**:
-- ✅ Card selection system functional
-- ✅ Integration with existing Play Card button
-- ✅ Visual feedback for valid/invalid moves
-- ✅ Computer hand display appropriate
-
-### **Integration**:
-- ✅ No breaking changes to existing systems
-- ✅ Performance optimized for full card hands
-- ✅ Event system integration working
-- ✅ All Milestone 5 functionality preserved
-
-### **Testing Completion**:
-- ✅ All card interactions tested thoroughly
-- ✅ Layout system working across different hand sizes
-- ✅ Visual feedback system polished
-- ✅ Ready for enhanced rule validation (Milestone 7)
-
----
-
-## 📁 **File Structure for Milestone 6**
-
-### **New Files to Create**:
-```
-Scripts/
-├── UI/
-│   ├── CardController.cs - Individual card prefab logic
-│   └── HandManager.cs - Hand display management
-└── Prefabs/
-    └── CardPrefab.prefab - Visual card prefab
-```
-
-### **Files to Modify**:
-- Potentially minor GameManager.cs integration points
-- Potentially minor GameplayUIManager.cs integration points
-
-### **Files to Keep Unchanged**:
-- All DeckManager components
-- All state management components
-- All turn management components
-- All Computer AI components
-
----
-
-## 🔄 **Development Workflow**
-
-### **Step 1**: Create CardPrefab
-- Design visual layout in Unity
-- Add all required UI components
-- Create CardController script
-
-### **Step 2**: Create HandManager
-- Script to manage card prefab instantiation
-- Integration with Player1HandPanel/Player2HandPanel
-- Handle card selection state
-
-### **Step 3**: Integration Testing
-- Connect visual cards to existing GameManager methods
-- Test card selection → play card flow
-- Verify no existing functionality breaks
-
-### **Step 4**: Polish and Testing
-- Visual feedback improvements
-- Performance optimization
-- Comprehensive functionality testing
-
----
-
-## 🎮 **Scene Integration Points**
-
-### **UI Elements to Connect**:
-- **Player1HandPanel**: Container for player card prefabs
-- **Player2HandPanel**: Container for computer card prefabs  
-- **Btn_Player1PlayCard**: Connect to selected card system
-- **ColorSelectionPanel**: Already working, maintain integration
-
-### **Existing Systems to Preserve**:
-- Turn indicator updates (working)
-- Hand size displays (working)
-- Computer message system (working)
-- Deck count displays (working)
-- Color selection system (working)
-
----
-
-## 🏁 **Next Phase Preparation**
-
-After Milestone 6 completion, the project will be ready for:
-- **Milestone 7**: Enhanced rule validation with visual feedback
-- **Milestone 8**: Improved color selection integration
-- **Phase 5**: Special card implementations with visual states
-
-The visual card system will provide the foundation for all advanced card interactions and special card behaviors in subsequent milestones.
-
-
-
-
-
-
----
-
-
-
-My Notes:
-
----
-
-"1. Create Card Prefab
-CardPrefab (GameObject + CardController)
-├── CardBackground (Image)
-├── CardFrontImage (Image) 
-├── CardBackImage (Image)
-└── CardButton (Button)
-"
-
-We don't HAVE a Background (and we don't need one)
-
----
+#### Deck State Check
+- Draw Pile Count: 93 - good
+- Discard Pile Count: 1  
+- Top Discard Card: Yellow 7
+- Can Draw Cards: YES
+- Has Valid Deck: YES
+
+**Expected vs Actual**:
+- Draw Pile Expected: ~94, Actual: 93 - seems very good to me (110-8*2-1=93)
+- Discard Expected: 1+, Actual: 1
+
+#### Game State Check  
+- Turn State: PlayerTurn
+- Interaction State: Normal
+- Game Status: Active
+- Active Color: Yellow
+- Can Player Act: YES
+- Can Computer Act: NO
+
+#### Turn Management Check
+- Current Player: Human
+- Is Human Turn: YES
+- Is Computer Turn: NO  
+- Turns Active: YES
+- Computer Turn Pending: NO
+
+#### Player Hand Check
+- Player Hand Size: 8
+- Computer Hand Size: 8
+- Cards Visible in UI: Yellow Stop, Blue PlusTwo, Yellow PlusTwo, Red Taki, Blue 7, Blue 5, Blue 9, Yellow 8
+- Selected Card: No card currently selected
+- Playable Cards Count: 4
 
 ```
-		/// <summary>
-		/// Load card images based on CardData
-		/// For now, we'll use placeholder colored backgrounds
-		/// TODO: Replace with actual scanned card images
-		/// </summary>
-		void LoadCardImages () {
-			if (cardData == null) return;
+Move validation: Yellow Stop on Yellow 7 with active color Yellow = True
 
-			// For now, set background color based on card color
-			// TODO: Replace with actual card front/back images
-			if (cardBackground != null) {
-				cardBackground.color = GetColorForCardColor (cardData.color);
-			}
+Move validation: Blue PlusTwo on Yellow 7 with active color Yellow = False
 
-			// Set front image color (placeholder)
-			if (cardFrontImage != null) {
-				cardFrontImage.color = GetColorForCardColor (cardData.color);
-			}
+Move validation: Yellow PlusTwo on Yellow 7 with active color Yellow = True
 
-			// Set back image to neutral color (placeholder)
-			if (cardBackImage != null) {
-				cardBackImage.color = Color.gray;
-			}
-		}
+Move validation: Red Taki on Yellow 7 with active color Yellow = False
+
+Move validation: Blue 7 on Yellow 7 with active color Yellow = True
+
+Move validation: Blue 5 on Yellow 7 with active color Yellow = False
+
+Move validation: Blue 9 on Yellow 7 with active color Yellow = False
+
+Move validation: Yellow 8 on Yellow 7 with active color Yellow = True
 ```
-I think we should use the scanned imaged already now, why wait and create more work.
+
+#### AI State Check
+- AI Hand Size: 8
+- AI Has Cards: YES
+- AI First Card: Red Plus
+
+### F2 - RULE VALIDATION RESULTS
+
+#### Rule Testing Against Top Card: Yellow 7
+
+| Card Name | GameState Says | CardData Says | Match? | Highlight | Notes |
+|-----------|----------------|---------------|--------|--------|
+| Yellow Stop | VALID | VALID | YES | Golden | GOOD |
+| Blue PlusTwo | INVALID | INVALID | YES | Gold | BAD - Should be Red |
+| Yellow PlusTwo | VALID | VALID | YES | Golden | GOOD |
+| Red Taki | INVALID | INVALID | YES | Gold | BAD - Should be Red |
+| Blue 7 | VALID | VALID | YES | Golden | GOOD |
+| Blue 5 | INVALID | INVALID | YES | Gold | BAD - Should be Red |
+| Blue 9 | INVALID | INVALID | YES | Gold | BAD - Should be Red |
+| Yellow 8 | VALID | VALID | YES | Golden | GOOD |
+
+**Rule Mismatches Found**: No mismatches found
+
+**Patterns Identified**:
+- Color matching issues: None
+- Number matching issues: None  
+- Special card issues: None
+- Wild card issues: None
+- Highlight issues: Always gold
+
+### F3 - TURN SEQUENCE RESULTS
+
+- First I pressed 'F3'
+- AI acted very good (I read the logs, and put 'Yellow 3')
+- I clicked on 'Yellow 8'. 
+- But 'PLAY' button was disabled, all 3 buttons were disabled. 
+
+#### Manual Turn Tests
+- Turn switch Human->Computer: SUCCESS / FAIL - Unsure...
+- Turn switch Computer->Human: SUCCESS / FAIL - Unsure...
+- AI decision trigger: SUCCESS
+- Turn initialization: SUCCESS / FAIL - Unsure...
+
+**Error Messages During Turn Tests**:
+```
+[Copy exact error messages here] - No error messages
+```
+
+## VISUAL TESTING RESULTS
+
+### Card Selection Testing
+- Card click response: WORKS 
+- 10px Y-offset movement: WORKS
+- Gold tint for valid cards: WORKS (But allways works regardless if wanted, sooo not really works) 
+- Red tint for invalid cards: BROKEN
+
+### UI Update Testing
+- Hand size text updates: WORKS 
+- Turn indicator updates:  - Unsure...
+- Color indicator updates: WORKS 
+- Computer message updates: I think might be BROKEN
+
+### Pile Visual Testing  
+- Draw pile shows/hides: WORKS 
+- Discard pile updates: WORKS
+- Card images load correctly: WORKS 
+
+## GAMEPLAY FLOW TESTING
+
+### Basic Interaction Tests
+- [ YES ] Can select player cards
+- [ UNCLEAR ] Play Card button responds  
+- [ UNCLEAR ] Draw Card button responds
+- [ UNCLEAR ] End Turn button responds
+
+### Complete Turn Attempt
+**Test**: Try to play one complete turn (Human plays card, Computer responds)
+
+- First I pressed 'F3'
+- AI acted very good (I read the logs, and put 'Yellow 3')
+- I clicked on 'Yellow 8'. 
+- But 'PLAY' button was disabled, all 3 buttons were disabled. 
+
+**Result**:  PARTIAL 
+
+**Where it breaks**: Well, first I pressed F3, so broke only when it got back to human turn
+
+**Error messages**: 
+```
+[Copy exact error messages here] - No error messages
+```
+
+## PRIORITY ISSUES IDENTIFIED
+
+### CRITICAL (Game Breaking)
+1. ___________
+2. ___________
+3. ___________
+
+### HIGH (Major Functionality Missing)  
+1. ___________
+2. ___________
+3. ___________
+
+### MEDIUM (Confusing/Incomplete)
+1. ___________
+2. ___________
+3. ___________
+
+### LOW (Polish/Enhancement)
+1. ___________
+2. ___________
+
+## WORKING SYSTEMS CONFIRMED
+
+### What Actually Works
+- [ ] Menu system and navigation
+- [ ] Card image loading  
+- [ ] Visual card display
+- [ ] Basic UI updates
+- [ ] Component initialization
+- [ ] Deck creation and loading
+
+### Partially Working Systems  
+- System: ___________
+  - Works: ___________
+  - Broken: ___________
+
+## NEXT INVESTIGATION PRIORITIES
+
+### Immediate Focus (Today)
+1. ___________
+2. ___________  
+3. ___________
+
+### Short Term (This Week)
+1. ___________
+2. ___________
+3. ___________
+
+## ADDITIONAL OBSERVATIONS
+
+### Console Log Patterns
+- Repeated error messages: ___________
+- Warning patterns: ___________
+- Successful operation logs: ___________
+
+### Performance Observations
+- Frame rate: SMOOTH / CHOPPY / LAGGY
+- Memory usage: NORMAL / HIGH / CONCERNING
+- Load times: FAST / ACCEPTABLE / SLOW
+
+### Unity Inspector Observations  
+- Missing references visible: ___________
+- Component state issues: ___________
+- Unexpected values: ___________
+
+## HYPOTHESIS FOR ROOT CAUSE
+
+**Primary Theory**: ___________
+
+**Supporting Evidence**: 
+- ___________
+- ___________  
+- ___________
+
+**Next Test to Confirm**: ___________
+
+## BASELINE ESTABLISHMENT
+
+### What We Can Build From
+- Confirmed working components: ___________
+- Stable subsystems: ___________
+- Reliable testing methods: ___________
+
+### What Needs Fixing First
+- Blocking issues: ___________
+- Dependency problems: ___________
+- Integration gaps: ___________
 
 ---
 
-In `CardController.cd`:
-I see the line `public Color normalTint = Color.white;` - I don't think there IS a `normalTint`, if a card is not selected then it doesn't need to be modified.
+## TEMPLATE USAGE NOTES
+
+1. **Fill out during diagnostic runs** - Don't rely on memory
+2. **Copy exact error messages** - Helps with targeted fixes
+3. **Use checkboxes** - Easy to scan results quickly
+4. **Update hypothesis** - Refine understanding as you learn more
+5. **Track patterns** - Multiple similar issues often share root cause
+6. **Document working systems** - Know what not to break during fixes
+
+
+
+
+--------------------------------------------------
+
+# Diagnostic Results Documentation Template
+```
+# Diagnostic Results Documentation Template
+
+## DIAGNOSTIC RUN #1 - INITIAL SYSTEM CHECK
+**Date**: ___________  
+**Unity Version**: ___________  
+**Test Duration**: ___________
+
+### F1 - FULL DIAGNOSTICS RESULTS
+
+#### Component References Check
+- [ ] GameManager: OK / NULL / ERROR
+- [ ] DeckManager: OK / NULL / ERROR  
+- [ ] GameStateManager: OK / NULL / ERROR
+- [ ] TurnManager: OK / NULL / ERROR
+- [ ] BasicComputerAI: OK / NULL / ERROR
+- [ ] PlayerHandManager: OK / NULL / ERROR
+- [ ] ComputerHandManager: OK / NULL / ERROR
+- [ ] GameplayUI: OK / NULL / ERROR
+
+**Critical Issues Found**:
+```
+[Copy exact error messages here]
+```
+
+#### Deck State Check
+- Draw Pile Count: ___________
+- Discard Pile Count: ___________  
+- Top Discard Card: ___________
+- Can Draw Cards: YES / NO
+- Has Valid Deck: YES / NO
+
+**Expected vs Actual**:
+- Draw Pile Expected: ~94, Actual: ___________
+- Discard Expected: 1+, Actual: ___________
+
+#### Game State Check  
+- Turn State: ___________
+- Interaction State: ___________
+- Game Status: ___________
+- Active Color: ___________
+- Can Player Act: YES / NO
+- Can Computer Act: YES / NO
+
+#### Turn Management Check
+- Current Player: ___________
+- Is Human Turn: YES / NO
+- Is Computer Turn: YES / NO  
+- Turns Active: YES / NO
+- Computer Turn Pending: YES / NO
+
+#### Player Hand Check
+- Player Hand Size: ___________
+- Computer Hand Size: ___________
+- Cards Visible in UI: ___________
+- Selected Card: ___________
+- Playable Cards Count: ___________
+
+#### AI State Check
+- AI Hand Size: ___________
+- AI Has Cards: YES / NO
+- AI First Card: ___________
+
+### F2 - RULE VALIDATION RESULTS
+
+#### Rule Testing Against Top Card: ___________
+
+| Card Name | GameState Says | CardData Says | Match? | Notes |
+|-----------|----------------|---------------|--------|--------|
+|           |                |               |        |        |
+|           |                |               |        |        |
+|           |                |               |        |        |
+
+**Rule Mismatches Found**: ___________
+
+**Patterns Identified**:
+- Color matching issues: ___________
+- Number matching issues: ___________  
+- Special card issues: ___________
+- Wild card issues: ___________
+
+### F3 - TURN SEQUENCE RESULTS
+
+#### Manual Turn Tests
+- Turn switch Human->Computer: SUCCESS / FAIL
+- Turn switch Computer->Human: SUCCESS / FAIL  
+- AI decision trigger: SUCCESS / FAIL
+- Turn initialization: SUCCESS / FAIL
+
+**Error Messages During Turn Tests**:
+```
+[Copy exact error messages here]
+```
+
+## VISUAL TESTING RESULTS
+
+### Card Selection Testing
+- Card click response: WORKS / BROKEN
+- 10px Y-offset movement: WORKS / BROKEN
+- Gold tint for valid cards: WORKS / BROKEN  
+- Red tint for invalid cards: WORKS / BROKEN
+
+### UI Update Testing
+- Hand size text updates: WORKS / BROKEN
+- Turn indicator updates: WORKS / BROKEN
+- Color indicator updates: WORKS / BROKEN
+- Computer message updates: WORKS / BROKEN
+
+### Pile Visual Testing  
+- Draw pile shows/hides: WORKS / BROKEN
+- Discard pile updates: WORKS / BROKEN
+- Card images load correctly: WORKS / BROKEN
+
+## GAMEPLAY FLOW TESTING
+
+### Basic Interaction Tests
+- [ ] Can select player cards
+- [ ] Play Card button responds  
+- [ ] Draw Card button responds
+- [ ] End Turn button responds
+
+### Complete Turn Attempt
+**Test**: Try to play one complete turn (Human plays card, Computer responds)
+
+**Result**: SUCCESS / PARTIAL / FAIL
+
+**Where it breaks**: ___________
+
+**Error messages**: 
+```
+[Copy exact error messages here]
+```
+
+## PRIORITY ISSUES IDENTIFIED
+
+### CRITICAL (Game Breaking)
+1. ___________
+2. ___________
+3. ___________
+
+### HIGH (Major Functionality Missing)  
+1. ___________
+2. ___________
+3. ___________
+
+### MEDIUM (Confusing/Incomplete)
+1. ___________
+2. ___________
+3. ___________
+
+### LOW (Polish/Enhancement)
+1. ___________
+2. ___________
+
+## WORKING SYSTEMS CONFIRMED
+
+### What Actually Works
+- [ ] Menu system and navigation
+- [ ] Card image loading  
+- [ ] Visual card display
+- [ ] Basic UI updates
+- [ ] Component initialization
+- [ ] Deck creation and loading
+
+### Partially Working Systems  
+- System: ___________
+  - Works: ___________
+  - Broken: ___________
+
+## NEXT INVESTIGATION PRIORITIES
+
+### Immediate Focus (Today)
+1. ___________
+2. ___________  
+3. ___________
+
+### Short Term (This Week)
+1. ___________
+2. ___________
+3. ___________
+
+## ADDITIONAL OBSERVATIONS
+
+### Console Log Patterns
+- Repeated error messages: ___________
+- Warning patterns: ___________
+- Successful operation logs: ___________
+
+### Performance Observations
+- Frame rate: SMOOTH / CHOPPY / LAGGY
+- Memory usage: NORMAL / HIGH / CONCERNING
+- Load times: FAST / ACCEPTABLE / SLOW
+
+### Unity Inspector Observations  
+- Missing references visible: ___________
+- Component state issues: ___________
+- Unexpected values: ___________
+
+## HYPOTHESIS FOR ROOT CAUSE
+
+**Primary Theory**: ___________
+
+**Supporting Evidence**: 
+- ___________
+- ___________  
+- ___________
+
+**Next Test to Confirm**: ___________
+
+## BASELINE ESTABLISHMENT
+
+### What We Can Build From
+- Confirmed working components: ___________
+- Stable subsystems: ___________
+- Reliable testing methods: ___________
+
+### What Needs Fixing First
+- Blocking issues: ___________
+- Dependency problems: ___________
+- Integration gaps: ___________
 
 ---
 
+## TEMPLATE USAGE NOTES
 
-Assets
-├── Audio
-│   ├── Music
-│   └── Sfx
-├── Data
-│   ├── Cards
-├── Plugins
-├── Prefabs
-│   ├── Cards
-│   └── UI
-├── Resources
-│   ├── Data
-│   │   └── Cards
-│   └── Sprites
-│       ├── Cards
-│       │   └── Backs
-│       ├── Fonts
-│       │   ├── Blue
-│       │   ├── Green
-│       │   ├── Red
-│       │   ├── Special
-│       │   └── Yellow
-│       └── UI
-│           └── Backgrounds
-├── Scenes
-├── Scripts
-└── TextMesh Pro
-Packages
+1. **Fill out during diagnostic runs** - Don't rely on memory
+2. **Copy exact error messages** - Helps with targeted fixes
+3. **Use checkboxes** - Easy to scan results quickly
+4. **Update hypothesis** - Refine understanding as you learn more
+5. **Track patterns** - Multiple similar issues often share root cause
+6. **Document working systems** - Know what not to break during fixes
+```
+# Analysis of My Results
+```
+# Diagnostic Results Analysis - Integration Issues Identified
 
----
+## GREAT NEWS - CORE SYSTEMS ARE WORKING! 🎉
 
-Also please give me much more clearer Unity Setup Instructions.
+Your diagnostic results show that **most of your game architecture is functional**. This is not a "everything is broken" situation - it's a **"small integration gaps"** situation.
+
+## WHAT'S WORKING PERFECTLY ✅
+
+### Excellent Systems:
+- **Component Architecture**: All references connected, no NULL errors
+- **Deck Management**: Perfect card counts (93+8+8+1=110 ✅)
+- **Game State**: Proper initialization and state tracking
+- **Rule Validation**: 100% accurate rule checking (4 playable cards correctly identified)
+- **AI Decision Making**: AI successfully analyzed and played Yellow 3
+- **Visual Card System**: Cards display, select, and show in UI correctly
+- **Hand Management**: Both player and computer hands properly sized
+- **Card Image Loading**: All visual assets working
+
+### Rule System Analysis:
+Your rule validation is **completely accurate**:
+- Yellow Stop vs Yellow 7 → VALID (color match) ✅
+- Blue PlusTwo vs Yellow 7 → INVALID (no match) ✅  
+- Yellow PlusTwo vs Yellow 7 → VALID (color match) ✅
+- Blue 7 vs Yellow 7 → VALID (number match) ✅
+- Yellow 8 vs Yellow 7 → VALID (color match) ✅
+
+**The rule engine is working perfectly!**
+
+## THREE SPECIFIC INTEGRATION GAPS IDENTIFIED 🎯
+
+### Issue #1: Button State Management (HIGH PRIORITY)
+**Problem**: Play/Draw/End Turn buttons disabled when they should be enabled during human turn
+**Symptoms**: After AI plays and returns to human turn, UI buttons stay disabled
+**Root Cause**: GameplayUIManager.UpdateButtonStates(true) not called on turn transition
+
+### Issue #2: Visual Feedback Logic (MEDIUM PRIORITY)  
+**Problem**: Invalid cards show gold tint instead of red tint when selected
+**Symptoms**: All selected cards show gold, even unplayable ones
+**Root Cause**: CardController.UpdateVisualFeedback() always uses gold tint
+
+### Issue #3: Turn Transition Flow (MEDIUM PRIORITY)
+**Problem**: Something breaks in human turn restoration after AI turn
+**Symptoms**: UI doesn't fully re-enable for human interaction
+**Root Cause**: Turn transition events not fully updating UI state
+
+## TARGETED FIXES NEEDED
+
+### Fix #1: Button State Management
+**Files to Modify**: GameManager.cs, GameplayUIManager.cs
+**Solution**: Ensure UpdateButtonStates(true) called when returning to PlayerTurn
+
+### Fix #2: Visual Feedback  
+**Files to Modify**: CardController.cs
+**Solution**: Check isPlayable flag in UpdateVisualFeedback() method
+
+### Fix #3: Turn Flow Integration
+**Files to Modify**: GameManager.cs, TurnManager.cs  
+**Solution**: Complete turn transition event handling
+
+## WHY THIS IS EXCELLENT NEWS
+
+### You Have a Solid Foundation:
+1. **Architecture is Sound**: Multi-enum state system working
+2. **Rule Engine is Perfect**: 100% accurate validation
+3. **Core Systems Functional**: Deck, hands, AI, visuals all work
+4. **No Major Rewrites Needed**: Just connection fixes
+
+### Estimated Fix Time:
+- **Issue #1**: 30 minutes (button state management)
+- **Issue #2**: 15 minutes (visual feedback logic)  
+- **Issue #3**: 45 minutes (turn flow integration)
+- **Total**: ~90 minutes of targeted fixes
+
+## WHAT YOU'VE ALREADY ACCOMPLISHED
+
+### Phase 1-3 Milestones: ✅ CONFIRMED COMPLETE
+- Menu system: Working
+- UI framework: Working  
+- Data architecture: Working perfectly
+- Deck system: Working perfectly
+- Turn management: 90% working
+- Visual card system: Working perfectly
+
+### You're Actually at Milestone 7.2!
+Your investigation shows you're further along than expected:
+- **Milestone 7.1** (Rule System Analysis): ✅ COMPLETE - Rules work perfectly
+- **Milestone 7.2** (Visual Feedback): 🎯 CURRENT - Just need tint fix
+- **Milestone 7.3** (Special Cards): Ready to implement
+- **Milestone 7.4** (Polish): Ready after small fixes
+
+## IMMEDIATE ACTION PLAN
+
+### Today (1-2 hours):
+1. **Fix Button States**: Make UI buttons responsive during human turns
+2. **Fix Visual Tints**: Show red for invalid, gold for valid cards
+3. **Test Turn Flow**: Verify complete human→computer→human cycle
+
+### This Week:
+1. **Special Card Effects**: Implement Stop, Plus, PlusTwo mechanics
+2. **Advanced Cards**: TAKI sequences and color selection
+3. **Game Polish**: Win/lose conditions and menu integration
+
+## DEBUGGING STRATEGY
+
+### Focus on Integration Points:
+- GameManager event handling for turn transitions
+- UI update timing in turn switches  
+- Visual feedback logic in card selection
+
+### Don't Touch These (They Work!):
+- Rule validation logic
+- Deck management systems
+- Card visual display systems
+- AI decision making logic
+- Component architecture
+
+## CONFIDENCE LEVEL: HIGH 🚀
+
+Your TAKI game is **much closer to completion** than initially thought. The foundation is solid, the architecture is sound, and the core gameplay loop is functional. You're dealing with **polish issues**, not **fundamental problems**.
+
+**Bottom Line**: You have a working TAKI game that just needs 3 small integration fixes to be fully playable!
+```
+I have fixed what's needed as was instructed. You can view my files.
+
+# Here is my current situation:
+- I select and play a valid card, number
+- I select and play a valid card - but If I played a number, this shouldnt be legal
+- still my turn, so i click draw button
+- in this turn, all my selected cards are golden, even tho some should be red, but
+- my turn ends, even tho i havnt clicked end turn - i want it so i will ALWAYS have to press end turn button to pass the turn
+- turn passes to computer, works well, then passes to me again
+- but when its my turn, all 3 buttons are enabled
+- also, strangly, now the highlighting does work
+
+To summarize it looks like the highlights, enforsing of rules and button avalibility can be very random, sometimes work and other times don't.
+
+Our approach needs to be focused and determined.
+
+IMPORTANT: Make sure to write things in SEPARE CANVAS ARTIFACTS! And NO UNICODE/
 
 
+
+AMAZING! Work MUCH better now!
+
+When it's my turn currently, I can basically do whatever I want as long as the cards are legal -PLAY and DRAW however many cards as I want.
+
+I  want to play it safely, so here are my rules - user story:
+
+1. Player turn starts
+2. END TURN button is disabled
+3. If player has no valid cards to play at all:
+  1. Log a clear message - Player has no valid cards, must draw a card
+  2. Player clicks on DRAW
+  3. Log a clear message - Player has no more valid moves, must end turn
+  4. Player clicks on END TURN
+  5. Turn ends
+4. If player has valid cards:
+  1. Log a clear message - Player has valid cards, Play or DRAW a card draw a card
+  2. If Player clicks on DRAW
+    1. Log a clear message - Player has no more valid moves, must end turn
+    2. Player clicks on END TURN
+    3. Turn ends
+  3. If Player selects a valid card and clicks on PLAY
+    1. If the card is NUMBER:
+      1. DRAW button is disabled
+      2. Log a clear message - Player has no more valid moves, must end turn
+      3. Player clicks on END TURN
+      4. Turn ends
+    2. If the card is PLUS (for now):
+      1. Log a clear message - RULES: Player must PLAY another card
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    3. If the card is STOP (for now):
+      1. Log a clear message - RULES: Opponent's turn is stopped/skipped, Player starts another NEW turn
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    4. If the card is CHANGE DIRECTION (for now):
+      1. Log a clear message - RULES: The directions must change from ... to ...
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    5. If the card is PLUS TWO (for now):
+      1. Log a clear message - RULES: Player must DRAW Xx2=2X (e.g. 3x2=6, will usually be 1x2=2) cards
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    6. If the card is TAKI (for now):
+      1. Log a clear message - RULES: Player may PLAY a series of cards the color of COLOR
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    7. If the card is CHANGE COLOR (for now): 
+      1. Log a clear message - RULES: Player must choose a color
+        1. ColorSelectionPanel will not even appear
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    8. If the card is SUPER TAKI (for now):
+      1. Log a clear message - RULES: Player may PLAY a series of cards the color of COLOR
+      2. DRAW button is disabled
+      3. Log a clear message - Player has no more valid moves, must end turn
+      4. Player clicks on END TURN
+      5. Turn ends
+    1. DRAW button is disabled
+    2. Log a clear message - Player has no more valid moves, must end turn
+    3. Player clicks on END TURN
+    4. Turn ends
+
+I want us to start basic, and safe - so as of now, ALL cards must act like BASIC cards and COMPLETELY obey the legal flow.

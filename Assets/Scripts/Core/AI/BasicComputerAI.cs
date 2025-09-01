@@ -32,41 +32,64 @@ namespace TakiGame {
 		public System.Action<CardColor> OnAIColorSelected;
 		public System.Action<string> OnAIDecisionMade;
 
+
 		/// <summary>
 		/// Make AI decision for current turn
 		/// </summary>
 		/// <param name="topDiscardCard">Current top card of discard pile</param>
 		public void MakeDecision (CardData topDiscardCard) {
+			Debug.Log ($"=== AI MAKING DECISION ===");
+			Debug.Log ($"AI Hand size: {computerHand.Count}");
+			Debug.Log ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
+
 			if (topDiscardCard == null) {
-				Debug.LogWarning ("AI cannot make decision: No top discard card provided");
+				Debug.LogError ("AI cannot make decision: No top discard card provided");
+				OnAIDecisionMade?.Invoke ("Error: No discard card");
 				return;
 			}
 
 			Debug.Log ($"AI thinking... (Hand size: {computerHand.Count})");
 			OnAIDecisionMade?.Invoke ("AI is thinking...");
 
+			// Store the top card for ExecuteDecision to use
+			currentTopDiscardCard = topDiscardCard;
+
 			// Add thinking delay
 			Invoke (nameof (ExecuteDecision), thinkingTime);
 		}
+
+		// ADDED: Store current top card for ExecuteDecision
+		private CardData currentTopDiscardCard;
 
 		/// <summary>
 		/// Execute the AI decision after thinking time
 		/// </summary>
 		void ExecuteDecision () {
-			CardData topDiscardCard = FindTopDiscardCard ();
-			if (topDiscardCard == null) return;
+			Debug.Log ($"=== AI EXECUTING DECISION ===");
+
+			if (currentTopDiscardCard == null) {
+				Debug.LogError ("ExecuteDecision: No current top discard card stored");
+				DrawCard ();
+				return;
+			}
 
 			// Find all valid cards to play
-			List<CardData> validCards = GetValidCards (topDiscardCard);
+			List<CardData> validCards = GetValidCards (currentTopDiscardCard);
+			Debug.Log ($"AI found {validCards.Count} valid cards from {computerHand.Count} total");
 
 			if (validCards.Count > 0) {
 				// Select best card to play
 				CardData selectedCard = SelectBestCard (validCards);
+				Debug.Log ($"AI selected card: {selectedCard?.GetDisplayText ()}");
 				PlayCard (selectedCard);
 			} else {
 				// No valid cards, must draw
+				Debug.Log ("AI has no valid moves - drawing card");
 				DrawCard ();
 			}
+
+			// Clear the stored card
+			currentTopDiscardCard = null;
 		}
 
 		/// <summary>
@@ -75,12 +98,30 @@ namespace TakiGame {
 		/// <param name="topDiscardCard">Current top discard card</param>
 		/// <returns>List of playable cards</returns>
 		List<CardData> GetValidCards (CardData topDiscardCard) {
-			if (gameState == null) return new List<CardData> ();
-
 			List<CardData> validCards = new List<CardData> ();
 
+			if (gameState == null) {
+				Debug.LogError ("Cannot get valid cards: GameState is null");
+				return validCards;
+			}
+
+			if (topDiscardCard == null) {
+				Debug.LogError ("Cannot get valid cards: topDiscardCard is null");
+				return validCards;
+			}
+
+			Debug.Log ($"Checking {computerHand.Count} cards against {topDiscardCard.GetDisplayText ()}");
+
 			foreach (CardData card in computerHand) {
-				if (gameState.IsValidMove (card, topDiscardCard)) {
+				if (card == null) {
+					Debug.LogWarning ("Found null card in AI hand - skipping");
+					continue;
+				}
+
+				bool isValid = gameState.IsValidMove (card, topDiscardCard);
+				Debug.Log ($"  {card.GetDisplayText ()} -> {isValid}");
+
+				if (isValid) {
 					validCards.Add (card);
 				}
 			}
@@ -174,12 +215,21 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="card">Card to play</param>
 		void PlayCard (CardData card) {
-			if (card == null) return;
+			if (card == null) {
+				Debug.LogError ("AI PlayCard called with null card");
+				return;
+			}
+
+			// Check if card is actually in hand
+			if (!computerHand.Contains (card)) {
+				Debug.LogError ($"AI trying to play card not in hand: {card.GetDisplayText ()}");
+				return;
+			}
 
 			// Remove card from hand
-			computerHand.Remove (card);
+			bool removed = computerHand.Remove (card);
+			Debug.Log ($"AI plays: {card.GetDisplayText ()} (Removed: {removed}, Hand size now: {computerHand.Count})");
 
-			Debug.Log ($"AI plays: {card.GetDisplayText ()} (Hand size now: {computerHand.Count})");
 			OnAIDecisionMade?.Invoke ($"AI played {card.GetDisplayText ()}");
 			OnAICardSelected?.Invoke (card);
 		}
@@ -188,7 +238,7 @@ namespace TakiGame {
 		/// AI draws a card when no valid moves
 		/// </summary>
 		void DrawCard () {
-			Debug.Log ("AI draws a card (no valid moves)");
+			Debug.Log ($"AI draws a card (no valid moves) - Current hand: {computerHand.Count}");
 			OnAIDecisionMade?.Invoke ("AI drew a card");
 			OnAIDrawCard?.Invoke ();
 		}
@@ -256,16 +306,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Find current top discard card (helper method)
-		/// </summary>
-		/// <returns>Top discard card or null</returns>
-		CardData FindTopDiscardCard () {
-			// This will be connected to DeckManager in the coordinator
-			// For now, return null and let the coordinator handle this
-			return null;
-		}
-
-		/// <summary>
 		/// Get a copy of the computer's hand for visual display
 		/// </summary>
 		/// <returns>Copy of computer's hand</returns>
@@ -282,6 +322,22 @@ namespace TakiGame {
 			Debug.Log ($"Computer AI Hand ({computerHand.Count} cards):");
 			for (int i = 0; i < computerHand.Count; i++) {
 				Debug.Log ($"  [{i}] {computerHand [i].GetDisplayText ()}");
+			}
+		}
+
+		/// <summary>
+		/// DEBUGGING: Log current AI state
+		/// </summary>
+		[ContextMenu ("Log AI State")]
+		public void LogAIDebugState () {
+			Debug.Log ("=== AI DEBUG STATE ===");
+			Debug.Log ($"Hand size: {computerHand.Count}");
+			Debug.Log ($"Has GameState: {gameState != null}");
+			Debug.Log ($"Current top card: {currentTopDiscardCard?.GetDisplayText () ?? "NULL"}");
+
+			Debug.Log ("Cards in hand:");
+			for (int i = 0; i < computerHand.Count; i++) {
+				Debug.Log ($"  [{i}] {computerHand [i]?.GetDisplayText () ?? "NULL"}");
 			}
 		}
 

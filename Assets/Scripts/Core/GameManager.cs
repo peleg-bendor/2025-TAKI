@@ -5,6 +5,11 @@ namespace TakiGame {
 	/// <summary>
 	/// Main coordinator - Separate initialization from game start
 	/// No longer initializes game systems until player chooses game mode
+	/// ENHANCED GameManager with STRICT TURN FLOW SYSTEM
+	/// - Player must take ONE action (PLAY or DRAW) then END TURN
+	/// - END TURN disabled until action taken
+	/// - DRAW disabled after playing card
+	/// - All special cards logged but act as basic cards for now
 	/// </summary>
 	public class GameManager : MonoBehaviour {
 
@@ -38,6 +43,13 @@ namespace TakiGame {
 		[Tooltip ("Hand manager for computer cards (Player2HandPanel)")]
 		public HandManager computerHandManager;
 
+		// ENHANCED: Turn flow control state
+		[Header ("Turn Flow Control")]
+		private bool hasPlayerTakenAction = false;
+		private bool canPlayerDraw = true;
+		private bool canPlayerPlay = true;
+		private bool canPlayerEndTurn = false;
+
 		// Events for external systems
 		public System.Action OnGameStarted;
 		public System.Action<PlayerType> OnGameEnded;
@@ -55,8 +67,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Validate components exist and connect basic references - called at scene load
-		/// NO game initialization, NO deck loading, NO UI setup
+		/// Validate components exist and connect basic references
 		/// </summary>
 		void ValidateAndConnectComponents () {
 			Debug.Log ("Validating and connecting components...");
@@ -67,9 +78,7 @@ namespace TakiGame {
 				return;
 			}
 
-			// Connect basic component references (lightweight)
 			ConnectComponentReferences ();
-
 			areComponentsValidated = true;
 			Debug.Log ("Components validated and connected - Ready for game mode selection");
 		}
@@ -210,52 +219,375 @@ namespace TakiGame {
 				turnManager.ResetTurns ();
 			}
 
+			// Reset turn flow control
+			ResetTurnFlowState ();
 			isGameActive = false;
+		}
+
+		/// <summary>
+		/// ENHANCED: Reset turn flow control state
+		/// </summary>
+		void ResetTurnFlowState () {
+			hasPlayerTakenAction = false;
+			canPlayerDraw = true;
+			canPlayerPlay = true;
+			canPlayerEndTurn = false;
+
+			Debug.Log ("=== TURN FLOW STATE RESET ===");
+		}
+
+		/// <summary>
+		/// ENHANCED: Start player turn with strict flow control
+		/// </summary>
+		void StartPlayerTurnFlow () {
+			Debug.Log ("=== STARTING PLAYER TURN WITH STRICT FLOW ===");
+
+			// Reset turn flow state
+			hasPlayerTakenAction = false;
+			canPlayerDraw = true;
+			canPlayerPlay = true;
+			canPlayerEndTurn = false;
+
+			// Check if player has valid cards
+			int validCardCount = CountPlayableCards ();
+
+			if (validCardCount == 0) {
+				// Player has NO valid cards - must draw
+				Debug.Log ("RULE: Player has no valid cards, must draw a card");
+				gameplayUI?.ShowComputerMessage ("No valid cards - you must DRAW a card!");
+				gameplayUI?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
+			} else {
+				// Player has valid cards - can play or draw
+				Debug.Log ($"RULE: Player has {validCardCount} valid cards, may PLAY or DRAW a card");
+				gameplayUI?.ShowComputerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
+				gameplayUI?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
+			}
+
+			// Update visual card states
+			RefreshPlayerHandStates ();
 		}
 
 		// ===== PLAYER ACTION HANDLERS =====
 
 		/// <summary>
-		/// Handle play card button clicked
+		/// Handle play card button clicked (No Auto-Play)
+		/// Play Card button only works with explicit selection
+		/// ENHANCED: Handle play card with strict flow control
 		/// </summary>
 		void OnPlayCardButtonClicked () {
+			Debug.Log ("=== PLAY CARD BUTTON CLICKED - STRICT FLOW ===");
+
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot play card: Not player's turn or game not active");
-				gameplayUI.ShowComputerMessage ("Not your turn!");
+				Debug.LogWarning ("Cannot play card: Game not active or not player turn");
+				gameplayUI?.ShowComputerMessage ("Not your turn!");
 				return;
 			}
 
-			// Get selected card from visual hand manager
-			CardData cardToPlay = null;
-			if (playerHandManager != null) {
-				cardToPlay = playerHandManager.GetSelectedCard ();
+			if (!canPlayerPlay) {
+				Debug.LogWarning ("Cannot play card: Player already took action");
+				gameplayUI?.ShowComputerMessage ("You already took an action - END TURN!");
+				return;
 			}
 
-			//// Fallback to first valid card if no selection
-			//if (cardToPlay == null) {
-			//	cardToPlay = FindFirstValidCard ();
-			//}
+			// Get selected card
+			CardData cardToPlay = playerHandManager?.GetSelectedCard ();
 
 			if (cardToPlay != null) {
-				PlayCard (cardToPlay);
+				Debug.Log ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
+				PlayCardWithStrictFlow (cardToPlay);
 			} else {
-				Debug.LogWarning ("No valid cards to play!");
-				gameplayUI.ShowComputerMessage ("No valid cards to play!");
+				int playableCount = CountPlayableCards ();
+				if (playableCount > 0) {
+					gameplayUI?.ShowComputerMessage ($"Please select a card! You have {playableCount} valid moves.");
+				} else {
+					gameplayUI?.ShowComputerMessage ("No valid moves - try drawing a card!");
+				}
+				Debug.Log ("No card selected - player must choose explicitly");
 			}
+		}
+
+		/// <summary>
+		/// Helper: Count playable cards for better feedback
+		/// </summary>
+		int CountPlayableCards () {
+			if (playerHand == null || playerHand.Count == 0) return 0;
+
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard == null) return 0;
+
+			int count = 0;
+			foreach (CardData card in playerHand) {
+				if (gameState != null && gameState.IsValidMove (card, topCard)) {
+					count++;
+				}
+			}
+			return count;
+		}
+
+		/// <summary>
+		/// Find first valid card in player's hand
+		/// </summary>
+		CardData FindFirstValidCard () {
+            if (playerHand == null || playerHand.Count == 0) {
+                Debug.Log("No cards in player hand");
+                return null;
+            }
+
+            CardData topCard = GetTopDiscardCard();
+            if (topCard == null) {
+                Debug.LogError("Cannot find valid card - no top discard card");
+                return null;
+            }
+
+            Debug.Log($"Searching for valid card to play on: {topCard.GetDisplayText()} with active color: {gameState.activeColor}");
+
+            foreach (CardData card in playerHand) {
+                if (gameState?.IsValidMove(card, topCard) == true) {
+                    Debug.Log($"Found valid card: {card.GetDisplayText()}");
+                    return card;
+                }
+            }
+
+            Debug.Log("No valid cards found in hand");
+            return null;
+        }
+
+		/// <summary>
+		/// Get top discard card
+		/// </summary>
+		public CardData GetTopDiscardCard () {
+			if (deckManager == null) {
+				Debug.LogError ("GetTopDiscardCard: DeckManager is null!");
+				return null;
+			}
+
+			return deckManager.GetTopDiscardCard ();
 		}
 
 		/// <summary>
 		/// Handle draw card button clicked
+		/// ENHANCED: Handle draw card with strict flow control
 		/// </summary>
 		void OnDrawCardButtonClicked () {
-			DrawCard ();
+			Debug.Log ("=== DRAW CARD BUTTON CLICKED - STRICT FLOW ===");
+
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				Debug.LogWarning ("Cannot draw card: Game not active or not player turn");
+				gameplayUI?.ShowComputerMessage ("Not your turn!");
+				return;
+			}
+
+			if (!canPlayerDraw) {
+				Debug.LogWarning ("Cannot draw card: Player already took action");
+				gameplayUI?.ShowComputerMessage ("You already took an action - END TURN!");
+				return;
+			}
+
+			DrawCardWithStrictFlow ();
 		}
 
 		/// <summary>
 		/// Handle end turn button clicked
+		/// ENHANCED: Handle end turn with strict flow control
 		/// </summary>
 		void OnEndTurnButtonClicked () {
-			EndPlayerTurn ();
+			Debug.Log ("=== END TURN BUTTON CLICKED - STRICT FLOW ===");
+
+			if (!canPlayerEndTurn) {
+				Debug.LogWarning ("Cannot end turn: Player has not taken an action yet");
+				gameplayUI?.ShowComputerMessage ("You must take an action first (PLAY or DRAW)!");
+				return;
+			}
+
+			EndPlayerTurnWithStrictFlow ();
+		}
+
+		/// <summary>
+		/// Play card with comprehensive special card logging
+		/// </summary>
+		void PlayCardWithStrictFlow (CardData card) {
+			Debug.Log ($"=== PLAYING CARD WITH STRICT FLOW: {card.GetDisplayText ()} ===");
+
+			// Validate the move
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard == null) {
+				Debug.LogError ("Cannot play card: No top discard card available");
+				gameplayUI?.ShowComputerMessage ("Game error - no discard pile!");
+				return;
+			}
+
+			bool isValidMove = gameState.IsValidMove (card, topCard);
+			if (!isValidMove) {
+				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}");
+				gameplayUI?.ShowComputerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
+				return;
+			}
+
+			// Remove card from player's hand
+			bool removed = playerHand.Remove (card);
+			if (!removed) {
+				Debug.LogError ("Could not remove card from player hand!");
+				return;
+			}
+
+			// Clear selection
+			playerHandManager?.ClearSelection ();
+
+			// Discard the card
+			deckManager?.DiscardCard (card);
+
+			// Update active color
+			gameState.UpdateActiveColorFromCard (card);
+
+			// Log comprehensive card effect information
+			LogCardEffectRules (card);
+
+			// Update UI
+			UpdateAllUI ();
+			RefreshPlayerHandStates ();
+
+			// Mark action taken and update flow
+			hasPlayerTakenAction = true;
+			canPlayerPlay = false;
+			canPlayerDraw = false; // Cannot draw after playing
+			canPlayerEndTurn = true;
+
+			// UI already disabled buttons immediately on click, now enable END TURN
+			Debug.Log ("ENABLING END TURN button after successful card play");
+			gameplayUI?.ForceEnableEndTurn ();
+			gameplayUI?.ShowComputerMessage ("Card played - you must END TURN!");
+
+			// Check for win condition
+			if (playerHand.Count == 0) {
+				Debug.Log ("Player wins - hand is empty!");
+				gameState.DeclareWinner (PlayerType.Human);
+				return;
+			}
+
+			OnCardPlayed?.Invoke (card);
+			Debug.Log ($"=== CARD PLAY COMPLETE - WAITING FOR END TURN ===");
+		}
+
+		/// <summary>
+		/// Draw card with strict flow control
+		/// </summary>
+		void DrawCardWithStrictFlow () {
+			Debug.Log ("=== DRAWING CARD WITH STRICT FLOW ===");
+
+			CardData drawnCard = deckManager?.DrawCard ();
+			if (drawnCard != null) {
+				playerHand.Add (drawnCard);
+
+				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()}");
+
+				// Update visual hands
+				UpdateAllUI (); 
+				RefreshPlayerHandStates ();
+
+				// Mark action taken and update flow
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				// FIXED: UI already disabled buttons immediately on click, now enable END TURN
+				Debug.Log ("ENABLING END TURN button after successful draw");
+				gameplayUI?.ForceEnableEndTurn ();
+				gameplayUI?.ShowComputerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
+
+				Debug.Log ("RULE: Player has no more valid moves, must end turn");
+			} else {
+				Debug.LogError ("Failed to draw card - deck may be empty");
+				gameplayUI?.ShowComputerMessage ("Cannot draw card!");
+			}
+		}
+
+		/// <summary>
+		/// End player turn with strict flow control
+		/// </summary>
+		void EndPlayerTurnWithStrictFlow () {
+			Debug.Log ("=== ENDING PLAYER TURN - STRICT FLOW COMPLETE ===");
+
+			// Clear any selected cards
+			playerHandManager?.ClearSelection ();
+
+			// Reset turn flow state for next turn
+			ResetTurnFlowState ();
+
+			// No need to disable buttons - they were already disabled immediately on click
+			// Turn state change will re-enable appropriate buttons for next player
+
+			if (turnManager != null) {
+				Debug.Log ("Calling TurnManager.EndTurn()");
+				turnManager.EndTurn ();
+			} else {
+				Debug.LogError ("Cannot end turn: TurnManager is null!");
+			}
+		}
+
+		/// <summary>
+		/// ENHANCED: Comprehensive card effect rule logging
+		/// </summary>
+		void LogCardEffectRules (CardData card) {
+			switch (card.cardType) {
+				case CardType.Number:
+					Debug.Log ($"RULE: NUMBER card {card.GetDisplayText ()} played - basic card behavior");
+					gameplayUI?.ShowComputerMessage ($"Played NUMBER {card.GetDisplayText ()}");
+					Debug.Log ("RULE: Player must END turn");
+					break;
+
+				case CardType.Plus:
+					Debug.Log ($"RULE: PLUS card played - Must either PLAY 1 more card, OR DRAW a card");
+					gameplayUI?.ShowComputerMessage ("PLUS: PLAY or DRAW 1 card");
+					Debug.Log ("RULE: Player must PLAY or DRAW another card (for now: must end turn)");
+					break;
+
+				case CardType.Stop:
+					Debug.Log ($"RULE: STOP card played - Opponent's next turn is skipped");
+					gameplayUI?.ShowComputerMessage ("STOP: Opponent's turn skipped");
+					Debug.Log ("RULE: Opponent's turn is stopped/skipped, Player starts another NEW turn (for now: must end turn)");
+					break;
+
+				case CardType.ChangeDirection:
+					Debug.Log ($"RULE: CHANGE DIRECTION card played - Turn direction changes");
+					string oldDirection = gameState?.turnDirection.ToString () ?? "Unknown";
+					if (gameState != null) gameState.ChangeTurnDirection ();
+					string newDirection = gameState?.turnDirection.ToString () ?? "Unknown";
+					gameplayUI?.ShowComputerMessage ($"DIRECTION: {oldDirection} to {newDirection}");
+					Debug.Log ($"RULE: Direction changed from {oldDirection} to {newDirection}");
+					break;
+
+				case CardType.PlusTwo:
+					Debug.Log ($"RULE: PLUS TWO card played - Opponent draws 2 cards");
+					gameplayUI?.ShowComputerMessage ("PLUS TWO: Opponent draws 2 cards");
+					Debug.Log ("RULE: Player must DRAW 1x2=2 cards (for now: must end turn)");
+					break;
+
+				case CardType.Taki:
+					Debug.Log ($"RULE: TAKI card played - Player may play series of {card.color} cards");
+					gameplayUI?.ShowComputerMessage ($"TAKI: May play series of {card.color} cards");
+					Debug.Log ($"RULE: Player may PLAY a series of cards the color of {card.color} (for now: must end turn)");
+					break;
+
+				case CardType.ChangeColor:
+					Debug.Log ($"RULE: CHANGE COLOR card played - Player must choose new color");
+					gameplayUI?.ShowComputerMessage ("CHANGE COLOR: Must choose new color");
+					Debug.Log ("RULE: Player must choose a color (for now: ColorSelectionPanel will not appear, must end turn)");
+					break;
+
+				case CardType.SuperTaki:
+					Debug.Log ($"RULE: SUPER TAKI card played - Player may play series of any color");
+					gameplayUI?.ShowComputerMessage ("SUPER TAKI: May play series of any color");
+					Debug.Log ("RULE: Player may PLAY a series of cards of any color (for now: must end turn)");
+					break;
+
+				default:
+					Debug.LogWarning ($"Unknown card type: {card.cardType}");
+					gameplayUI?.ShowComputerMessage ($"Unknown card: {card.GetDisplayText ()}");
+					break;
+			}
+
+			Debug.Log ("RULE: Player has no more valid moves, must end turn");
 		}
 
 		/// <summary>
@@ -303,25 +635,48 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Handle player playing a card
+		/// Handle player playing a card with comprehensive error checking
 		/// </summary>
-		/// <param name="card">Card being played</param>
 		public void PlayCard (CardData card) {
-			if (!isGameActive || !gameState.CanPlayerAct ()) {
-				Debug.LogWarning ("Cannot play card: Not player's turn or game not active");
+			Debug.Log ($"=== PLAY CARD: {card?.GetDisplayText ()} ===");
+
+			if (card == null) {
+				Debug.LogError ("PlayCard called with null card");
+				return;
+			}
+
+			if (!isGameActive) {
+				Debug.LogWarning ("Cannot play card: Game not active");
+				gameplayUI?.ShowComputerMessage ("Game not active!");
+				return;
+			}
+
+			if (!gameState.CanPlayerAct ()) {
+				Debug.LogWarning ($"Cannot play card: Player cannot act. State: {gameState.turnState}");
+				gameplayUI?.ShowComputerMessage ("Not your turn!");
 				return;
 			}
 
 			// Validate the move
-			CardData topCard = deckManager.GetTopDiscardCard ();
-			if (!gameState.IsValidMove (card, topCard)) {
-				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()}");
-				gameplayUI.ShowComputerMessage ("Invalid move!");
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard == null) {
+				Debug.LogError ("Cannot play card: No top discard card available");
+				gameplayUI?.ShowComputerMessage ("Game error - no discard pile!");
+				return;
+			}
+
+			bool isValidMove = gameState.IsValidMove (card, topCard);
+			Debug.Log ($"Rule validation: {card.GetDisplayText ()} on {topCard.GetDisplayText ()} = {isValidMove}");
+
+			if (!isValidMove) {
+				Debug.LogWarning ($"Invalid move: Cannot play {card.GetDisplayText ()} on {topCard.GetDisplayText ()}");
+				gameplayUI?.ShowComputerMessage ($"Invalid move! Cannot play {card.GetDisplayText ()}");
 				return;
 			}
 
 			// Remove card from player's hand
-			playerHand.Remove (card);
+			bool removed = playerHand.Remove (card);
+			Debug.Log ($"Card removed from hand: {removed}");
 
 			// Clear selection in visual hand
 			if (playerHandManager != null) {
@@ -329,10 +684,14 @@ namespace TakiGame {
 			}
 
 			// Discard the card
-			deckManager.DiscardCard (card);
+			if (deckManager != null) {
+				deckManager.DiscardCard (card);
+				Debug.Log ($"Card discarded to pile: {card.GetDisplayText ()}");
+			}
 
 			// Update active color
 			gameState.UpdateActiveColorFromCard (card);
+			Debug.Log ($"Active color updated to: {gameState.activeColor}");
 
 			// Handle special card effects
 			HandleSpecialCardEffects (card);
@@ -340,28 +699,33 @@ namespace TakiGame {
 			// Update UI (this will now update visual hands)
 			UpdateAllUI ();
 
+			// FIXED: Force refresh playable states after play
+			Invoke (nameof (RefreshPlayerHandStates), 0.05f);
+
 			// Check for win condition
 			if (playerHand.Count == 0) {
+				Debug.Log ("Player wins - hand is empty!");
 				gameState.DeclareWinner (PlayerType.Human);
 				return;
 			}
 
 			OnCardPlayed?.Invoke (card);
 
-			// End turn (unless card allows continued play)
-			if (!card.isActiveCard) {
-				EndPlayerTurn ();
-			}
+			// FIXED: Show message instead of auto-ending turn
+			gameplayUI?.ShowComputerMessage ($"Played {card.GetDisplayText ()} - Click 'End Turn' when ready");
 
-			Debug.Log ($"Player played: {card.GetDisplayText ()}");
+			Debug.Log ($"=== CARD PLAY COMPLETE: {card.GetDisplayText ()} ===");
 		}
 
 		/// <summary>
-		/// Handle player drawing a card
+		/// LEGACY: Handle player drawing a card No automatic turn ending
 		/// </summary>
 		public void DrawCard () {
+			Debug.Log ("=== DRAW CARD ===");
+
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
 				Debug.LogWarning ("Cannot draw card: Not player's turn or game not active");
+				gameplayUI?.ShowComputerMessage ("Not your turn!");
 				return;
 			}
 
@@ -369,23 +733,48 @@ namespace TakiGame {
 			if (drawnCard != null) {
 				playerHand.Add (drawnCard);
 
-				// Update visual hands
-				UpdateVisualHands ();
+				UpdateAllUI ();
 
-				gameplayUI.ShowComputerMessage ($"You drew: {drawnCard.GetDisplayText ()}");
-				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()}");
+				// FIXED: Force refresh playable states after drawing
+				Invoke (nameof (RefreshPlayerHandStates), 0.05f);
+
+				gameplayUI.ShowComputerMessage ($"Drew: {drawnCard.GetDisplayText ()} - Click 'End Turn' when ready");
+				Debug.Log ($"Player drew: {drawnCard.GetDisplayText ()} - turn continues");
+			} else {
+				Debug.LogError ("Failed to draw card - deck may be empty");
+				gameplayUI?.ShowComputerMessage ("Cannot draw card!");
 			}
 
-			// End turn after drawing
-			EndPlayerTurn ();
+			Debug.Log ("=== DRAW COMPLETE - TURN CONTINUES ===");
 		}
 
 		/// <summary>
-		/// End the player's turn
+		/// FIXED: End player turn with comprehensive logging
 		/// </summary>
 		void EndPlayerTurn () {
+			Debug.Log ("=== ENDING PLAYER TURN ===");
+
+			// Clear any selected cards
+			if (playerHandManager != null) {
+				playerHandManager.ClearSelection ();
+			}
+
 			if (turnManager != null) {
+				Debug.Log ("Calling TurnManager.EndTurn()");
 				turnManager.EndTurn ();
+			} else {
+				Debug.LogError ("Cannot end turn: TurnManager is null!");
+			}
+		}
+
+		/// <summary>
+		/// Force refresh of player hand playable states (delayed)
+		/// </summary>
+		void RefreshPlayerHandStates () {
+			Debug.Log ("=== REFRESHING PLAYER HAND STATES ===");
+
+			if (playerHandManager != null) {
+				playerHandManager.RefreshPlayableStates ();
 			}
 		}
 
@@ -456,7 +845,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update all UI elements with current game state
+		/// Update all UI with forced button state sync
 		/// </summary>
 		void UpdateAllUI () {
 			if (gameplayUI != null && gameState != null) {
@@ -479,9 +868,35 @@ namespace TakiGame {
 
 		// ===== EVENT HANDLERS =====
 
+		/// <summary>
+		/// Turn state change handler with forced UI sync
+		/// ENHANCED: Turn state change handler with strict flow control
+		/// </summary>
 		void OnTurnStateChanged (TurnState newTurnState) {
+			Debug.Log ($"GameManager: Turn state changed to {newTurnState}");
+
 			if (gameplayUI != null) {
 				gameplayUI.UpdateTurnDisplay (newTurnState);
+			}
+
+			// Start strict flow control for player turns
+			if (newTurnState == TurnState.PlayerTurn) {
+				Invoke (nameof (StartPlayerTurnFlow), 0.1f); // Small delay to ensure UI is ready
+			}
+
+			// Refresh playable cards for player hand
+			if (newTurnState == TurnState.PlayerTurn && playerHandManager != null) {
+				Invoke (nameof (RefreshPlayerHandStates), 0.1f);
+			}
+		}
+
+		/// <summary>
+		/// ADDED: Delayed button synchronization method
+		/// </summary>
+		void DelayedButtonSync () {
+			if (gameState != null && gameState.CanPlayerAct () && gameplayUI != null) {
+				gameplayUI.UpdateButtonStates (true);
+				Debug.Log ("DELAYED button sync - ensured buttons are ENABLED");
 			}
 		}
 
@@ -505,44 +920,87 @@ namespace TakiGame {
 			OnTurnStarted?.Invoke (player);
 		}
 
+		/// <summary>
+		/// Handle computer turn ready handler with error checking
 		void OnComputerTurnReady () {
-			// Trigger AI decision making
-			if (computerAI != null) {
-				CardData topCard = deckManager.GetTopDiscardCard ();
-				computerAI.MakeDecision (topCard);
+			Debug.Log ("=== COMPUTER TURN READY ===");
+
+			if (computerAI == null || deckManager == null) {
+				Debug.LogError ("Computer turn ready but components are null!");
+				return;
 			}
+
+			CardData topCard = deckManager.GetTopDiscardCard ();
+			if (topCard == null) {
+				Debug.LogError ("Computer turn ready but no top discard card!");
+				return;
+			}
+
+			Debug.Log ("Triggering AI decision for top card: " + topCard.GetDisplayText ());
+			computerAI.MakeDecision (topCard);
 		}
 
+		/// <summary>
+		/// AI card selection handler with validation
+		/// </summary>
 		void OnAICardSelected (CardData card) {
-			// AI selected a card to play
-			if (computerAI != null) {
+			Debug.Log ("=== AI SELECTED CARD: " + (card != null ? card.GetDisplayText () : "NULL") + " ===");
+
+			if (card == null || computerAI == null) {
+				Debug.LogError ("AI selected null card or computerAI is null!");
+				return;
+			}
+
+			if (deckManager != null) {
 				deckManager.DiscardCard (card);
+				Debug.Log ("AI card discarded: " + card.GetDisplayText ());
+			}
+
+			if (gameState != null) {
 				gameState.UpdateActiveColorFromCard (card);
-				HandleSpecialCardEffects (card);
-				UpdateAllUI ();
+				Debug.Log ("Active color updated to: " + gameState.activeColor);
+			}
 
-				// Check for AI win
-				if (computerAI.HandSize == 0) {
+			// Log AI card effects (simplified)
+			Debug.Log ($"AI played {card.cardType}: {card.GetDisplayText ()}");
+
+			UpdateAllUI ();
+
+			if (computerAI.HandSize == 0) {
+				Debug.Log ("Computer wins - hand is empty!");
+				if (gameState != null) {
 					gameState.DeclareWinner (PlayerType.Computer);
-					return;
 				}
+				return;
+			}
 
-				// End AI turn (unless card allows continued play)
-				if (!card.isActiveCard) {
-					turnManager.EndTurn ();
-				}
+			Debug.Log ("Ending computer turn - switching to human");
+			if (turnManager != null) {
+				turnManager.EndTurn ();
 			}
 		}
 
+		/// <summary>
+		/// AI draw card handler
+		/// </summary>
 		void OnAIDrawCard () {
-			// AI decided to draw a card
-			CardData drawnCard = deckManager.DrawCard ();
-			if (drawnCard != null && computerAI != null) {
-				computerAI.AddCardToHand (drawnCard);
-				UpdateAllUI ();
+			Debug.Log ("=== AI DRAWING CARD ===");
+
+			if (deckManager == null || computerAI == null) {
+				Debug.LogError ("AI draw card but components are null!");
+				return;
 			}
 
-			// End AI turn after drawing
+			CardData drawnCard = deckManager.DrawCard ();
+			if (drawnCard != null) {
+				computerAI.AddCardToHand (drawnCard);
+				Debug.Log ("AI drew card: " + drawnCard.GetDisplayText ());
+				UpdateAllUI ();
+			} else {
+				Debug.LogError ("AI could not draw card - deck empty?");
+			}
+
+			Debug.Log ("Ending computer turn after draw");
 			if (turnManager != null) {
 				turnManager.EndTurn ();
 			}
@@ -571,8 +1029,7 @@ namespace TakiGame {
 
 		void OnPlayerTurnTimeOut (PlayerType player) {
 			if (player == PlayerType.Human) {
-				// Auto-draw card on timeout
-				DrawCard ();
+				DrawCardWithStrictFlow ();
 			}
 		}
 
@@ -587,18 +1044,11 @@ namespace TakiGame {
 		void InitializeVisualCardSystem () {
 			Debug.Log ("Initializing visual card system...");
 
-			// Validate hand managers
-			if (playerHandManager == null) {
-				Debug.LogError ("GameManager: PlayerHandManager not assigned!");
+			if (playerHandManager == null || computerHandManager == null) {
+				Debug.LogError ("HandManager references missing!");
 				return;
 			}
 
-			if (computerHandManager == null) {
-				Debug.LogError ("GameManager: ComputerHandManager not assigned!");
-				return;
-			}
-
-			// Connect hand manager events
 			playerHandManager.OnCardSelected += OnPlayerCardSelected;
 			computerHandManager.OnCardSelected += OnComputerCardSelected;
 
@@ -636,18 +1086,24 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update visual hand displays to match current data
+		/// Update visual hands with error checking
 		/// </summary>
 		void UpdateVisualHands () {
-			// Update player hand visual
-			if (playerHandManager != null && playerHand != null) {
-				playerHandManager.UpdateHandDisplay (playerHand);
-			}
+			try {
+				// Update player hand visual
+				if (playerHandManager != null && playerHand != null) {
+					playerHandManager.UpdateHandDisplay (playerHand);
+					Debug.Log ($"Updated player hand display: {playerHand.Count} cards");
+				}
 
-			// Update computer hand visual
-			if (computerHandManager != null && computerAI != null) {
-				List<CardData> computerHand = computerAI.GetHandCopy ();
-				computerHandManager.UpdateHandDisplay (computerHand);
+				// Update computer hand visual
+				if (computerHandManager != null && computerAI != null) {
+					List<CardData> computerHand = computerAI.GetHandCopy ();
+					computerHandManager.UpdateHandDisplay (computerHand);
+					Debug.Log ($"Updated computer hand display: {computerHand.Count} cards");
+				}
+			} catch (System.Exception e) {
+				Debug.LogError ($"Error updating visual hands: {e.Message}");
 			}
 		}
 
@@ -695,12 +1151,82 @@ namespace TakiGame {
 			return isValid;
 		}
 
+		// ===== DEBUG METHODS =====
+
+		/// DEBUGGING: Force a new game start for testing
+		/// </summary>
+		[ContextMenu ("Force New Game Start")]
+		public void ForceNewGameStart () {
+			Debug.Log ("=== FORCING NEW GAME START ===");
+
+			if (!areSystemsInitialized) {
+				Debug.Log ("Initializing systems...");
+				InitializeSinglePlayerSystems ();
+			}
+
+			Debug.Log ("Starting new game...");
+			StartNewSinglePlayerGame ();
+		}
+
+		[ContextMenu ("Log Turn Flow State")]
+		public void LogTurnFlowState () {
+			Debug.Log ("=== TURN FLOW STATE DEBUG ===");
+			Debug.Log ($"hasPlayerTakenAction: {hasPlayerTakenAction}");
+			Debug.Log ($"canPlayerDraw: {canPlayerDraw}");
+			Debug.Log ($"canPlayerPlay: {canPlayerPlay}");
+			Debug.Log ($"canPlayerEndTurn: {canPlayerEndTurn}");
+			Debug.Log ($"isGameActive: {isGameActive}");
+		}
+
+		/// <summary>
+		/// DEBUGGING: Manual turn trigger for testing
+		/// </summary>
+		[ContextMenu ("Trigger Computer Turn")]
+		public void TriggerComputerTurnManually () {
+			Debug.Log ("=== MANUAL COMPUTER TURN TRIGGER ===");
+			OnComputerTurnReady ();
+		}
+
+		/// <summary>
+		/// Force UI sync - call this to fix button states after manual testing
+		/// </summary>
+		[ContextMenu ("Force UI Sync")]
+		public void ForceUISync () {
+			Debug.Log ("=== FORCING UI SYNCHRONIZATION ===");
+
+			if (gameState == null || gameplayUI == null) {
+				Debug.LogError ("Cannot sync UI - missing components");
+				return;
+			}
+
+			// Force button state update based on current turn state
+			bool shouldEnableButtons = gameState.CanPlayerAct ();
+			gameplayUI.UpdateButtonStates (shouldEnableButtons);
+
+			Debug.Log ($"UI synced - Turn: {gameState.turnState}, Buttons enabled: {shouldEnableButtons}");
+		}
+
+		/// <summary>
+		/// Verify turn switch after AI plays
+		/// </summary>
+		void VerifyTurnSwitch () {
+			if (gameState != null) {
+				Debug.Log ($"Turn verification - Current state: {gameState.turnState}");
+				if (gameState.turnState != TurnState.PlayerTurn) {
+					Debug.LogError ("TURN SWITCH FAILED - Still not player turn!");
+				} else {
+					Debug.Log ("Turn switch successful - Player turn active");
+					// Force UI sync if needed
+					ForceUISync ();
+				}
+			}
+		}
+
 		// ===== PUBLIC API =====
 
-		public void RequestDrawCard () => DrawCard ();
-		public void RequestPlayCard (CardData card) => PlayCard (card);
+		public void RequestDrawCard () => OnDrawCardButtonClicked ();
+		public void RequestPlayCard (CardData card) => PlayCardWithStrictFlow (card);
 		public List<CardData> GetPlayerHand () => new List<CardData> (playerHand);
-		public CardData GetTopDiscardCard () => deckManager?.GetTopDiscardCard ();
 		public bool CanPlayerAct () => gameState?.CanPlayerAct () ?? false;
 
 		// Properties
@@ -712,8 +1238,11 @@ namespace TakiGame {
 		public CardColor ActiveColor => gameState?.activeColor ?? CardColor.Wild;
 		public bool AreComponentsValidated => areComponentsValidated;
 		public bool AreSystemsInitialized => areSystemsInitialized;
-		public TurnState CurrentTurnState => gameState?.turnState ?? TurnState.Neutral;
-		public InteractionState CurrentInteractionState => gameState?.interactionState ?? InteractionState.Normal;
-		public GameStatus CurrentGameStatus => gameState?.gameStatus ?? GameStatus.Active;
+
+		// ENHANCED: Turn flow properties
+		public bool HasPlayerTakenAction => hasPlayerTakenAction;
+		public bool CanPlayerDrawCard => canPlayerDraw;
+		public bool CanPlayerPlayCard => canPlayerPlay;
+		public bool CanPlayerEndTurn => canPlayerEndTurn;
 	}
 }

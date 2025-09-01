@@ -293,14 +293,27 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update which cards are playable (only for player hands)
+		/// Update which cards are playable with better logging and validation
 		/// </summary>
 		void UpdatePlayableStates () {
-			if (!showFaceUpCards || gameManager == null) return;
+			if (!showFaceUpCards || gameManager == null) {
+				Debug.Log ($"HandManager {gameObject.name}: Skipping playable update - not face-up or no GameManager");
+				return;
+			}
 
 			// Get top discard card for rule validation
 			CardData topCard = gameManager.GetTopDiscardCard ();
-			if (topCard == null) return;
+			if (topCard == null) {
+				Debug.LogWarning ($"HandManager {gameObject.name}: Cannot update playable states - no top discard card");
+				return;
+			}
+
+			Debug.Log ($"=== UPDATING PLAYABLE STATES for {gameObject.name} ===");
+			Debug.Log ($"Top discard card: {topCard.GetDisplayText ()}");
+			Debug.Log ($"Active color: {gameManager.gameState?.activeColor}");
+			Debug.Log ($"Checking {cardControllers.Count} cards in hand");
+
+			int playableCount = 0;
 
 			// Check each card's playability
 			for (int i = 0; i < cardControllers.Count && i < currentHand.Count; i++) {
@@ -311,8 +324,24 @@ namespace TakiGame {
 					// Use GameStateManager's validation logic
 					bool isPlayable = gameManager.gameState?.IsValidMove (cardData, topCard) ?? false;
 					controller.SetPlayable (isPlayable);
+
+					if (isPlayable) playableCount++;
+
+					Debug.Log ($"  [{i}] {cardData.GetDisplayText ()} -> {(isPlayable ? "PLAYABLE" : "NOT PLAYABLE")}");
+				} else {
+					Debug.LogWarning ($"  [{i}] Missing controller or card data");
 				}
 			}
+
+			Debug.Log ($"Playable state update complete: {playableCount}/{cardControllers.Count} cards playable");
+		}
+
+		/// <summary>
+		/// Delayed playable state update (for timing issues)
+		/// </summary>
+		public void DelayedPlayableUpdate () {
+			Debug.Log ($"HandManager {gameObject.name}: Performing delayed playable state update");
+			UpdatePlayableStates ();
 		}
 
 		/// <summary>
@@ -352,8 +381,17 @@ namespace TakiGame {
 		/// Force update of playable states (called by GameManager after game state changes)
 		/// </summary>
 		public void RefreshPlayableStates () {
+			Debug.Log ($"HandManager {gameObject.name}: Refreshing playable states (forced)");
+
 			if (showFaceUpCards) {
 				UpdatePlayableStates ();
+
+				// Also force visual refresh on all selected cards
+				foreach (CardController controller in cardControllers) {
+					if (controller != null && controller.IsSelected) {
+						controller.ForceVisualRefresh ();
+					}
+				}
 			}
 		}
 

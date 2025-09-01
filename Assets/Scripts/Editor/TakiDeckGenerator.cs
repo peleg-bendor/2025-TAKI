@@ -5,7 +5,8 @@ using System.IO;
 
 namespace TakiGame {
 	/// <summary>
-	/// Editor script to automatically generate all 110 CardData assets for TAKI deck
+	/// FIXED: Editor script to automatically generate all 110 CardData assets for TAKI deck
+	/// CORRECTED: isActiveCard property assignments according to TAKI rules
 	/// </summary>
 	public class TakiDeckGenerator : EditorWindow {
 
@@ -34,6 +35,14 @@ namespace TakiGame {
 			GUILayout.Label ("• Number Cards: 64 (Numbers 1, 3-9, 2 copies each per color)");
 			GUILayout.Label ("• Special Color Cards: 40 (PlusTwo, Plus, Stop, ChangeDirection, Taki)");
 			GUILayout.Label ("• Wild Cards: 6 (SuperTaki x2, ChangeColor x4)");
+
+			GUILayout.Space (10);
+
+			// ADDED: Turn behavior display
+			GUILayout.Label ("FIXED Turn Behavior:", EditorStyles.boldLabel);
+			GUILayout.Label ("• Number Cards: END turn after play (isActiveCard = false)");
+			GUILayout.Label ("• Most Special Cards: END turn after play (isActiveCard = false)");
+			GUILayout.Label ("• TAKI & SuperTAKI: CONTINUE turn (isActiveCard = true)");
 
 			GUILayout.Space (20);
 
@@ -107,12 +116,13 @@ namespace TakiGame {
 			AssetDatabase.Refresh ();
 
 			Debug.Log ($"TAKI Deck Generation Complete! Generated {cardsGenerated} cards.");
+			Debug.Log ("FIXED: All cards now have correct isActiveCard values for proper turn management.");
 
 			// Verify count
 			if (cardsGenerated == 110) {
-				Debug.Log ("✅ Deck composition verified: 110 cards total");
+				Debug.Log ("Deck composition verified: 110 cards total");
 			} else {
-				Debug.LogWarning ($"⚠️ Expected 110 cards, but generated {cardsGenerated}");
+				Debug.LogWarning ($"[WARNING] Expected 110 cards, but generated {cardsGenerated}");
 			}
 		}
 
@@ -131,9 +141,12 @@ namespace TakiGame {
 			card.color = color;
 			card.cardType = CardType.Number;
 			card.cardName = $"{color} {number}";
-			card.isActiveCard = true;
+
+			// FIXED: Number cards should END turn after being played
+			card.isActiveCard = false; // CORRECTED from true
 
 			AssetDatabase.CreateAsset (card, assetPath);
+			Debug.Log ($"Generated NUMBER card: {card.cardName} (isActiveCard = {card.isActiveCard})");
 			return 1;
 		}
 
@@ -153,20 +166,32 @@ namespace TakiGame {
 			card.cardType = cardType;
 			card.cardName = $"{color} {cardType}";
 
-			// Set activeCard status based on card type
+			// CORRECTED: Set activeCard status based on TAKI rules
 			switch (cardType) {
 				case CardType.Plus:
+					card.isActiveCard = false; // End turn after playing - CORRECT
+					break;
 				case CardType.Stop:
+					card.isActiveCard = false; // End turn after playing - CORRECT
+					break;
 				case CardType.ChangeDirection:
+					card.isActiveCard = false; // End turn after playing - CORRECT
+					break;
 				case CardType.PlusTwo:
-					card.isActiveCard = false; // End turn after playing
+					card.isActiveCard = false; // End turn after playing - CORRECT
 					break;
 				case CardType.Taki:
-					card.isActiveCard = true; // Allows continued play
+					card.isActiveCard = true; // Allows continued play - CORRECT
+					break;
+				default:
+					// Default to ending turn for safety
+					card.isActiveCard = false;
+					Debug.LogWarning ($"Unknown special card type: {cardType} - defaulting to isActiveCard = false");
 					break;
 			}
 
 			AssetDatabase.CreateAsset (card, assetPath);
+			Debug.Log ($"Generated SPECIAL card: {card.cardName} (isActiveCard = {card.isActiveCard})");
 			return 1;
 		}
 
@@ -186,17 +211,23 @@ namespace TakiGame {
 			card.cardType = cardType;
 			card.cardName = cardType.ToString ();
 
-			// Wild cards behavior
+			// CORRECTED: Wild cards behavior according to TAKI rules
 			switch (cardType) {
 				case CardType.SuperTaki:
-					card.isActiveCard = true; // Allows multi-card play
+					card.isActiveCard = true; // Allows multi-card play - CORRECT
 					break;
 				case CardType.ChangeColor:
-					card.isActiveCard = false; // Requires color selection
+					card.isActiveCard = false; // End turn after color selection - CORRECT
+					break;
+				default:
+					// Default to ending turn for safety
+					card.isActiveCard = false;
+					Debug.LogWarning ($"Unknown wild card type: {cardType} - defaulting to isActiveCard = false");
 					break;
 			}
 
 			AssetDatabase.CreateAsset (card, assetPath);
+			Debug.Log ($"Generated WILD card: {card.cardName} (isActiveCard = {card.isActiveCard})");
 			return 1;
 		}
 

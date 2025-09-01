@@ -17,4 +17,4 @@ MonoBehaviour:
   cardType: 0
   cardSprite: {fileID: 0}
   cardName: Blue 3
-  isActiveCard: 1
+  isActiveCard: 0

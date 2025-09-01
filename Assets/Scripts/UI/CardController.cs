@@ -163,30 +163,28 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Get the resource path for a card's front image
-		/// FIXED: Matches actual folder structure from your images
+		/// SIMPLIFIED: All cards follow same folder pattern now
 		/// </summary>
 		/// <param name="card">CardData to get path for</param>
 		/// <returns>Resource path string</returns>
 		string GetCardFrontImagePath (CardData card) {
-			// Based on your actual folder structure:
-			// Resources/Sprites/Cards/Fronts/Blue, Green, Red, Special, Yellow
+			// All cards follow same pattern: Sprites/Cards/Fronts/{Color}/
+			string colorFolder = card.color.ToString ();
 
 			if (card.cardType == CardType.Number) {
 				// Number cards: Sprites/Cards/Fronts/{Color}/{number}_{color}
-				string colorFolder = card.color.ToString ();
 				string numberName = GetNumberName (card.number);
 				string colorLower = card.color.ToString ().ToLower ();
 				return $"Sprites/Cards/Fronts/{colorFolder}/{numberName}_{colorLower}";
 			} else {
 				// Special cards
+				string specialName = GetSpecialCardName (card.cardType);
+
 				if (card.color == CardColor.Wild) {
-					// Wild cards go in Special folder
-					string specialName = GetSpecialCardName (card.cardType);
-					return $"Sprites/Cards/Fronts/Special/{specialName}";
+					// Wild cards: Sprites/Cards/Fronts/Wild/{specialName} (no color suffix)
+					return $"Sprites/Cards/Fronts/{colorFolder}/{specialName}";
 				} else {
-					// Colored special cards go in color folders
-					string colorFolder = card.color.ToString ();
-					string specialName = GetSpecialCardName (card.cardType);
+					// Colored special cards: Sprites/Cards/Fronts/{Color}/{specialName}_{color}
 					string colorLower = card.color.ToString ().ToLower ();
 					return $"Sprites/Cards/Fronts/{colorFolder}/{specialName}_{colorLower}";
 				}
@@ -225,15 +223,15 @@ namespace TakiGame {
 				case CardType.Stop:
 					return "stop";
 				case CardType.ChangeDirection:
-					return "changeDirection"; // Based on "direction_blue" seen in your structure
+					return "changeDirection";
 				case CardType.ChangeColor:
-					return "changeColor_Wild";
+					return "changeColor";
 				case CardType.PlusTwo:
 					return "plusTwo";
 				case CardType.Taki:
 					return "taki";
 				case CardType.SuperTaki:
-					return "taki_Wild";
+					return "superTaki";
 				default:
 					return cardType.ToString ().ToLower ();
 			}
@@ -282,11 +280,11 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Set whether this card is currently selected
+		/// Set whether this card is currently selected - Set selection with proper visual feedback
 		/// </summary>
 		/// <param name="selected">Selection state</param>
 		public void SetSelected (bool selected) {
-			if (isSelected == selected) return;
+			if (isSelected == selected) return; // No change needed
 
 			isSelected = selected;
 
@@ -296,21 +294,54 @@ namespace TakiGame {
 				targetPosition.y += selectionOffset;
 			}
 
-			// Instant position change - NO animations
+			// Instant position change
 			transform.localPosition = targetPosition;
 
-			// Update visual feedback
+			// Always update visual feedback when selection changes
 			UpdateVisualFeedback ();
 
-			Debug.Log ($"Card {cardData?.GetDisplayText ()} selection: {selected}");
+			Debug.Log ($"Card {cardData?.GetDisplayText ()} selection: {selected}, playable: {isPlayable}");
 		}
 
 		/// <summary>
-		/// Set whether this card is playable (affects visual feedback)
+		/// Debug method to test tint colors manually
+		/// </summary>
+		[ContextMenu ("Test Tint Colors")]
+		public void TestTintColors () {
+			Debug.Log ("=== TESTING TINT COLORS ===");
+			Debug.Log ($"Card: {cardData?.GetDisplayText ()}");
+			Debug.Log ($"Selected: {isSelected}");
+			Debug.Log ($"Playable: {isPlayable}");
+			Debug.Log ($"Face Up: {isFaceUp}");
+
+			if (cardFrontImage != null) {
+				Debug.Log ($"Front Image Color: {cardFrontImage.color}");
+			}
+
+			// Force visual feedback update
+			UpdateVisualFeedback ();
+			Debug.Log ("Tint test complete - check card appearance");
+		}
+
+		/// <summary>
+		/// Force visual state refresh
+		/// </summary>
+		public void ForceVisualRefresh () {
+			UpdateVisualFeedback ();
+			Debug.Log ($"Visual refresh forced for {cardData?.GetDisplayText ()}");
+		}
+
+		/// <summary>
+		/// Set whether this card is playable with immediate visual update
 		/// </summary>
 		/// <param name="playable">Whether card can be played</param>
 		public void SetPlayable (bool playable) {
+			if (isPlayable == playable) return; // No change needed
+
 			isPlayable = playable;
+			Debug.Log ($"Card {cardData?.GetDisplayText ()} playability set to: {playable}");
+
+			// FIXED: Immediate visual feedback update
 			UpdateVisualFeedback ();
 		}
 
@@ -320,21 +351,29 @@ namespace TakiGame {
 		/// </summary>
 		void UpdateVisualFeedback () {
 			if (isSelected) {
-				// Apply tint overlay when selected
-				Color tintColor = isPlayable ? validCardTint : invalidCardTint;
+				// FIXED: Properly check playable flag for tint color selection
+				Color tintColor;
+				if (isPlayable) {
+					tintColor = validCardTint; // Gold for valid cards
+					Debug.Log ($"Card {cardData?.GetDisplayText ()}: SELECTED + PLAYABLE = GOLD tint");
+				} else {
+					tintColor = invalidCardTint; // Red for invalid cards  
+					Debug.Log ($"Card {cardData?.GetDisplayText ()}: SELECTED + INVALID = RED tint");
+				}
 
 				if (isFaceUp && cardFrontImage != null) {
-					// Blend tint with white (since images should be white by default)
+					// Apply the correct tint
 					cardFrontImage.color = Color.Lerp (Color.white, tintColor, tintColor.a);
 				}
 			} else {
-				// Remove tinting when not selected
+				// FIXED: Remove tinting when not selected (always white)
 				if (cardFrontImage != null) {
 					cardFrontImage.color = Color.white;
 				}
 				if (cardBackImage != null) {
 					cardBackImage.color = Color.white;
 				}
+				Debug.Log ($"Card {cardData?.GetDisplayText ()}: NOT SELECTED = WHITE (no tint)");
 			}
 		}
 

@@ -7111,6 +7111,7 @@ GameObject:
   - component: {fileID: 1026764711}
   - component: {fileID: 1026764710}
   - component: {fileID: 1026764709}
+  - component: {fileID: 1026764714}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -7235,6 +7236,26 @@ MonoBehaviour:
   playerHand: []
   playerHandManager: {fileID: 887133211}
   computerHandManager: {fileID: 1555578958}
+--- !u!114 &1026764714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1026764700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a769bdfb66174c439b44cb220b89a06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 1026764713}
+  deckManager: {fileID: 1099715888}
+  gameState: {fileID: 1026764712}
+  turnManager: {fileID: 1026764711}
+  computerAI: {fileID: 1026764710}
+  runDiagnosticsKey: 282
+  testRuleValidationKey: 283
+  testTurnSequenceKey: 284
 --- !u!1 &1060675605
 GameObject:
   m_ObjectHideFlags: 0
@@ -7321,6 +7342,7 @@ GameObject:
   - component: {fileID: 1099715886}
   - component: {fileID: 1099715885}
   - component: {fileID: 1099715884}
+  - component: {fileID: 1099715889}
   m_Layer: 0
   m_Name: DeckManager
   m_TagString: Untagged
@@ -7374,6 +7396,7 @@ MonoBehaviour:
   drawPileCountText: {fileID: 129087692}
   discardPileCountText: {fileID: 1191459745}
   gameMessageText: {fileID: 5190402}
+  pileManager: {fileID: 1099715889}
   drawPilePanel: {fileID: 896669774}
   discardPilePanel: {fileID: 731373650}
   messageDisplayTime: 2
@@ -7420,6 +7443,21 @@ MonoBehaviour:
   cardLoader: {fileID: 1099715886}
   deckUI: {fileID: 1099715885}
   gameSetup: {fileID: 1099715884}
+--- !u!114 &1099715889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099715881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85be0cdea6c5ea540ba91147f52e2d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardPrefab: {fileID: 7544222337847360114, guid: dc80872064f20e142b2c7a2dc2bd1689, type: 3}
+  drawPileContainer: {fileID: 896669774}
+  discardPileContainer: {fileID: 731373650}
 --- !u!1 &1134339339
 GameObject:
   m_ObjectHideFlags: 0
