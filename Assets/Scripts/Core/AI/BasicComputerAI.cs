@@ -26,11 +26,22 @@ namespace TakiGame {
 		[Tooltip ("Reference to game state manager")]
 		public GameStateManager gameState;
 
+		[Header ("Pause State Management")]
+		[Tooltip ("AI state preservation during pause")]
+		private bool isPaused = false;
+		private CardData pausedTopDiscardCard = null;
+		private bool wasThinkingWhenPaused = false;
+		private float pausedThinkingTimeRemaining = 0f;
+
 		// Events for AI decisions
 		public System.Action<CardData> OnAICardSelected;
 		public System.Action OnAIDrawCard;
 		public System.Action<CardColor> OnAIColorSelected;
 		public System.Action<string> OnAIDecisionMade;
+
+		// Events for AI pause system
+		public System.Action OnAIPaused;
+		public System.Action OnAIResumed;
 
 
 		/// <summary>
@@ -38,6 +49,13 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="topDiscardCard">Current top card of discard pile</param>
 		public void MakeDecision (CardData topDiscardCard) {
+			// Check if AI is paused
+
+			if (isPaused) {
+				TakiLogger.LogAI ("AI decision requested but AI is paused");
+				return;
+			}
+
 			TakiLogger.LogAI ($"=== AI MAKING DECISION ===");
 			TakiLogger.LogAI ($"AI Hand size: {computerHand.Count}");
 			TakiLogger.LogAI ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
@@ -54,17 +72,123 @@ namespace TakiGame {
 			// Store the top card for ExecuteDecision to use
 			currentTopDiscardCard = topDiscardCard;
 
-			// Add thinking delay
-			Invoke (nameof (ExecuteDecision), thinkingTime);
+			// Add thinking delay - but check for pause during delay
+			StartThinkingProcess ();
 		}
 
-		// ADDED: Store current top card for ExecuteDecision
+		/// <summary>
+		/// Pause AI operations and preserve state
+		/// </summary>
+		public void PauseAI () {
+			if (isPaused) {
+				TakiLogger.LogAI ("AI is already paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== PAUSING AI ===");
+
+			// Preserve current thinking state
+			if (IsInvokePending (nameof (ExecuteDecision))) {
+				wasThinkingWhenPaused = true;
+				pausedTopDiscardCard = currentTopDiscardCard;
+				// Calculate remaining thinking time (approximate)
+				pausedThinkingTimeRemaining = thinkingTime * 0.5f; // Estimate half remaining
+
+				TakiLogger.LogAI ("AI was thinking - state preserved");
+			} else {
+				wasThinkingWhenPaused = false;
+				pausedTopDiscardCard = null;
+				pausedThinkingTimeRemaining = 0f;
+			}
+
+			// Cancel all ongoing operations
+			CancelAllAIOperations ();
+
+			isPaused = true;
+			OnAIPaused?.Invoke ();
+
+			TakiLogger.LogAI ("AI paused successfully");
+		}
+
+		/// <summary>
+		/// Resume AI operations and restore state
+		/// </summary>
+		public void ResumeAI () {
+			if (!isPaused) {
+				TakiLogger.LogAI ("AI is not currently paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== RESUMING AI ===");
+
+			isPaused = false;
+
+			// If AI was thinking when paused, resume the thinking process
+			if (wasThinkingWhenPaused && pausedTopDiscardCard != null) {
+				TakiLogger.LogAI ("Resuming AI thinking process");
+
+				// Restore the thinking context
+				currentTopDiscardCard = pausedTopDiscardCard;
+
+				// Resume with remaining thinking time (or minimum time)
+				float resumeThinkingTime = Mathf.Max (pausedThinkingTimeRemaining, 0.5f);
+				Invoke (nameof (ExecuteDecision), resumeThinkingTime);
+
+				OnAIDecisionMade?.Invoke ("AI is thinking...");
+				TakiLogger.LogAI ($"AI thinking resumed with {resumeThinkingTime:F1}s delay");
+			}
+
+			// Clear pause state
+			wasThinkingWhenPaused = false;
+			pausedTopDiscardCard = null;
+			pausedThinkingTimeRemaining = 0f;
+
+			OnAIResumed?.Invoke ();
+			TakiLogger.LogAI ("AI resumed successfully");
+		}
+
+		/// <summary>
+		/// Cancel all AI operations safely
+		/// </summary>
+		public void CancelAllAIOperations () {
+			TakiLogger.LogAI ("Cancelling all AI operations");
+
+			// Cancel all invoke calls
+			CancelInvoke ();
+
+			// Clear current decision context
+			currentTopDiscardCard = null;
+
+			TakiLogger.LogAI ("All AI operations cancelled");
+		}
+
+		/// <summary>
+		/// Start thinking process with pause awareness
+		/// </summary>
+		void StartThinkingProcess () {
+			// Don't start thinking if paused
+			if (isPaused) {
+				TakiLogger.LogAI ("Thinking cancelled - AI is paused");
+				return;
+			}
+
+			Invoke (nameof (ExecuteDecision), thinkingTime);
+			TakiLogger.LogAI ($"AI thinking started with {thinkingTime:F1}s delay");
+		}
+
+		// Store current top card for ExecuteDecision
 		private CardData currentTopDiscardCard;
 
 		/// <summary>
-		/// Execute the AI decision after thinking time
+		/// Execute the AI decision after thinking time - UPDATED with pause checking
 		/// </summary>
 		void ExecuteDecision () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI decision execution cancelled - AI is paused");
+				return;
+			}
+
 			TakiLogger.LogAI ($"=== AI EXECUTING DECISION ===");
 
 			if (currentTopDiscardCard == null) {
@@ -90,6 +214,122 @@ namespace TakiGame {
 
 			// Clear the stored card
 			currentTopDiscardCard = null;
+		}
+
+		/// <summary>
+		/// Check if AI can make decisions (not paused, game active)
+		/// </summary>
+		/// <returns>True if AI can act</returns>
+		public bool CanMakeDecisions () {
+			if (isPaused) {
+				return false;
+			}
+
+			if (gameState != null && !gameState.CanComputerAct ()) {
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Get current AI state for debugging
+		/// </summary>
+		/// <returns>AI state description</returns>
+		public string GetAIStateDescription () {
+			if (isPaused) {
+				return wasThinkingWhenPaused ?
+					$"Paused (was thinking, {pausedThinkingTimeRemaining:F1}s remaining)" :
+					"Paused (idle)";
+			}
+
+			if (IsInvokePending (nameof (ExecuteDecision))) {
+				return "Thinking...";
+			}
+
+			return "Ready";
+		}
+
+		/// <summary>
+		/// Check if a specific method is pending invocation - FIXED Unity implementation
+		/// </summary>
+		/// <param name="methodName">Name of the method to check</param>
+		/// <returns>True if method is pending invocation</returns>
+		bool IsInvokePending (string methodName) {
+			// Unity doesn't have built-in IsInvokePending, so we'll track it manually
+			return IsInvoking (methodName);
+		}
+
+		/// <summary>
+		/// Debug method to log AI pause state
+		/// </summary>
+		[ContextMenu ("Log AI Pause State")]
+		public void LogAIPauseState () {
+			TakiLogger.LogDiagnostics ("=== AI PAUSE STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ($"AI Paused: {isPaused}");
+			TakiLogger.LogDiagnostics ($"Was Thinking When Paused: {wasThinkingWhenPaused}");
+			TakiLogger.LogDiagnostics ($"Paused Top Card: {pausedTopDiscardCard?.GetDisplayText () ?? "NULL"}");
+			TakiLogger.LogDiagnostics ($"Thinking Time Remaining: {pausedThinkingTimeRemaining:F1}s");
+			TakiLogger.LogDiagnostics ($"Current State: {GetAIStateDescription ()}");
+			TakiLogger.LogDiagnostics ($"Can Make Decisions: {CanMakeDecisions ()}");
+		}
+
+		/// <summary>
+		/// Test AI pause functionality
+		/// </summary>
+		[ContextMenu ("Test AI Pause")]
+		public void TestAIPause () {
+			if (isPaused) {
+				TakiLogger.LogDiagnostics ("Testing AI resume");
+				ResumeAI ();
+			} else {
+				TakiLogger.LogDiagnostics ("Testing AI pause");
+				PauseAI ();
+			}
+		}
+
+		/// <summary>
+		/// Force complete reset of AI state - bypasses all pause logic
+		/// Use this when AI gets stuck in paused state
+		/// </summary>
+		public void ForceCompleteReset () {
+			TakiLogger.LogAI ("=== FORCE COMPLETE AI RESET ===");
+
+			// Force reset all pause-related fields
+			isPaused = false;
+			wasThinkingWhenPaused = false;
+			pausedTopDiscardCard = null;
+			pausedThinkingTimeRemaining = 0f;
+
+			// Cancel all operations
+			CancelAllAIOperations ();
+
+			// Clear decision context
+			currentTopDiscardCard = null;
+
+			// Clear hand
+			computerHand.Clear ();
+
+			// Fire resume events (in case other systems are listening)
+			OnAIResumed?.Invoke ();
+
+			TakiLogger.LogAI ("AI force reset complete - all state cleared");
+		}
+
+		/// <summary>
+		/// Check if AI is stuck and needs force reset
+		/// </summary>
+		public bool IsAIStuckInPauseState () {
+			// AI is stuck if it's paused but game state says it should be active
+			if (!isPaused) return false;
+
+			if (gameState == null) return true; // Can't determine, assume stuck
+
+			// If game is active but AI is paused, AI is stuck
+			bool gameIsActive = gameState.gameStatus == GameStatus.Active;
+			bool shouldBeAbleToAct = gameState.CanComputerAct ();
+
+			return gameIsActive && shouldBeAbleToAct && isPaused;
 		}
 
 		/// <summary>
@@ -298,14 +538,59 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Clear AI hand for new game
+		/// Updated Clear Hand method with comprehensive reset
 		/// </summary>
 		public void ClearHand () {
 			computerHand.Clear ();
-			TakiLogger.LogAI ("AI hand cleared", TakiLogger.LogLevel.Debug);
+
+			// COMPREHENSIVE RESET: Always reset pause state during clear hand
+			TakiLogger.LogAI ("Clearing hand and resetting pause state");
+
+			// Force reset pause state regardless of current state
+			isPaused = false;
+			wasThinkingWhenPaused = false;
+			pausedTopDiscardCard = null;
+			pausedThinkingTimeRemaining = 0f;
+
+			// Cancel any pending operations
+			CancelAllAIOperations ();
+
+			// Clear any stored decision context
+			currentTopDiscardCard = null;
+
+			// Fire resume events in case other systems need to know
+			if (isPaused) { // This should be false now, but just in case
+				OnAIResumed?.Invoke ();
+			}
+
+			TakiLogger.LogAI ("AI hand cleared and state reset");
 		}
 
 		/// <summary>
+		/// Reset AI to fresh state for new game
+		/// </summary>
+		public void ResetForNewGame () {
+			TakiLogger.LogAI ("=== RESETTING AI FOR NEW GAME ===");
+
+			// Clear hand
+			computerHand.Clear ();
+
+			// Reset all pause-related state
+			isPaused = false;
+			wasThinkingWhenPaused = false;
+			pausedTopDiscardCard = null;
+			pausedThinkingTimeRemaining = 0f;
+
+			// Cancel all operations
+			CancelAllAIOperations ();
+
+			// Clear any stored decision context
+			currentTopDiscardCard = null;
+
+			TakiLogger.LogAI ("AI completely reset for new game");
+		}
+
+		/// <summary> 
 		/// Get a copy of the computer's hand for visual display
 		/// </summary>
 		/// <returns>Copy of computer's hand</returns>
@@ -341,9 +626,16 @@ namespace TakiGame {
 			}
 		}
 
-		// Properties 
+		// Properties
 		public int HandSize => computerHand.Count;
 		public bool HasCards => computerHand.Count > 0;
 		public List<CardData> Hand => new List<CardData> (computerHand); // Safe copy
+
+		// AI pause state properties 
+		public bool IsAIPaused => isPaused;
+		public bool WasThinkingWhenPaused => wasThinkingWhenPaused;
+		public float ThinkingTimeRemaining => pausedThinkingTimeRemaining;
+		public CardData PausedTopCard => pausedTopDiscardCard;
+		public string AIState => GetAIStateDescription ();
 	}
 }

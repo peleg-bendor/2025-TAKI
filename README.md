@@ -3,7 +3,7 @@
 
 ### ⚠️ CRITICAL NOTES
 - **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **Current Status**: Phase 1-4 Complete ✅, Currently at **Code Cleanup & Logging Improvements** 🎯
+- **Current Status**: Phase 1-6 Complete ✅, Currently at **Phase 7: Special Cards Implementation** 🎯
 - **Target Platform**: PC/Desktop Unity Build
 - **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
 
@@ -30,8 +30,11 @@ Scripts/
 │   ├── DeckManager.cs
 │   ├── DeckUIManager.cs
 │   ├── DontDestroyOnLoad.cs
+│   ├── ExitValidationManager.cs
+│   ├── GameEndManager.cs
 │   ├── GameSetupManager.cs
 │   ├── GameStateManager.cs
+│   ├── PauseManager.cs
 │   └── TurnManager.cs
 ├── UI/
 │   ├── CardController.cs
@@ -43,7 +46,8 @@ Scripts/
 ├── ButtonSFX.cs
 ├── MusicSlider.cs
 ├── SfxSlider.cs
-└── TakiGameDiagnostics
+├── TakiGameDiagnostics.cs
+└── TakiLogger.cs
 ```
 
 ### Assets Structure:
@@ -85,12 +89,8 @@ Scene_Menu
 │   ├── Img_Background
 │   ├── Screen_MainMenu
 │   ├── Screen_StudentInfo
-│   ├── Screen_Settings
 │   ├── Screen_SinglePlayer
 │   ├── Screen_MultiPlayer
-│   ├── Screen_ExitValidator
-│   ├── Screen_Loading
-│   ├── Screen_Exiting
 │   ├── Screen_SinglePlayerGame
 │   │   ├── Player1Panel (Human Player)
 │   │   │   ├── Player1HandPanel - (Components: HandManager)
@@ -127,7 +127,26 @@ Scene_Menu
 │   │       ├── GameEndMessage - Winner announcement
 │   │       ├── Btn_PlayAgain - Start new game
 │   │       └── Btn_ReturnToMenu - Back to main menu
-│   └── Screen_MultiPlayerGame
+│   ├── Screen_MultiPlayerGame
+│   ├── Screen_Settings
+│   ├── Screen_ExitValidation
+│   │   └── Image
+│   │       ├── Text (TMP)
+│   │       ├── Btn_ExitConfirm
+│   │       └── Btn_ExitCancel
+│   ├── Screen_Paused
+│   │   └── Image
+│   │       ├── Text (TMP)
+│   │       ├── Btn_Continue
+│   │       ├── Btn_Restart
+│   │       └── Btn_GoHome
+│   ├── Screen_GameEnd
+│   │   └── Image
+│   │       ├── EndDeclarationText
+│   │       ├── Btn_Restart
+│   │       └── Btn_GoHome
+│   ├── Screen_Loading
+│   └── Screen_Exiting
 ├── EventSystem
 ├── GameObject
 ├── MenuManager
@@ -259,115 +278,218 @@ Scene_Menu
 
 ---
 
-## Phase 5: Code Quality & Polish 🎯
+## Phase 5: Code Quality & Polish ✅ COMPLETE
 
-## 🎯 **Current Focus: Code Cleanup & Logging Improvements**
+### Milestone 8: Code Cleanup & Logging Improvements ✅ COMPLETE
+**Status**: **✅ COMPLETED** - TakiLogger system implemented successfully
 
-### **Primary Goal**: Clean up excessive logging and implement proper log level system
+**Achievements**:
+- ✅ **Centralized Logging System**: `TakiLogger.cs` utility class created
+- ✅ **Log Level Control**: Configurable verbosity (None, Error, Warning, Info, Debug, Verbose)
+- ✅ **Categorized Logging**: System-specific logging categories (TurnFlow, CardPlay, AI, UI, etc.)
+- ✅ **Production Mode**: Clean output toggle for release builds
+- ✅ **Performance Optimized**: Conditional logging prevents unnecessary string operations
+- ✅ **Clean Console Output**: Organized debug messages with category prefixes
+
+### **Logging Architecture**:
+```csharp
+// Category-based logging system
+TakiLogger.LogTurnFlow("Strict turn flow messages")
+TakiLogger.LogCardPlay("Card play and draw operations") 
+TakiLogger.LogAI("Computer decision making")
+TakiLogger.LogUI("User interface updates")
+TakiLogger.LogGameState("State transitions")
+TakiLogger.SetLogLevel(LogLevel.Info) // Runtime configuration
+```
+
+---
+
+## Phase 6: Game Flow Enhancement ✅ COMPLETE
+
+### Milestone 9: Pause System Implementation ✅ COMPLETE
+**Objective**: Implement functional pause button with proper game state management
+**Status**: **✅ COMPLETED** - Full pause/resume system with state preservation
+
+**Achievements**:
+- ✅ **PauseManager.cs**: Complete pause system coordinator
+- ✅ **State Preservation**: Comprehensive game state snapshots during pause
+- ✅ **Turn Flow Integration**: Strict turn flow state preserved and restored
+- ✅ **AI Pause Handling**: Computer AI properly pauses and resumes with state preservation
+- ✅ **UI Integration**: Pause screen overlay with proper button flow
+- ✅ **System Coordination**: All game systems properly pause/resume together
+
+### Milestone 10: Game End Screen System ✅ COMPLETE  
+**Objective**: Professional game over experience with proper flow control
+**Status**: **✅ COMPLETED** - Full game end system with smooth transitions
+
+**Achievements**:
+- ✅ **GameEndManager.cs**: Complete game end coordinator
+- ✅ **Winner Announcement**: Professional game end screen with winner display
+- ✅ **Post-Game Actions**: Restart and return to menu functionality
+- ✅ **Smooth Transitions**: Loading screen integration for menu navigation
+- ✅ **State Cleanup**: Proper game state reset for new games
+
+### Milestone 11: Exit Validation System ✅ COMPLETE
+**Objective**: Safe application exit with confirmation and cleanup
+**Status**: **✅ COMPLETED** - Complete exit validation with comprehensive cleanup
+
+**Achievements**:
+- ✅ **ExitValidationManager.cs**: Complete exit confirmation coordinator
+- ✅ **Exit Confirmation Dialog**: Proper confirmation UI with cancel option
+- ✅ **Comprehensive Cleanup**: Prevents memory leaks and stuck AI states
+- ✅ **Pause Integration**: Coordinates with PauseManager for state preservation
+- ✅ **Safe Application Exit**: Ensures all systems properly cleaned before quit
+
+### Milestone 12: Enhanced MenuNavigation ✅ COMPLETE
+**Objective**: Integrate new managers with menu system for seamless flow
+**Status**: **✅ COMPLETED** - Full menu integration with all game flow managers
+
+**Achievements**:
+- ✅ **Pause Screen Integration**: Overlay system with proper game state preservation
+- ✅ **Restart with AI Verification**: Prevents AI stuck states during restart
+- ✅ **Exit Validation Flow**: Smooth exit confirmation without breaking game flow
+- ✅ **Enhanced Button Logic**: All pause, restart, and exit buttons properly integrated
+
+---
+
+## Phase 7: Special Cards Implementation 🎯
+
+## 🎯 **Current Focus: Basic Special Cards Implementation**
+
+### **Primary Goal**: Implement real special card effects for PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR
 **Status**: 🎯 **IMMEDIATE FOCUS** - Ready for implementation
 
-### **Objectives**:
-1. **Implement Log Level System**: Create configurable logging with different verbosity levels
-2. **Clean Console Output**: Reduce debug spam while preserving essential information
-3. **Organize Debug Messages**: Categorize logs by system (Turn Flow, Card Play, AI, UI, etc.)
-4. **Preserve Critical Logs**: Keep important game state and error messages
-5. **Add Production Mode**: Toggle for minimal logging in release builds
+### **Current State**: All cards currently act as basic cards (end turn after playing)
+**Target**: Make special cards have their unique effects
+
+### **Implementation Priority Order**:
+
+#### **1. Plus Card** 🔧
+**Rule**: Player must take ONE additional action after playing Plus card
+```csharp
+// Implementation Logic:
+- If PLUS played during normal gameplay (not TAKI sequence):
+  - Player gets one additional action (PLAY or DRAW)
+  - Cannot end turn until additional action taken
+  - isActiveCard = true for PLUS cards
+```
+
+#### **2. Stop Card** 🛑
+**Rule**: Skip opponent's next turn (player gets another full turn)
+```csharp
+// Implementation Logic:
+- If STOP played during normal gameplay:
+  - Opponent's turn is completely skipped
+  - Player gets an entirely new turn
+  - Use TurnManager.SkipTurn() functionality
+```
+
+#### **3. ChangeDirection Card** 🔄
+**Rule**: Reverse turn direction (visual/message only for 2-player)
+```csharp
+// Implementation Logic:
+- If CHANGEDIRECTION played during normal gameplay:
+  - Update GameStateManager.turnDirection
+  - Show appropriate UI message about direction change
+  - No actual gameplay impact (2-player game)
+```
+
+#### **4. ChangeColor Card** 🎨
+**Rule**: Player must choose new active color
+```csharp
+// Implementation Logic:
+- If CHANGECOLOR played during normal gameplay:
+  - Show ColorSelectionPanel
+  - Disable PLAY/DRAW buttons until color selected
+  - Set InteractionState.ColorSelection
+  - Update activeColor when color chosen
+```
 
 ### **Implementation Tasks**:
 
-#### **A. Create Log Management System**:
+#### **A. Modify GameManager.HandleSpecialCardEffects()**:
 ```csharp
-// New utility class for centralized logging
-public enum LogLevel { None, Error, Warning, Info, Debug, Verbose }
-public static class TakiLogger {
-    public static LogLevel currentLogLevel = LogLevel.Info;
-    public static void LogTurnFlow(string message) { /* conditional logging */ }
-    public static void LogCardPlay(string message) { /* conditional logging */ }
-    public static void LogAI(string message) { /* conditional logging */ }
-    public static void LogUI(string message) { /* conditional logging */ }
-}
+// Update existing method to implement real effects
+// Currently only has placeholder logic
+// Add proper special card handling for each type
 ```
 
-#### **B. Categorize Existing Logs**:
-- **Turn Flow**: All strict turn flow messages
-- **Card Play**: Card validation and play messages  
-- **AI System**: Computer decision making
-- **UI Updates**: Button states and display changes
-- **Game State**: Critical state transitions
-- **Errors**: Always show regardless of log level
+#### **B. Add Special Card State Tracking**:
+```csharp
+// Add variables to track special card states:
+- bool isWaitingForAdditionalAction = false; // For PLUS cards
+```
 
-#### **C. Update All Scripts**:
-- Replace `Debug.Log()` calls with categorized logging
-- Add log level configuration to GameManager
-- Create inspector toggle for production mode
-- Preserve error and warning messages always
+#### **C. Update Turn Flow Logic**:
+```csharp
+// Modify strict turn flow to handle:
+- Additional actions for PLUS cards
+- Turn skipping for STOP cards  
+- Color selection requirements for CHANGECOLOR cards
+```
 
-#### **D. Performance Optimization**:
-- Remove string concatenation in disabled log calls
-- Use conditional compilation for release builds
-- Cache frequently logged strings
-- Optimize debug message formatting
+#### **D. Enhanced UI Integration**:
+```csharp
+// Update GameplayUIManager to show:
+- Appropriate messages for each special card
+- Color selection panel for CHANGECOLOR
+- Additional action prompts for PLUS
+```
 
----
+### **Testing Strategy**:
+- Test each special card type individually
+- Verify turn flow remains strict and controlled
+- Ensure AI can handle special cards appropriately
+- Test special card combinations and edge cases
 
-## Phase 6: Game Flow Enhancement
-
-### Next Milestone: Pause System Implementation
-**Objective**: Implement functional pause button with proper game state management
-
-**Tasks**:
-- Create pause screen UI overlay
-- Implement pause/resume functionality in GameStateManager  
-- Handle pause state in turn system and AI
-- Add pause button integration
-- Test pause during different game states
-
-### Future Milestone: Game End Screen System
-**Objective**: Professional game over experience with proper flow control
-
-**Tasks**:
-- **Create Game End Screen UI**:
-  - Winner announcement display
-  - Play Again button functionality
-  - Return to Main Menu button functionality
-- **Implement End Game Logic**:
-  - Proper win condition detection
-  - Game state cleanup on game end
-  - Smooth transitions between screens
-- **Integration Testing**:
-  - Test all game end scenarios
-  - Verify button functionality
-  - Ensure proper state resets
+### **Cards NOT Modified in Phase 7**:
+- **PLUSTWO**: Advanced chaining system (Phase 8)
+- **TAKI**: Multi-card sequence system (Phase 8)  
+- **SUPERTAKI**: Multi-card sequence system (Phase 8)
 
 ---
 
-## Phase 7: Special Cards Implementation
-
-### Future Milestone: Basic Special Cards - Real Implementation
-**Objective**: Implement actual special card effects (after basic gameplay confirmed working)
-
-**Implementation Order**:
-1. **Plus Card**: Computer draws 1, player continues turn
-2. **Stop Card**: Skip computer's next turn
-3. **ChangeDirection Card**: Reverse turn order (for multiplayer readiness)
-4. **PlusTwo Card**: Computer draws 2, chaining mechanism
-5. **ChangeColor Card**: Full color selection implementation
-6. **Taki Card**: Multi-card play sequence of same color
-7. **SuperTaki Card**: Multi-card play sequence of any color
+## Phase 8: Advanced Special Cards Implementation
 
 ### Future Milestone: Advanced Special Card Mechanics
 **Objective**: Complex card interactions and chaining
 
+#### **1. PlusTwo Card** 🎴
+**Rule**: Chaining system - player can stack +2 cards or draw cards
+```csharp
+// Advanced Implementation:
+- Track NumberOfChainedPlusTwos
+- Allow stacking or force drawing
+- AI strategy for PLUSTWO responses
+```
+
+#### **2. Taki Card** 🎯
+**Rule**: Multi-card play sequence of same color
+```csharp
+// Advanced Implementation:
+- TakiSequence interaction state
+- Btn_Player1EndTakiSequence integration
+- Multi-card validation system
+```
+
+#### **3. SuperTaki Card** 🌟
+**Rule**: Multi-card play sequence of any color
+```csharp
+// Advanced Implementation:
+- Same as TAKI essentially
+- SuperTaki sequence management
+```
+
 **Tasks**:
-- PlusTwo stacking system
-- Taki sequence validation
+- PlusTwo stacking system implementation
+- Taki sequence validation and UI integration
 - Special card combination rules
-- Edge case handling for special cards
-- AI strategy for special cards
+- Edge case handling for all special cards
+- AI strategy enhancement for all special cards
 
 ---
 
-## Phase 8: Final Polish & Release Preparation
+## Phase 9: Final Polish & Release Preparation
 
 ### Future Milestone: Final Polish & Testing
 **Objective**: Complete game polish for release
@@ -384,20 +506,29 @@ public static class TakiLogger {
 
 ## Current Architecture Highlights
 
+### **Enhanced Manager Architecture**:
+```csharp
+// Complete game flow management
+GameManager: Central coordinator with manager integration
+PauseManager: Complete pause/resume with state preservation  
+GameEndManager: Professional game end flow
+ExitValidationManager: Safe exit with comprehensive cleanup
+```
+
 ### **Strict Turn Flow System** (Enhanced):
 ```csharp
-// Bulletproof turn control with comprehensive logging
+// Bulletproof turn control with manager integration
 - Player takes ONE action (PLAY or DRAW)
 - Action buttons immediately disabled on click
 - END TURN button enabled only after action
 - Clear feedback for all game states
-- Special card effects logged but simplified for testing
+- Ready for special card effect integration
 - Enhanced button state tracking and validation
 ```
 
 ### **Multi-Enum State Management**:
 ```csharp
-// Clean separation of state concerns
+// Clean separation of state concerns with pause support
 public enum TurnState { PlayerTurn, ComputerTurn, Neutral }
 public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChain }
 public enum GameStatus { Active, Paused, GameOver }
@@ -411,12 +542,12 @@ HandManager: Dynamic hand layout, card positioning, user interaction
 PileManager: Draw/discard pile visual representation
 ```
 
-### **Clean UI Messaging System**:
+### **Enhanced UI System**:
 ```csharp
-// Proper message routing with updated hierarchy
-GameplayUIManager.ShowPlayerMessage(): Instructions and warnings to player
-GameplayUIManager.ShowComputerMessage(): AI actions and thinking messages
-DeckUIManager: Deck-specific events and counts only
+// Complete UI management with pause/resume integration
+GameplayUIManager: Enhanced with pause state handling
+MenuNavigation: Complete pause/game end/exit integration
+DeckUIManager: Clean separation of deck-only UI
 ```
 
 ---
@@ -431,44 +562,45 @@ DeckUIManager: Deck-specific events and counts only
 - **Visual-Data Separation**: CardData separate from visual representation
 - **Strict Turn Flow**: One action per turn with enforced completion
 - **Clean Logging**: Categorized, level-controlled debugging information
+- **State Preservation**: Complete pause/resume capability
+- **Safe Cleanup**: Comprehensive system cleanup for memory leak prevention
 
 ### Current Development Workflow
-1. **Start with Code Cleanup**: Implement log level system before new features
+1. **Start with Special Cards**: Implement PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR effects
 2. **Test in Controlled Environment**: Use strict turn flow for safe testing
-3. **Minimal Console Spam**: Keep debugging focused and relevant
-4. **Document Changes**: Update development plan when making modifications
-5. **Preserve Architecture**: Maintain clean separation of concerns
+3. **Minimal Console Spam**: Use TakiLogger for organized debugging
+4. **Preserve Architecture**: Maintain clean separation of concerns
+5. **State-Aware Development**: Consider pause/resume in all new features
 
 ---
 
 ## Success Metrics
 
-### Immediate Success Criteria (Code Cleanup) 🎯 CURRENT TARGET
-- ✅ **Clean Console Output**: Only essential information during gameplay
-- ✅ **Categorized Logging**: Different log types for different systems
-- ✅ **Configurable Verbosity**: Adjustable log levels for debugging
-- ✅ **Performance Improvement**: No unnecessary string operations
-- ✅ **Production Ready**: Clean output suitable for release
+### Phase 7 Success Criteria 🎯 CURRENT TARGET
+- ✅ **Plus Card Effect**: Additional action requirement working correctly
+- ✅ **Stop Card Effect**: Turn skipping mechanism implemented
+- ✅ **ChangeDirection Effect**: Direction change with proper messaging
+- ✅ **ChangeColor Effect**: Full color selection integration working
+- ✅ **Turn Flow Integration**: Special cards work within strict turn flow system
+- ✅ **AI Compatibility**: Computer AI handles all basic special cards correctly
 
-### Phase 6 Success Criteria
-- ✅ **Functional Pause System**: Working pause/resume with proper state management
-- ✅ **Professional Game End**: Smooth winner announcement and menu flow
-- ✅ **Stable Gameplay**: No crashes or UI inconsistencies
-
-### Phase 7 Success Criteria
-- ✅ **Real Special Cards**: All special card effects implemented correctly
-- ✅ **Complex Interactions**: Card chaining and combination rules working
-- ✅ **AI Integration**: Computer AI handles all special cards intelligently
+### Phase 8 Success Criteria
+- ✅ **PlusTwo Chaining**: Card stacking system working correctly
+- ✅ **Taki Sequences**: Multi-card play with proper validation
+- ✅ **Complex Interactions**: All special card combinations working
+- ✅ **AI Enhancement**: Computer AI strategically uses all special cards
 
 ### Overall Project Success  
 - Complete playable TAKI game (Human vs Computer)  
 - All special card types implemented correctly  
 - Intuitive UI with clear visual feedback  
 - Stable gameplay without crashes  
+- Professional pause/resume system
 - Clean, maintainable, well-documented code architecture  
 - Code ready for multiplayer extension  
 - Professional visual presentation with real card images
 - Efficient development workflow with clean debugging
+- Comprehensive game flow management (pause, end, exit)
 
 ---
 
@@ -479,201 +611,33 @@ DeckUIManager: Deck-specific events and counts only
 - **Phase 2**: Complete card system (Data + Deck + Turn Management)  
 - **Phase 3**: Complete visual system (Interactive cards + Hand management + Pile visuals)
 - **Phase 4**: Complete strict turn flow system with enhanced button control
+- **Phase 5**: Complete code cleanup and centralized logging system
+- **Phase 6**: Complete game flow enhancement (Pause + Game End + Exit Validation)
 - All 110 cards loading with real scanned images
 - Multi-enum state management working perfectly
 - Bulletproof turn-based gameplay with visual cards
-- Computer AI making strategic decisions
+- Computer AI making strategic decisions with pause/resume support
 - Professional visual card system with adaptive layouts
-- Safe testing environment with comprehensive logging
+- Comprehensive pause/resume system with state preservation
+- Professional game end flow with restart/menu options
+- Safe exit validation with comprehensive cleanup
 - Enhanced UI message routing system
+- Complete manager integration for all game flow
 
 **🎯 CURRENT FOCUS**:
-- **IMMEDIATE**: Code cleanup and logging improvements
-- Implement proper log level system for clean console output
-- Categorize debug messages by system type
-- Optimize performance by reducing unnecessary logging
-- Create production-ready logging configuration
+- **IMMEDIATE**: Basic Special Cards Implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
+- Modify GameManager.HandleSpecialCardEffects() for real effects
+- Update turn flow logic to handle special card requirements
+- Integrate color selection for CHANGECOLOR cards
+- Test all special card effects with AI compatibility
 
 **🚀 UPCOMING PHASES**:
-- Pause system and game end screens
-- Real special card implementation (after logging cleanup)
+- Advanced special cards (PLUSTWO, TAKI, SUPERTAKI) implementation
 - Final polish and release preparation
 
 **📋 PRIORITY ORDER**:
-1. Code cleanup & logging improvements (Current Focus)
-2. Pause button implementation
-3. Game end screen system
-4. Special cards implementation  
-5. Final polish & release preparation
+1. **Basic Special Cards Implementation (Current Focus)** 🎯
+2. Advanced special cards (PlusTwo chaining, Taki sequences)
+3. Final polish & release preparation
 
-I've updated the TAKI Game Development Plan to accurately reflect your current progress. Here are the key changes:
-
-## ✅ **Completed and Removed**:
-- **Milestone 11** (UI Hierarchy Restructuring) - Removed entirely ✅
-- **Script Documentation milestone** - Removed entirely ✅  
-- Updated scene hierarchy to reflect your current structure
-
-## 🎯 **Current Focus Updated**:
-- **Primary objective**: Code Cleanup & Logging Improvements
-- **Immediate tasks**: Implement log level system, clean console output, categorize debug messages
-- **Goal**: Transform excessive logging into organized, configurable system
-
-## 📋 **Key Changes Made**:
-
-### **Updated Status Summary**:
-- All Phase 1-4 work marked as complete
-- Current focus clearly identified as logging cleanup
-- Future phases properly sequenced
-
-### **Enhanced Architecture Documentation**:
-- Added your strict turn flow system details
-- Updated UI messaging system with proper routing
-- Reflected your current component structure
-
-### **Clean Development Path**:
-```
-Current: Code Cleanup & Logging → 
-Next: Pause System → 
-Then: Game End Screens → 
-Future: Special Cards Implementation
-```
-
-### **Specific Implementation Plan**:
-- Create `TakiLogger` utility class with log levels
-- Categorize logs by system (Turn Flow, Card Play, AI, UI)
-- Add production mode toggle
-- Optimize performance by removing debug string operations
-
-The plan now accurately reflects where you are and provides a clear path forward, focusing on the logging cleanup as your immediate next step before moving on to pause functionality and special cards implementation.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-AMAZING! Work MUCH better now!
-
-When it's my turn currently, I can basically do whatever I want as long as the cards are legal -PLAY and DRAW however many cards as I want.
-
-I  want to play it safely, so here are my rules - user story:
-
-1. Player turn starts
-2. END TURN button is disabled
-3. If player has no valid cards to play at all:
-  1. Log a clear message - Player has no valid cards, must draw a card
-  2. Player clicks on DRAW
-  3. Log a clear message - Player has no more valid moves, must end turn
-  4. Player clicks on END TURN
-  5. Turn ends
-4. If player has valid cards:
-  1. Log a clear message - Player has valid cards, Play or DRAW a card draw a card
-  2. If Player clicks on DRAW
-    1. Log a clear message - Player has no more valid moves, must end turn
-    2. Player clicks on END TURN
-    3. Turn ends
-  3. If Player selects a valid card and clicks on PLAY
-    1. If the card is NUMBER:
-      1. DRAW button is disabled
-      2. Log a clear message - Player has no more valid moves, must end turn
-      3. Player clicks on END TURN
-      4. Turn ends
-    2. If the card is PLUS (for now):
-      1. Log a clear message - RULES: Player must PLAY another card
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    3. If the card is STOP (for now):
-      1. Log a clear message - RULES: Opponent's turn is stopped/skipped, Player starts another NEW turn
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    4. If the card is CHANGE DIRECTION (for now):
-      1. Log a clear message - RULES: The directions must change from ... to ...
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    5. If the card is PLUS TWO (for now):
-      1. Log a clear message - RULES: Player must DRAW Xx2=2X (e.g. 3x2=6, will usually be 1x2=2) cards
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    6. If the card is TAKI (for now):
-      1. Log a clear message - RULES: Player may PLAY a series of cards the color of COLOR
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    7. If the card is CHANGE COLOR (for now): 
-      1. Log a clear message - RULES: Player must choose a color
-        1. ColorSelectionPanel will not even appear
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    8. If the card is SUPER TAKI (for now):
-      1. Log a clear message - RULES: Player may PLAY a series of cards the color of COLOR
-      2. DRAW button is disabled
-      3. Log a clear message - Player has no more valid moves, must end turn
-      4. Player clicks on END TURN
-      5. Turn ends
-    1. DRAW button is disabled
-    2. Log a clear message - Player has no more valid moves, must end turn
-    3. Player clicks on END TURN
-    4. Turn ends
-
-I want us to start basic, and safe - so as of now, ALL cards must act like BASIC cards and COMPLETELY obey the legal flow.
-
-
-
-
-
-
-
-
-
-
-
-Update `TAKI Game Development Plan`, it needs some modifying.
-Our next steps (update/include/change them):
-
-A. Create a doucument that will contain all information needed on ALL of our scripts. This is so we don't need to attach each time all of our scripts- Instead we will build a prompt, attach the scripts summaries and ask Claude to notify which files are needed for this prompt. 
-To do this we will thoroghly analyse each and every one of our files.
-
-B. Clean all the scripts up a bit - There are so many logs that it's very difficult to understand what is happening- at this point we can safely move to more simple and minimal logs.
-
-C. Implement Pause button.
-
-D. Implement Game end properly - a screen will pop up with a fitting message + 2 buttons - play again or return to main menu screen.
-
-E. Lightly reconstruct some things in the hierarchy: 
-- `GameMessageText` is not named properly as its actual functionality, instead it should be named `DeckMessageText`. This must be done very carefully, we need to see what needs to be done in both the unity engine and the scripts.
-- `Player2MessagePanel` and `Player2MessageText` are not named properly as their actual functionality, instead they should be named `GameMessagePanel` and `GameMessageText`. This must be done very carefully, we need to see what needs to be done in both the unity engine and the scripts.
-
-F. Finally, when we know the basic rule gameplay truly works, we can move on to implementing the special cards
-
-G. Final polish :)
-
-
-
-
-Before Milestone 8, we are jumping to Milestone 11: UI Hierarchy Restructuring first
+The architecture is now fully mature with complete game flow management, ready for special card implementation while maintaining all existing functionality including pause/resume, game end handling, and safe exit confirmation.

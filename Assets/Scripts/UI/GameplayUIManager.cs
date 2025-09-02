@@ -239,10 +239,54 @@ namespace TakiGame {
 				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Verbose);
 			}
 
-			// Do NOT automatically update button states here
 			// Button states are controlled by GameManager's strict flow system
+			// Do not automatically update button states here
 			TakiLogger.LogTurnFlow ("Turn display updated - button states controlled by strict flow system", TakiLogger.LogLevel.Debug);
 		}
+
+		/// <summary>
+		/// Debug method to test pause UI states
+		/// </summary>
+		[ContextMenu ("Test Pause UI States")]
+		public void TestPauseUIStates () {
+			TakiLogger.LogDiagnostics ("=== TESTING PAUSE UI STATES ===");
+
+			TakiLogger.LogDiagnostics ("Testing pause state");
+			UpdateForPauseState ();
+
+			// Wait a moment, then test resume
+			Invoke (nameof (TestResumeUI), 2f);
+		}
+
+		void TestResumeUI () {
+			TakiLogger.LogDiagnostics ("Testing resume state");
+			UpdateForResumeState (TurnState.PlayerTurn);
+		}
+
+		/// <summary>
+		/// Debug method to log complete UI state including pause info
+		/// </summary>
+		[ContextMenu ("Log Complete UI State With Pause")]
+		public void LogCompleteUIStateWithPause () {
+			TakiLogger.LogDiagnostics ("=== COMPLETE UI STATE DEBUG (WITH PAUSE) ===");
+
+			// Log basic UI state
+			LogCompleteUIState ();
+
+			// Log pause-related state
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+			if (gameState != null) {
+				TakiLogger.LogDiagnostics ($"Game Status: {gameState.gameStatus}");
+				TakiLogger.LogDiagnostics ($"Is Paused: {gameState.IsGamePaused}");
+				TakiLogger.LogDiagnostics ($"Can Player Act: {gameState.CanPlayerAct ()}");
+				TakiLogger.LogDiagnostics ($"Can Computer Act: {gameState.CanComputerAct ()}");
+			} else {
+				TakiLogger.LogDiagnostics ("GameStateManager not found");
+			}
+
+			TakiLogger.LogDiagnostics ("Pause button state: " + (pauseButton != null ? pauseButton.interactable.ToString () : "NULL"));
+		}
+
 
 		/// <summary>
 		/// Validate current button states for debugging
@@ -353,6 +397,19 @@ namespace TakiGame {
 		/// Get turn message from turn state
 		/// </summary>
 		string GetTurnMessage (TurnState turnState) {
+			// Check game status first through GameStateManager if available
+			if (Application.isPlaying) {
+				GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+				if (gameState != null) {
+					if (gameState.gameStatus == GameStatus.Paused) {
+						return "Game Paused";
+					} else if (gameState.gameStatus == GameStatus.GameOver) {
+						return "Game Over";
+					}
+				}
+			}
+
+			// Normal turn state messages
 			switch (turnState) {
 				case TurnState.PlayerTurn:
 					return "Your Turn";
@@ -537,16 +594,158 @@ namespace TakiGame {
 				ShowColorSelection (false);
 			}
 
-			// Show game status in computer message area
-			if (gameStatus != GameStatus.Active) {
-				string statusMessage = gameStatus == GameStatus.GameOver ? "Game Over" : "Game Paused";
-				ShowComputerMessage (statusMessage);
-				// Disable all buttons for non-active game states
-				UpdateStrictButtonStates (false, false, false);
+			// Handle game status states
+			switch (gameStatus) {
+				case GameStatus.Paused:
+					HandlePausedState ();
+					break;
+				case GameStatus.GameOver:
+					HandleGameOverState ();
+					break;
+				case GameStatus.Active:
+					HandleActiveState (turnState);
+					break;
 			}
 
 			TakiLogger.LogUI ("All displays updated", TakiLogger.LogLevel.Debug);
 		}
+
+		/// <summary>
+		/// Handle UI state when game is paused
+		/// </summary>
+		void HandlePausedState () {
+			TakiLogger.LogUI ("Handling paused game state");
+
+			// Disable all gameplay buttons
+			UpdateStrictButtonStates (false, false, false);
+
+			// Show pause message to user
+			ShowPlayerMessage ("Game Paused");
+			ShowComputerMessage ("Game is paused");
+
+			// Pause button should still be available (it becomes Continue when paused)
+			if (pauseButton != null) {
+				pauseButton.interactable = true;
+			}
+		}
+
+		/// <summary>
+		/// Handle UI state when game is over
+		/// </summary>
+		void HandleGameOverState () {
+			TakiLogger.LogUI ("Handling game over state");
+
+			// Disable all gameplay buttons
+			UpdateStrictButtonStates (false, false, false);
+
+			// Pause button should be disabled
+			if (pauseButton != null) {
+				pauseButton.interactable = false;
+			}
+
+			// Winner message will be handled by GameEndManager
+		}
+
+		/// <summary>
+		/// Handle UI state when game is active
+		/// </summary>
+		/// <param name="turnState">Current turn state</param>
+		void HandleActiveState (TurnState turnState) {
+			TakiLogger.LogUI ("Handling active game state");
+
+			// Pause button should be available
+			if (pauseButton != null) {
+				pauseButton.interactable = true;
+			}
+
+			// Button states will be handled by strict turn flow system
+			// Don't automatically enable buttons here - let GameManager control them
+		}
+
+		/// <summary>
+		/// Update UI for pause state
+		/// </summary>
+		public void UpdateForPauseState () {
+			TakiLogger.LogUI ("=== UPDATING UI FOR PAUSE STATE ===");
+
+			// Update turn display to show pause
+			if (turnIndicatorText != null) {
+				turnIndicatorText.text = "Game Paused";
+			}
+
+			// Disable all action buttons
+			UpdateStrictButtonStates (false, false, false);
+
+			// Show pause message
+			ShowPlayerMessage ("Game is paused - use menu to continue");
+			ShowComputerMessage ("Waiting for resume...");
+
+			TakiLogger.LogUI ("UI updated for pause state");
+		}
+
+		/// <summary>
+		/// Update UI for resume state
+		/// </summary>
+		/// <param name="turnState">Turn state to resume to</param>
+		public void UpdateForResumeState (TurnState turnState) {
+			TakiLogger.LogUI ("=== UPDATING UI FOR RESUME STATE ===");
+
+			// Update turn display
+			UpdateTurnDisplay (turnState);
+
+			// Clear pause messages
+			if (turnState == TurnState.PlayerTurn) {
+				ShowPlayerMessage ("Game resumed - your turn!");
+				ShowComputerMessage ("");
+			} else if (turnState == TurnState.ComputerTurn) {
+				ShowPlayerMessage ("Game resumed");
+				ShowComputerMessage ("Computer's turn");
+			}
+
+			// Button states will be restored by GameManager's turn flow system
+
+			TakiLogger.LogUI ("UI updated for resume state");
+		}
+
+		/// <summary>
+		/// Show exit validation state in UI
+		/// </summary>
+		public void UpdateForExitValidation () {
+			TakiLogger.LogUI ("=== UPDATING UI FOR EXIT VALIDATION ===");
+
+			// Similar to pause but with different message
+			if (turnIndicatorText != null) {
+				turnIndicatorText.text = "Confirm Exit";
+			}
+
+			// Disable all action buttons
+			UpdateStrictButtonStates (false, false, false);
+
+			// Show exit validation message
+			ShowPlayerMessage ("Exit confirmation shown");
+			ShowComputerMessage ("Game paused for exit");
+
+			TakiLogger.LogUI ("UI updated for exit validation");
+		}
+
+		/// <summary>
+		/// Show pause-related message to player
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		public void ShowPauseMessage (string message) {
+			ShowPlayerMessage ($"PAUSE: {message}");
+			TakiLogger.LogUI ($"Pause message shown: {message}");
+		}
+
+		/// <summary>
+		/// Show game end related message
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		public void ShowGameEndMessage (string message) {
+			ShowPlayerMessage ($"GAME END: {message}");
+			TakiLogger.LogUI ($"Game end message shown: {message}");
+		}
+
 
 		///// <summary>
 		///// Debug method to log complete UI state
@@ -583,7 +782,10 @@ namespace TakiGame {
 		public bool EndTurnButtonEnabled => endTurnButtonEnabled;
 		public bool IsColorSelectionActive => colorSelectionPanel != null && colorSelectionPanel.activeSelf;
 
-		// ENHANCED: Get button state summary for debugging
+		public bool IsUIInPauseState => turnIndicatorText != null && turnIndicatorText.text == "Game Paused";
+		public bool AreAllButtonsDisabled => !PlayButtonEnabled && !DrawButtonEnabled && !EndTurnButtonEnabled;
+
+		// ENHANCED: Get button state summary for debugging 
 		public string GetButtonStateSummary () {
 			return $"Play:{(playButtonEnabled ? "ON" : "OFF")}, Draw:{(drawButtonEnabled ? "ON" : "OFF")}, EndTurn:{(endTurnButtonEnabled ? "ON" : "OFF")}";
 		}

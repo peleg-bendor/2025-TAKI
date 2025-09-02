@@ -1,349 +1,643 @@
-using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.XR;
+# TAKI Game Development Plan - Unity Engine
+## Comprehensive Implementation Guide
 
-namespace TakiGame {
-	/// <summary>
-	/// Simple AI that makes basic decisions for computer player
-	/// NO turn management, NO game state changes, NO UI updates
-	/// </summary>
-	public class BasicComputerAI : MonoBehaviour {
+### ⚠️ CRITICAL NOTES
+- **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
+- **Current Status**: Phase 1-6 Complete ✅, Currently at **Phase 7: Special Cards Implementation** 🎯
+- **Target Platform**: PC/Desktop Unity Build
+- **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
 
-		[Header ("AI Settings")]
-		[Tooltip ("Computer player's hand of cards")]
-		public List<CardData> computerHand = new List<CardData> ();
+---
 
-		[Tooltip ("Time to 'think' before making a move")]
-		public float thinkingTime = 1.0f;
+## Project Structure
 
-		[Tooltip ("Chance to play special cards over number cards (0-1)")]
-		[Range (0f, 1f)]
-		public float specialCardPreference = 0.7f;
+### Scripts Organization:
+```
+Scripts/
+├── Controllers/
+├── Core/
+│   ├── AI/
+│   │   └── BasicComputerAI.cs
+│   └── GameManager.cs
+├── Data/
+│   ├── CardData.cs
+│   └── Enums.cs
+├── Editor/
+│   └── TakiDeckGenerator.cs
+├── Managers/
+│   ├── CardDataLoader.cs
+│   ├── Deck.cs
+│   ├── DeckManager.cs
+│   ├── DeckUIManager.cs
+│   ├── DontDestroyOnLoad.cs
+│   ├── ExitValidationManager.cs
+│   ├── GameEndManager.cs
+│   ├── GameSetupManager.cs
+│   ├── GameStateManager.cs
+│   ├── PauseManager.cs
+│   └── TurnManager.cs
+├── UI/
+│   ├── CardController.cs
+│   ├── DifficultySlider.cs
+│   ├── GameplayUIManager.cs
+│   ├── HandManager.cs
+│   ├── MenuNavigation.cs
+│   └── PileManager.cs
+├── ButtonSFX.cs
+├── MusicSlider.cs
+├── SfxSlider.cs
+├── TakiGameDiagnostics.cs
+└── TakiLogger.cs
+```
 
-		[Header ("Dependencies")]
-		[Tooltip ("Reference to game state manager")]
-		public GameStateManager gameState;
+### Assets Structure:
+```
+Assets
+├── Audio
+│   ├── Music
+│   └── Sfx
+├── Data
+│   ├── Cards
+├── Plugins
+└── Prefabs/
+│   └── Cards/
+│   │   └── CardPrefab.prefab      ← Visual card prefab
+│   └── UI
+Resources/
+├── Data/
+│   └── Cards/                     ← 110 CardData assets
+├── Sprites/
+│   └── Cards/
+│       ├── Backs/
+│       │   └── card_back.png      ← Single back image
+│       └── Fronts/
+│           ├── Red/               ← Red cards
+│           ├── Blue/              ← Blue cards  
+│           ├── Green/             ← Green cards
+│           ├── Yellow/            ← Yellow cards
+│           └── Wild/              ← Wild cards
+├── Scenes
+├── Scripts
+└── TextMesh Pro
+```
 
-		// Events for AI decisions
-		public System.Action<CardData> OnAICardSelected;
-		public System.Action OnAIDrawCard;
-		public System.Action<CardColor> OnAIColorSelected;
-		public System.Action<string> OnAIDecisionMade;
+### Scene Hierarchy:
+```
+Scene_Menu
+├── Main Camera
+├── Canvas
+│   ├── Img_Background
+│   ├── Screen_MainMenu
+│   ├── Screen_StudentInfo
+│   ├── Screen_SinglePlayer
+│   ├── Screen_MultiPlayer
+│   ├── Screen_SinglePlayerGame
+│   │   ├── Player1Panel (Human Player)
+│   │   │   ├── Player1HandPanel - (Components: HandManager)
+│   │   │   └── Player1ActionPanel
+│   │   │       ├── Btn_Player1PlayCard - Play selected card
+│   │   │       ├── Btn_Player1DrawCard - Draw from deck
+│   │   │       ├── Btn_Player1EndTurn - End current turn
+│   │   │       └── Player1HandSizePanel
+│   │   │           └── Player1HandSizeText - Hand size display
+│   │   ├── Player2Panel (Computer Player)
+│   │   │   ├── Player2HandPanel - (Components: HandManager)
+│   │   │   └── Player2ActionPanel
+│   │   │       ├── Player2MessageText - Computer actions and thinking
+│   │   │       └── Player2HandSizePanel 
+│   │   │           └── Player2HandSizeText - Computer hand size
+│   │   ├── GameBoardPanel
+│   │   │   ├── DrawPilePanel
+│   │   │   │   └── DrawPileCountText - Draw pile count
+│   │   │   └── DiscardPilePanel
+│   │   │       └── DiscardPileCountText - Discard pile count
+│   │   ├── GameInfoPanel
+│   │   │   ├── TurnIndicatorText - Current turn display
+│   │   │   ├── DeckMessageText - Deck event messages
+│   │   │   └── GameMessageText - General game feedback
+│   │   ├── ColorSelectionPanel - Color choice UI
+│   │   │   ├── Btn_SelectRed
+│   │   │   ├── Btn_SelectBlue
+│   │   │   ├── Btn_SelectGreen
+│   │   │   └── Btn_SelectYellow
+│   │   ├── CurrentColorIndicator - Active color display
+│   │   ├── Btn_Exit - Exit completely (not return to Main Menu)
+│   │   ├── Btn_Pause - Pause functionality
+│   │   └── Screen_GameEnd - Game over popup
+│   │       ├── GameEndMessage - Winner announcement
+│   │       ├── Btn_PlayAgain - Start new game
+│   │       └── Btn_ReturnToMenu - Back to main menu
+│   ├── Screen_MultiPlayerGame
+│   ├── Screen_Settings
+│   ├── Screen_ExitValidation
+│   │   └── Image
+│   │       ├── Text (TMP)
+│   │       ├── Btn_ExitConfirm
+│   │       └── Btn_ExitCancel
+│   ├── Screen_Paused
+│   │   └── Image
+│   │       ├── Text (TMP)
+│   │       ├── Btn_Continue
+│   │       ├── Btn_Restart
+│   │       └── Btn_GoHome
+│   ├── Screen_GameEnd
+│   │   └── Image
+│   │       ├── EndDeclarationText
+│   │       ├── Btn_Restart
+│   │       └── Btn_GoHome
+│   ├── Screen_Loading
+│   └── Screen_Exiting
+├── EventSystem
+├── GameObject
+├── MenuManager
+├── BackgroundMusic
+├── SFXController
+└── GameManager
+```
 
+---
 
-		/// <summary>
-		/// Make AI decision for current turn
-		/// </summary>
-		/// <param name="topDiscardCard">Current top card of discard pile</param>
-		public void MakeDecision (CardData topDiscardCard) {
-			TakiLogger.LogAI ($"=== AI MAKING DECISION ===");
-			TakiLogger.LogAI ($"AI Hand size: {computerHand.Count}");
-			TakiLogger.LogAI ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
+## Phase 1: Foundation Setup ✅ COMPLETE
 
-			if (topDiscardCard == null) {
-				TakiLogger.LogError ("AI cannot make decision: No top discard card provided", TakiLogger.LogCategory.AI);
-				OnAIDecisionMade?.Invoke ("Error: No discard card");
-				return;
-			}
+### Milestone 1: Menu System ✅ COMPLETE
+**Status**: All scenes and navigation working
 
-			TakiLogger.LogAI ($"AI thinking... (Hand size: {computerHand.Count})", TakiLogger.LogLevel.Debug);
-			OnAIDecisionMade?.Invoke ("AI is thinking...");
+### Milestone 2: UI Framework Creation ✅ COMPLETE  
+**Status**: Full UI hierarchy established, all panels created
 
-			// Store the top card for ExecuteDecision to use
-			currentTopDiscardCard = topDiscardCard;
+---
 
-			// Add thinking delay
-			Invoke (nameof (ExecuteDecision), thinkingTime);
-		}
+## Phase 2: Core Card System ✅ COMPLETE
 
-		// ADDED: Store current top card for ExecuteDecision
-		private CardData currentTopDiscardCard;
+### Milestone 3: Data Architecture Implementation ✅ COMPLETE
+**Achievements**:
+- ✅ Complete enum system with **Multi-Enum Architecture**:
+  - `TurnState`: WHO is acting? (PlayerTurn, ComputerTurn, Neutral)
+  - `InteractionState`: WHAT special interaction? (Normal, ColorSelection, TakiSequence, PlusTwoChain) 
+  - `GameStatus`: WHAT is overall status? (Active, Paused, GameOver)
+- ✅ CardData ScriptableObject with helper methods and rule validation
+- ✅ Namespace organization (`TakiGame`)
+- ✅ 110-card complete deck system with automatic generation
+- ✅ UI integration tested and working
 
-		/// <summary>
-		/// Execute the AI decision after thinking time
-		/// </summary>
-		void ExecuteDecision () {
-			TakiLogger.LogAI ($"=== AI EXECUTING DECISION ===");
+### Milestone 4: Complete Deck System ✅ COMPLETE
+**Achievements**:
+- ✅ **Refactored Architecture** using **Single Responsibility Principle**:
+  - `Deck`: Pure card operations (draw, discard, shuffle)
+  - `CardDataLoader`: Resource management (load 110 cards from Resources)
+  - `DeckUIManager`: UI updates only (deck counts, messages) 
+  - `GameSetupManager`: Game initialization logic (deal hands, place starting card)
+  - `DeckManager`: Coordinator pattern (delegates to specialized components)
+- ✅ All 110 cards load and distribute correctly (8+8+1 setup working)
+- ✅ Automatic deck initialization and UI updates
+- ✅ **Wild as initial color** (represents "no color set yet")
+- ✅ Event-driven architecture connecting all components
+- ✅ Clean separation of concerns for future multiplayer readiness
 
-			if (currentTopDiscardCard == null) {
-				TakiLogger.LogError ("ExecuteDecision: No current top discard card stored", TakiLogger.LogCategory.AI);
-				DrawCard ();
-				return;
-			}
+### Milestone 5: Turn Management System ✅ COMPLETE
+**Achievements**:
+- ✅ **Multi-Enum Game State Architecture**:
+  - `GameStateManager`: Manages TurnState, InteractionState, GameStatus, active color, rules
+  - `TurnManager`: Handles turn switching, timing, player transitions
+  - `BasicComputerAI`: Simple AI with strategic card selection
+  - `GameplayUIManager`: Turn-related UI updates, player actions, color selection
+  - `GameManager`: Main coordinator for all gameplay systems
+- ✅ All gameplay components properly integrated on GameManager GameObject
+- ✅ Multi-enum state transitions working correctly
+- ✅ Turn switching between Human ↔ Computer functioning
+- ✅ UI updates reflecting current game state accurately
+- ✅ Computer AI making decisions and playing cards
+- ✅ Basic card play validation working
+- ✅ Draw card functionality working for both players
+- ✅ Hand size tracking and display working
+- ✅ Event system connecting all components properly
+- ✅ Color selection system functional
+- ✅ **Clean UI Ownership Architecture**:
+  - GameplayUIManager: Turn system, player actions, computer feedback
+  - DeckUIManager: Deck counts and deck event messages only
 
-			// Find all valid cards to play
-			List<CardData> validCards = GetValidCards (currentTopDiscardCard);
-			TakiLogger.LogAI ($"AI found {validCards.Count} valid cards from {computerHand.Count} total");
+---
 
-			if (validCards.Count > 0) {
-				// Select best card to play
-				CardData selectedCard = SelectBestCard (validCards);
-				TakiLogger.LogAI ($"AI selected card: {selectedCard?.GetDisplayText ()}", TakiLogger.LogLevel.Info);
-				PlayCard (selectedCard);
-			} else {
-				// No valid cards, must draw
-				TakiLogger.LogAI ("AI has no valid moves - drawing card");
-				DrawCard ();
-			}
+## Phase 3: Visual Card System ✅ COMPLETE
 
-			// Clear the stored card
-			currentTopDiscardCard = null;
-		}
+### Milestone 6: Interactive Visual Cards ✅ COMPLETE
+**Achievements**:
+- ✅ **Complete Visual Card System**:
+  - `CardController`: Individual card behavior with real scanned images
+  - `HandManager`: Dynamic hand display with adaptive spacing  
+  - `PileManager`: Draw/discard pile visual cards
+- ✅ **CardPrefab Architecture**:
+  - Face-up/face-down instant image swapping (no animations)
+  - Click selection with 10px Y-offset movement
+  - Gold/red tint feedback for valid/invalid cards
+  - Professional 100px height, calculated 67px width
+- ✅ **Hand Display System**:
+  - Manual positioning with adaptive spacing algorithm
+  - Player hand: Face-up cards with selection
+  - Computer hand: Face-down cards for privacy
+  - Instant prefab add/remove with position recalculation
+- ✅ **Pile Visual System**:
+  - Draw pile: Face-down card when not empty
+  - Discard pile: Face-up current top card
+  - Integrated with DeckUIManager through PileManager
+- ✅ **Image Architecture Consistency**:
+  - Fixed folder structure: `Wild/` instead of `Special/`
+  - Consistent naming: Wild cards no color suffix
+  - All cards use real scanned images from Resources
+- ✅ **Performance & Integration**:
+  - Smooth gameplay with 8+ cards in hand
+  - All existing Milestone 5 functionality preserved
+  - Event-driven integration with GameManager
+  - No memory leaks or performance issues
 
-		/// <summary>
-		/// Get all cards that can be legally played
-		/// </summary>
-		/// <param name="topDiscardCard">Current top discard card</param>
-		/// <returns>List of playable cards</returns>
-		List<CardData> GetValidCards (CardData topDiscardCard) {
-			List<CardData> validCards = new List<CardData> ();
+---
 
-			if (gameState == null) {
-				TakiLogger.LogError ("Cannot get valid cards: GameState is null", TakiLogger.LogCategory.AI);
-				return validCards;
-			}
+## Phase 4: Strict Turn Flow System ✅ COMPLETE
 
-			if (topDiscardCard == null) {
-				TakiLogger.LogError ("Cannot get valid cards: topDiscardCard is null", TakiLogger.LogCategory.AI);
-				return validCards;
-			}
+### Milestone 7: Enhanced Card Rules with Strict Turn Flow ✅ COMPLETE
+**Achievements**:
+- ✅ **Strict Turn Flow Implementation**:
+  - Player must take ONE action (PLAY or DRAW) then END TURN
+  - END TURN button disabled until action taken
+  - DRAW button disabled after playing card
+  - All special cards logged but act as basic cards
+  - Immediate button disable on click to prevent multiple actions
+- ✅ **Comprehensive Card Effect Logging**:
+  - All special card rules documented in console
+  - Clear feedback for player actions and constraints
+  - Safe testing environment for all card types
+- ✅ **Enhanced Button Control System**:
+  - Smart button state management based on game flow
+  - Clear visual feedback for valid/invalid actions
+  - Bulletproof turn completion enforcement
+- ✅ **Rule Validation Working**:
+  - Color matching validation functional
+  - Number matching validation functional
+  - Wild card acceptance working
+  - Basic special card type matching working
 
-			TakiLogger.LogAI ($"Checking {computerHand.Count} cards against {topDiscardCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+---
 
-			foreach (CardData card in computerHand) {
-				if (card == null) {
-					TakiLogger.LogWarning ("Found null card in AI hand - skipping", TakiLogger.LogCategory.AI);
-					continue;
-				}
+## Phase 5: Code Quality & Polish ✅ COMPLETE
 
-				bool isValid = gameState.IsValidMove (card, topDiscardCard);
-				TakiLogger.LogRules ($"  {card.GetDisplayText ()} -> {isValid}", TakiLogger.LogLevel.Verbose);
+### Milestone 8: Code Cleanup & Logging Improvements ✅ COMPLETE
+**Status**: **✅ COMPLETED** - TakiLogger system implemented successfully
 
-				if (isValid) {
-					validCards.Add (card);
-				}
-			}
+**Achievements**:
+- ✅ **Centralized Logging System**: `TakiLogger.cs` utility class created
+- ✅ **Log Level Control**: Configurable verbosity (None, Error, Warning, Info, Debug, Verbose)
+- ✅ **Categorized Logging**: System-specific logging categories (TurnFlow, CardPlay, AI, UI, etc.)
+- ✅ **Production Mode**: Clean output toggle for release builds
+- ✅ **Performance Optimized**: Conditional logging prevents unnecessary string operations
+- ✅ **Clean Console Output**: Organized debug messages with category prefixes
 
-			TakiLogger.LogAI ($"AI found {validCards.Count} valid cards to play", TakiLogger.LogLevel.Debug);
-			return validCards;
-		}
+### **Logging Architecture**:
+```csharp
+// Category-based logging system
+TakiLogger.LogTurnFlow("Strict turn flow messages")
+TakiLogger.LogCardPlay("Card play and draw operations") 
+TakiLogger.LogAI("Computer decision making")
+TakiLogger.LogUI("User interface updates")
+TakiLogger.LogGameState("State transitions")
+TakiLogger.SetLogLevel(LogLevel.Info) // Runtime configuration
+```
 
-		/// <summary>
-		/// Select the best card from valid options using simple AI strategy
-		/// </summary>
-		/// <param name="validCards">List of cards that can be played</param>
-		/// <returns>Selected card to play</returns>
-		CardData SelectBestCard (List<CardData> validCards) {
-			if (validCards.Count == 0) return null;
+---
 
-			// Simple AI Strategy:
-			// 1. Prefer special cards over number cards (based on preference setting)
-			// 2. Within same type, prefer higher numbers
-			// 3. Add some randomness
+## Phase 6: Game Flow Enhancement ✅ COMPLETE
 
-			List<CardData> specialCards = validCards.Where (c => c.IsSpecialCard).ToList ();
-			List<CardData> numberCards = validCards.Where (c => !c.IsSpecialCard).ToList ();
+### Milestone 9: Pause System Implementation ✅ COMPLETE
+**Objective**: Implement functional pause button with proper game state management
+**Status**: **✅ COMPLETED** - Full pause/resume system with state preservation
 
-			// Decide whether to prioritize special cards
-			bool useSpecialCard = specialCards.Count > 0 &&
-								  Random.value < specialCardPreference;
+**Achievements**:
+- ✅ **PauseManager.cs**: Complete pause system coordinator
+- ✅ **State Preservation**: Comprehensive game state snapshots during pause
+- ✅ **Turn Flow Integration**: Strict turn flow state preserved and restored
+- ✅ **AI Pause Handling**: Computer AI properly pauses and resumes with state preservation
+- ✅ **UI Integration**: Pause screen overlay with proper button flow
+- ✅ **System Coordination**: All game systems properly pause/resume together
 
-			CardData selectedCard;
+### Milestone 10: Game End Screen System ✅ COMPLETE  
+**Objective**: Professional game over experience with proper flow control
+**Status**: **✅ COMPLETED** - Full game end system with smooth transitions
 
-			if (useSpecialCard) {
-				// Select from special cards
-				selectedCard = SelectFromSpecialCards (specialCards);
-				TakiLogger.LogAI ($"AI chose special card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
-			} else if (numberCards.Count > 0) {
-				// Select from number cards
-				selectedCard = SelectFromNumberCards (numberCards);
-				TakiLogger.LogAI ($"AI chose number card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
-			} else if (specialCards.Count > 0) {
-				// Fall back to special cards if no number cards available
-				selectedCard = SelectFromSpecialCards (specialCards);
-				TakiLogger.LogAI ($"AI fell back to special cards: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
-			} else {
-				// Random selection as last resort
-				selectedCard = validCards [Random.Range (0, validCards.Count)];
-				TakiLogger.LogAI ($"AI made random selection: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
-			}
+**Achievements**:
+- ✅ **GameEndManager.cs**: Complete game end coordinator
+- ✅ **Winner Announcement**: Professional game end screen with winner display
+- ✅ **Post-Game Actions**: Restart and return to menu functionality
+- ✅ **Smooth Transitions**: Loading screen integration for menu navigation
+- ✅ **State Cleanup**: Proper game state reset for new games
 
-			return selectedCard;
-		}
+### Milestone 11: Exit Validation System ✅ COMPLETE
+**Objective**: Safe application exit with confirmation and cleanup
+**Status**: **✅ COMPLETED** - Complete exit validation with comprehensive cleanup
 
-		/// <summary>
-		/// Select best special card with simple priority
-		/// </summary>
-		/// <param name="specialCards">Available special cards</param>
-		/// <returns>Selected special card</returns>
-		CardData SelectFromSpecialCards (List<CardData> specialCards) {
-			// Simple priority: Taki > PlusTwo > Stop > Plus > ChangeDirection > ChangeColor
-			var priorityOrder = new CardType [] {
-				CardType.Taki, CardType.SuperTaki, CardType.PlusTwo,
-				CardType.Stop, CardType.Plus, CardType.ChangeDirection, CardType.ChangeColor
-			};
+**Achievements**:
+- ✅ **ExitValidationManager.cs**: Complete exit confirmation coordinator
+- ✅ **Exit Confirmation Dialog**: Proper confirmation UI with cancel option
+- ✅ **Comprehensive Cleanup**: Prevents memory leaks and stuck AI states
+- ✅ **Pause Integration**: Coordinates with PauseManager for state preservation
+- ✅ **Safe Application Exit**: Ensures all systems properly cleaned before quit
 
-			foreach (CardType priority in priorityOrder) {
-				var cardsOfType = specialCards.Where (c => c.cardType == priority).ToList ();
-				if (cardsOfType.Count > 0) {
-					return cardsOfType [Random.Range (0, cardsOfType.Count)];
-				}
-			}
+### Milestone 12: Enhanced MenuNavigation ✅ COMPLETE
+**Objective**: Integrate new managers with menu system for seamless flow
+**Status**: **✅ COMPLETED** - Full menu integration with all game flow managers
 
-			// Fallback to random selection
-			return specialCards [Random.Range (0, specialCards.Count)];
-		}
+**Achievements**:
+- ✅ **Pause Screen Integration**: Overlay system with proper game state preservation
+- ✅ **Restart with AI Verification**: Prevents AI stuck states during restart
+- ✅ **Exit Validation Flow**: Smooth exit confirmation without breaking game flow
+- ✅ **Enhanced Button Logic**: All pause, restart, and exit buttons properly integrated
 
-		/// <summary>
-		/// Select best number card (prefer higher numbers)
-		/// </summary>
-		/// <param name="numberCards">Available number cards</param>
-		/// <returns>Selected number card</returns>
-		CardData SelectFromNumberCards (List<CardData> numberCards) {
-			// Prefer higher numbers with some randomness
-			var sortedCards = numberCards.OrderByDescending (c => c.number).ToList ();
+---
 
-			// Select from top 50% of cards to add some randomness
-			int selectionRange = Mathf.Max (1, sortedCards.Count / 2);
-			return sortedCards [Random.Range (0, selectionRange)];
-		}
+## Phase 7: Special Cards Implementation 🎯
 
-		/// <summary>
-		/// Play the selected card
-		/// </summary>
-		/// <param name="card">Card to play</param>
-		void PlayCard (CardData card) {
-			if (card == null) {
-				TakiLogger.LogError ("AI PlayCard called with null card", TakiLogger.LogCategory.AI);
-				return;
-			}
+## 🎯 **Current Focus: Basic Special Cards Implementation**
 
-			// Check if card is actually in hand
-			if (!computerHand.Contains (card)) {
-				TakiLogger.LogError ($"AI trying to play card not in hand: {card.GetDisplayText ()}", TakiLogger.LogCategory.AI);
-				return;
-			}
+### **Primary Goal**: Implement real special card effects for PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR
+**Status**: 🎯 **IMMEDIATE FOCUS** - Ready for implementation
 
-			// Remove card from hand
-			bool removed = computerHand.Remove (card);
-			TakiLogger.LogCardPlay ($"AI plays: {card.GetDisplayText ()} (Removed: {removed}, Hand size now: {computerHand.Count})");
+### **Current State**: All cards currently act as basic cards (end turn after playing)
+**Target**: Make special cards have their unique effects
 
-			OnAIDecisionMade?.Invoke ($"AI played {card.GetDisplayText ()}");
-			OnAICardSelected?.Invoke (card);
-		}
+### **Implementation Priority Order**:
 
-		/// <summary>
-		/// AI draws a card when no valid moves
-		/// </summary>
-		void DrawCard () {
-			TakiLogger.LogCardPlay ($"AI draws a card (no valid moves) - Current hand: {computerHand.Count}");
-			OnAIDecisionMade?.Invoke ("AI drew a card");
-			OnAIDrawCard?.Invoke ();
-		}
+#### **1. Plus Card** 🔧
+**Rule**: Player must take ONE additional action after playing Plus card
+```csharp
+// Implementation Logic:
+- If PLUS played during normal gameplay (not TAKI sequence):
+  - Player gets one additional action (PLAY or DRAW)
+  - Cannot end turn until additional action taken
+  - isActiveCard = true for PLUS cards
+```
 
-		/// <summary>
-		/// AI selects a color (for ChangeColor cards)
-		/// </summary>
-		/// <returns>Selected color</returns>
-		public CardColor SelectColor () {
-			// Simple strategy: Select color that appears most in hand
-			var colorCounts = new Dictionary<CardColor, int> ();
+#### **2. Stop Card** 🛑
+**Rule**: Skip opponent's next turn (player gets another full turn)
+```csharp
+// Implementation Logic:
+- If STOP played during normal gameplay:
+  - Opponent's turn is completely skipped
+  - Player gets an entirely new turn
+  - Use TurnManager.SkipTurn() functionality
+```
 
-			foreach (CardData card in computerHand) {
-				if (card.color != CardColor.Wild) {
-					if (colorCounts.ContainsKey (card.color)) {
-						colorCounts [card.color]++;
-					} else {
-						colorCounts [card.color] = 1;
-					}
-				}
-			}
+#### **3. ChangeDirection Card** 🔄
+**Rule**: Reverse turn direction (visual/message only for 2-player)
+```csharp
+// Implementation Logic:
+- If CHANGEDIRECTION played during normal gameplay:
+  - Update GameStateManager.turnDirection
+  - Show appropriate UI message about direction change
+  - No actual gameplay impact (2-player game)
+```
 
-			// Select most common color, or random if tie/no cards
-			if (colorCounts.Count > 0) {
-				var bestColor = colorCounts.OrderByDescending (kvp => kvp.Value).First ().Key;
-				TakiLogger.LogAI ($"AI selected color: {bestColor} (appears {colorCounts [bestColor]} times in hand)", TakiLogger.LogLevel.Info);
-				OnAIColorSelected?.Invoke (bestColor);
-				return bestColor;
-			} else {
-				// Random color selection
-				CardColor [] colors = { CardColor.Red, CardColor.Blue, CardColor.Green, CardColor.Yellow };
-				CardColor randomColor = colors [Random.Range (0, colors.Length)];
-				TakiLogger.LogAI ($"AI selected random color: {randomColor}", TakiLogger.LogLevel.Info);
-				OnAIColorSelected?.Invoke (randomColor);
-				return randomColor;
-			}
-		}
+#### **4. ChangeColor Card** 🎨
+**Rule**: Player must choose new active color
+```csharp
+// Implementation Logic:
+- If CHANGECOLOR played during normal gameplay:
+  - Show ColorSelectionPanel
+  - Disable PLAY/DRAW buttons until color selected
+  - Set InteractionState.ColorSelection
+  - Update activeColor when color chosen
+```
 
-		/// <summary>
-		/// Add cards to AI hand
-		/// </summary>
-		/// <param name="cards">Cards to add</param>
-		public void AddCardsToHand (List<CardData> cards) {
-			computerHand.AddRange (cards);
-			TakiLogger.LogAI ($"AI received {cards.Count} cards. Hand size: {computerHand.Count}", TakiLogger.LogLevel.Debug);
-		}
+### **Implementation Tasks**:
 
-		/// <summary>
-		/// Add single card to AI hand
-		/// </summary>
-		/// <param name="card">Card to add</param>
-		public void AddCardToHand (CardData card) {
-			if (card != null) {
-				computerHand.Add (card);
-				TakiLogger.LogAI ($"AI received card: {card.GetDisplayText ()}. Hand size: {computerHand.Count}", TakiLogger.LogLevel.Debug);
-			}
-		}
+#### **A. Modify GameManager.HandleSpecialCardEffects()**:
+```csharp
+// Update existing method to implement real effects
+// Currently only has placeholder logic
+// Add proper special card handling for each type
+```
 
-		/// <summary>
-		/// Clear AI hand for new game
-		/// </summary>
-		public void ClearHand () {
-			computerHand.Clear ();
-			TakiLogger.LogAI ("AI hand cleared", TakiLogger.LogLevel.Debug);
-		}
+#### **B. Add Special Card State Tracking**:
+```csharp
+// Add variables to track special card states:
+- bool isWaitingForAdditionalAction = false; // For PLUS cards
+```
 
-		/// <summary>
-		/// Get a copy of the computer's hand for visual display
-		/// </summary>
-		/// <returns>Copy of computer's hand</returns>
-		public List<CardData> GetHandCopy () {
-			// Return a copy to prevent external modification
-			return new List<CardData> (computerHand);
-		}
+#### **C. Update Turn Flow Logic**:
+```csharp
+// Modify strict turn flow to handle:
+- Additional actions for PLUS cards
+- Turn skipping for STOP cards  
+- Color selection requirements for CHANGECOLOR cards
+```
 
-		/// <summary>
-		/// Debug method to log computer's current hand
-		/// Useful for testing visual card system
-		/// </summary>
-		public void LogCurrentHand () {
-			TakiLogger.LogDiagnostics ($"Computer AI Hand ({computerHand.Count} cards):");
-			for (int i = 0; i < computerHand.Count; i++) {
-				TakiLogger.LogDiagnostics ($"  [{i}] {computerHand [i].GetDisplayText ()}");
-			}
-		}
+#### **D. Enhanced UI Integration**:
+```csharp
+// Update GameplayUIManager to show:
+- Appropriate messages for each special card
+- Color selection panel for CHANGECOLOR
+- Additional action prompts for PLUS
+```
 
-		/// <summary>
-		/// DEBUGGING: Log current AI state
-		/// </summary>
-		[ContextMenu ("Log AI State")]
-		public void LogAIDebugState () {
-			TakiLogger.LogDiagnostics ("=== AI DEBUG STATE ===");
-			TakiLogger.LogDiagnostics ($"Hand size: {computerHand.Count}");
-			TakiLogger.LogDiagnostics ($"Has GameState: {gameState != null}");
-			TakiLogger.LogDiagnostics ($"Current top card: {currentTopDiscardCard?.GetDisplayText () ?? "NULL"}");
+### **Testing Strategy**:
+- Test each special card type individually
+- Verify turn flow remains strict and controlled
+- Ensure AI can handle special cards appropriately
+- Test special card combinations and edge cases
 
-			TakiLogger.LogDiagnostics ("Cards in hand:");
-			for (int i = 0; i < computerHand.Count; i++) {
-				TakiLogger.LogDiagnostics ($"  [{i}] {computerHand [i]?.GetDisplayText () ?? "NULL"}");
-			}
-		}
+### **Cards NOT Modified in Phase 7**:
+- **PLUSTWO**: Advanced chaining system (Phase 8)
+- **TAKI**: Multi-card sequence system (Phase 8)  
+- **SUPERTAKI**: Multi-card sequence system (Phase 8)
 
-		// Properties
-		public int HandSize => computerHand.Count;
-		public bool HasCards => computerHand.Count > 0;
-		public List<CardData> Hand => new List<CardData> (computerHand); // Safe copy
-	}
-}
+---
+
+## Phase 8: Advanced Special Cards Implementation
+
+### Future Milestone: Advanced Special Card Mechanics
+**Objective**: Complex card interactions and chaining
+
+#### **1. PlusTwo Card** 🎴
+**Rule**: Chaining system - player can stack +2 cards or draw cards
+```csharp
+// Advanced Implementation:
+- Track NumberOfChainedPlusTwos
+- Allow stacking or force drawing
+- AI strategy for PLUSTWO responses
+```
+
+#### **2. Taki Card** 🎯
+**Rule**: Multi-card play sequence of same color
+```csharp
+// Advanced Implementation:
+- TakiSequence interaction state
+- Btn_Player1EndTakiSequence integration
+- Multi-card validation system
+```
+
+#### **3. SuperTaki Card** 🌟
+**Rule**: Multi-card play sequence of any color
+```csharp
+// Advanced Implementation:
+- Same as TAKI essentially
+- SuperTaki sequence management
+```
+
+**Tasks**:
+- PlusTwo stacking system implementation
+- Taki sequence validation and UI integration
+- Special card combination rules
+- Edge case handling for all special cards
+- AI strategy enhancement for all special cards
+
+---
+
+## Phase 9: Final Polish & Release Preparation
+
+### Future Milestone: Final Polish & Testing
+**Objective**: Complete game polish for release
+
+**Tasks**:
+- Performance optimization
+- Final UI polish and animations
+- Audio integration testing
+- Complete gameplay testing
+- Build preparation and testing
+- Final bug fixes and stability improvements
+
+---
+
+## Current Architecture Highlights
+
+### **Enhanced Manager Architecture**:
+```csharp
+// Complete game flow management
+GameManager: Central coordinator with manager integration
+PauseManager: Complete pause/resume with state preservation  
+GameEndManager: Professional game end flow
+ExitValidationManager: Safe exit with comprehensive cleanup
+```
+
+### **Strict Turn Flow System** (Enhanced):
+```csharp
+// Bulletproof turn control with manager integration
+- Player takes ONE action (PLAY or DRAW)
+- Action buttons immediately disabled on click
+- END TURN button enabled only after action
+- Clear feedback for all game states
+- Ready for special card effect integration
+- Enhanced button state tracking and validation
+```
+
+### **Multi-Enum State Management**:
+```csharp
+// Clean separation of state concerns with pause support
+public enum TurnState { PlayerTurn, ComputerTurn, Neutral }
+public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChain }
+public enum GameStatus { Active, Paused, GameOver }
+```
+
+### **Visual Card Architecture**:
+```csharp
+// Complete visual card system
+CardController: Individual card behavior, image loading, selection
+HandManager: Dynamic hand layout, card positioning, user interaction
+PileManager: Draw/discard pile visual representation
+```
+
+### **Enhanced UI System**:
+```csharp
+// Complete UI management with pause/resume integration
+GameplayUIManager: Enhanced with pause state handling
+MenuNavigation: Complete pause/game end/exit integration
+DeckUIManager: Clean separation of deck-only UI
+```
+
+---
+
+## Development Guidelines
+
+### Architecture Principles
+- **Separation of Concerns**: Each component has single responsibility
+- **Event-Driven Communication**: Components communicate via events
+- **Coordinator Pattern**: Managers delegate to specialized components  
+- **Multi-Enum State**: Separate enums for different state aspects
+- **Visual-Data Separation**: CardData separate from visual representation
+- **Strict Turn Flow**: One action per turn with enforced completion
+- **Clean Logging**: Categorized, level-controlled debugging information
+- **State Preservation**: Complete pause/resume capability
+- **Safe Cleanup**: Comprehensive system cleanup for memory leak prevention
+
+### Current Development Workflow
+1. **Start with Special Cards**: Implement PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR effects
+2. **Test in Controlled Environment**: Use strict turn flow for safe testing
+3. **Minimal Console Spam**: Use TakiLogger for organized debugging
+4. **Preserve Architecture**: Maintain clean separation of concerns
+5. **State-Aware Development**: Consider pause/resume in all new features
+
+---
+
+## Success Metrics
+
+### Phase 7 Success Criteria 🎯 CURRENT TARGET
+- ✅ **Plus Card Effect**: Additional action requirement working correctly
+- ✅ **Stop Card Effect**: Turn skipping mechanism implemented
+- ✅ **ChangeDirection Effect**: Direction change with proper messaging
+- ✅ **ChangeColor Effect**: Full color selection integration working
+- ✅ **Turn Flow Integration**: Special cards work within strict turn flow system
+- ✅ **AI Compatibility**: Computer AI handles all basic special cards correctly
+
+### Phase 8 Success Criteria
+- ✅ **PlusTwo Chaining**: Card stacking system working correctly
+- ✅ **Taki Sequences**: Multi-card play with proper validation
+- ✅ **Complex Interactions**: All special card combinations working
+- ✅ **AI Enhancement**: Computer AI strategically uses all special cards
+
+### Overall Project Success  
+- Complete playable TAKI game (Human vs Computer)  
+- All special card types implemented correctly  
+- Intuitive UI with clear visual feedback  
+- Stable gameplay without crashes  
+- Professional pause/resume system
+- Clean, maintainable, well-documented code architecture  
+- Code ready for multiplayer extension  
+- Professional visual presentation with real card images
+- Efficient development workflow with clean debugging
+- Comprehensive game flow management (pause, end, exit)
+
+---
+
+## Current Status Summary
+
+**✅ COMPLETED**:
+- **Phase 1**: Complete foundation (Menu + UI Framework)
+- **Phase 2**: Complete card system (Data + Deck + Turn Management)  
+- **Phase 3**: Complete visual system (Interactive cards + Hand management + Pile visuals)
+- **Phase 4**: Complete strict turn flow system with enhanced button control
+- **Phase 5**: Complete code cleanup and centralized logging system
+- **Phase 6**: Complete game flow enhancement (Pause + Game End + Exit Validation)
+- All 110 cards loading with real scanned images
+- Multi-enum state management working perfectly
+- Bulletproof turn-based gameplay with visual cards
+- Computer AI making strategic decisions with pause/resume support
+- Professional visual card system with adaptive layouts
+- Comprehensive pause/resume system with state preservation
+- Professional game end flow with restart/menu options
+- Safe exit validation with comprehensive cleanup
+- Enhanced UI message routing system
+- Complete manager integration for all game flow
+
+**🎯 CURRENT FOCUS**:
+- **IMMEDIATE**: Basic Special Cards Implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
+- Modify GameManager.HandleSpecialCardEffects() for real effects
+- Update turn flow logic to handle special card requirements
+- Integrate color selection for CHANGECOLOR cards
+- Test all special card effects with AI compatibility
+
+**🚀 UPCOMING PHASES**:
+- Advanced special cards (PLUSTWO, TAKI, SUPERTAKI) implementation
+- Final polish and release preparation
+
+**📋 PRIORITY ORDER**:
+1. **Basic Special Cards Implementation (Current Focus)** 🎯
+2. Advanced special cards (PlusTwo chaining, Taki sequences)
+3. Final polish & release preparation
+
+The architecture is now fully mature with complete game flow management, ready for special card implementation while maintaining all existing functionality including pause/resume, game end handling, and safe exit confirmation.

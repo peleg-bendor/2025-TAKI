@@ -50,6 +50,17 @@ namespace TakiGame {
 		[Tooltip ("Enable production mode (minimal logging)")]
 		public bool productionMode = false;
 
+		[Header ("Game Flow Managers")]
+		[Tooltip ("Manages pause/resume functionality")]
+		public PauseManager pauseManager;
+
+		[Tooltip ("Manages game end scenarios")]
+		public GameEndManager gameEndManager;
+
+		[Tooltip ("Manages exit confirmation")]
+		public ExitValidationManager exitValidationManager;
+
+
 		// ENHANCED: Turn flow control state
 		[Header ("Turn Flow Control")]
 		private bool hasPlayerTakenAction = false;
@@ -172,9 +183,33 @@ namespace TakiGame {
 			if (computerAI != null) {
 				computerAI.gameState = gameState;
 			}
+
+			// Connect pause/game end manager references
+			if (pauseManager != null) {
+				pauseManager.gameManager = this;
+				pauseManager.gameState = gameState;
+				pauseManager.turnManager = turnManager;
+				pauseManager.computerAI = computerAI;
+				pauseManager.gameplayUI = gameplayUI;
+				// pauseManager.menuNavigation will be found automatically
+			}
+
+			if (gameEndManager != null) {
+				gameEndManager.gameManager = this;
+				gameEndManager.gameState = gameState;
+				gameEndManager.gameplayUI = gameplayUI;
+				// gameEndManager.menuNavigation will be found automatically
+			}
+
+			if (exitValidationManager != null) {
+				exitValidationManager.pauseManager = pauseManager;
+				exitValidationManager.gameState = gameState;
+				exitValidationManager.gameManager = this;  // <-- CRITICAL: This line ensures proper cleanup
+			   // exitValidationManager.menuNavigation will be found automatically
+			}
 		}
 
-		/// <summary>
+		/// <summary> 
 		/// Connect events between all systems (happens during game mode initialization)
 		/// </summary>
 		void ConnectEvents () {
@@ -215,7 +250,28 @@ namespace TakiGame {
 				gameplayUI.OnEndTurnClicked += OnEndTurnButtonClicked;
 				gameplayUI.OnColorSelected += OnColorSelectedByPlayer;
 			}
+
+			// Pause Manager events
+			if (pauseManager != null) {
+				pauseManager.OnGamePaused += OnGamePaused;
+				pauseManager.OnGameResumed += OnGameResumed;
+			}
+
+			// Game End Manager events
+			if (gameEndManager != null) {
+				gameEndManager.OnGameEnded += OnGameEndProcessed;
+				gameEndManager.OnGameRestarted += OnGameRestarted;
+				gameEndManager.OnReturnedToMenu += OnReturnedToMenu;
+			}
+
+			// Exit Validation Manager events
+			if (exitValidationManager != null) {
+				exitValidationManager.OnExitValidationShown += OnExitValidationShown;
+				exitValidationManager.OnExitValidationCancelled += OnExitValidationCancelled;
+				exitValidationManager.OnExitConfirmed += OnExitConfirmed;
+			}
 		}
+
 
 		/// <summary>
 		/// Reset all game systems for a new game
@@ -910,7 +966,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// ADDED: Delayed button synchronization method
+		/// Delayed button synchronization method
 		/// </summary>
 		void DelayedButtonSync () {
 			if (gameState != null && gameState.CanPlayerAct () && gameplayUI != null) {
@@ -1040,9 +1096,18 @@ namespace TakiGame {
 		}
 
 		void OnGameWon (PlayerType winner) {
-			if (gameplayUI != null) {
-				gameplayUI.ShowWinnerAnnouncement (winner);
+			TakiLogger.LogSystem ($"GameManager: Game won by {winner}");
+
+			// Process through GameEndManager instead of direct UI
+			if (gameEndManager != null) {
+				gameEndManager.ProcessGameEnd (winner);
+			} else {
+				// Fallback to existing logic if GameEndManager not available
+				if (gameplayUI != null) {
+					gameplayUI.ShowWinnerAnnouncement (winner);
+				}
 			}
+
 			OnGameEnded?.Invoke (winner);
 		}
 
@@ -1167,7 +1232,217 @@ namespace TakiGame {
 				isValid = false;
 			}
 
+			if (pauseManager == null) {
+				TakiLogger.LogWarning ("GameManager: PauseManager not assigned - pause functionality will be disabled", TakiLogger.LogCategory.System);
+			}
+
+			if (gameEndManager == null) {
+				TakiLogger.LogWarning ("GameManager: GameEndManager not assigned - game end functionality will be limited", TakiLogger.LogCategory.System);
+			}
+
+			if (exitValidationManager == null) {
+				TakiLogger.LogWarning ("GameManager: ExitValidationManager not assigned - exit confirmation will be disabled", TakiLogger.LogCategory.System);
+			}
+
 			return isValid;
+		}
+
+		/// <summary>
+		/// Handle game paused event
+		/// </summary>
+		void OnGamePaused () {
+			TakiLogger.LogSystem ("GameManager: Game paused");
+			// Additional pause handling if needed
+		}
+
+		/// <summary>
+		/// Handle game resumed event
+		/// </summary>
+		void OnGameResumed () {
+			TakiLogger.LogSystem ("GameManager: Game resumed");
+
+			// Refresh UI state after resume
+			UpdateAllUI ();
+
+			// Turn flow state is restored by PauseManager - don't interfere!
+			// The exact button states and turn progress should be preserved
+			TakiLogger.LogTurnFlow ("Turn flow state restored by PauseManager - no reset needed");
+		}
+
+		/// <summary>
+		/// Handle game end processed event
+		/// </summary>
+		/// <param name="winner">The winning player</param>
+		void OnGameEndProcessed (PlayerType winner) {
+			TakiLogger.LogSystem ($"GameManager: Game end processed - Winner: {winner}");
+			// Additional game end handling if needed
+		}
+
+		/// <summary>
+		/// Handle game restarted event
+		/// </summary>
+		void OnGameRestarted () {
+			TakiLogger.LogSystem ("GameManager: Game restarted");
+			// Game restart already handled by StartNewSinglePlayerGame()
+		}
+
+		/// <summary>
+		/// Handle returned to menu event
+		/// </summary>
+		void OnReturnedToMenu () {
+			TakiLogger.LogSystem ("GameManager: Returned to main menu");
+			// Cleanup handled by GameEndManager
+		}
+
+		/// <summary>
+		/// Handle exit validation shown event
+		/// </summary>
+		void OnExitValidationShown () {
+			TakiLogger.LogSystem ("GameManager: Exit validation shown");
+			// Game automatically paused by ExitValidationManager
+		}
+
+		/// <summary>
+		/// Handle exit validation cancelled event
+		/// </summary>
+		void OnExitValidationCancelled () {
+			TakiLogger.LogSystem ("GameManager: Exit validation cancelled");
+			// Game automatically resumed by ExitValidationManager
+		}
+
+		/// <summary>
+		/// Handle exit confirmed event
+		/// </summary>
+		void OnExitConfirmed () {
+			TakiLogger.LogSystem ("GameManager: Exit confirmed");
+			// Application will exit through MenuNavigation
+		}
+
+		// ===== TURN FLOW STATE PRESERVATION METHODS =====
+
+		/// <summary>
+		/// Capture current turn flow state for pause preservation
+		/// </summary>
+		/// <returns>Turn flow state snapshot</returns>
+		public PauseManager.GameManagerTurnFlowSnapshot CaptureTurnFlowState () {
+			var snapshot = new PauseManager.GameManagerTurnFlowSnapshot {
+				hasPlayerTakenAction = this.hasPlayerTakenAction,
+				canPlayerDraw = this.canPlayerDraw,
+				canPlayerPlay = this.canPlayerPlay,
+				canPlayerEndTurn = this.canPlayerEndTurn
+			};
+
+			TakiLogger.LogTurnFlow ($"Turn flow state captured: Action={snapshot.hasPlayerTakenAction}, Play={snapshot.canPlayerPlay}, Draw={snapshot.canPlayerDraw}, EndTurn={snapshot.canPlayerEndTurn}");
+			return snapshot;
+		}
+
+		/// <summary> 
+		/// Restore turn flow state from pause snapshot
+		/// </summary>
+		/// <param name="snapshot">Previously captured turn flow state</param>
+		public void RestoreTurnFlowState (PauseManager.GameManagerTurnFlowSnapshot snapshot) {
+			if (snapshot == null) {
+				TakiLogger.LogError ("Cannot restore turn flow state: snapshot is null", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			TakiLogger.LogTurnFlow ("=== RESTORING TURN FLOW STATE FROM PAUSE ===");
+			TakiLogger.LogTurnFlow ($"Restoring: Action={snapshot.hasPlayerTakenAction}, Play={snapshot.canPlayerPlay}, Draw={snapshot.canPlayerDraw}, EndTurn={snapshot.canPlayerEndTurn}");
+
+			// Restore exact state
+			this.hasPlayerTakenAction = snapshot.hasPlayerTakenAction;
+			this.canPlayerDraw = snapshot.canPlayerDraw;
+			this.canPlayerPlay = snapshot.canPlayerPlay;
+			this.canPlayerEndTurn = snapshot.canPlayerEndTurn;
+
+			// Update UI to reflect restored button states
+			if (gameplayUI != null && gameState != null && gameState.IsPlayerTurn) {
+				gameplayUI.UpdateStrictButtonStates (
+					snapshot.canPlayerPlay,
+					snapshot.canPlayerDraw,
+					snapshot.canPlayerEndTurn
+				);
+
+				TakiLogger.LogTurnFlow ("Button states restored to match captured state");
+			}
+
+			TakiLogger.LogTurnFlow ("Turn flow state fully restored");
+		}
+
+		// ===== PUBLIC METHODS FOR EXTERNAL COORDINATION =====
+
+		/// <summary>
+		/// Request pause game - delegates to PauseManager
+		/// </summary>
+		public void RequestPauseGame () {
+			TakiLogger.LogSystem ("GameManager: Pause game requested");
+			if (pauseManager != null) {
+				pauseManager.PauseGame ();
+			} else {
+				TakiLogger.LogError ("Cannot pause: PauseManager not assigned", TakiLogger.LogCategory.System);
+			}
+		}
+
+		/// <summary>
+		/// Request resume game - delegates to PauseManager
+		/// </summary>
+		public void RequestResumeGame () {
+			TakiLogger.LogSystem ("GameManager: Resume game requested");
+			if (pauseManager != null) {
+				pauseManager.ResumeGame ();
+			} else {
+				TakiLogger.LogError ("Cannot resume: PauseManager not assigned", TakiLogger.LogCategory.System);
+			}
+		}
+
+		/// <summary>
+		/// Request restart game - delegates to GameEndManager (for game-end scenarios)
+		/// </summary>
+		public void RequestRestartGame () {
+			TakiLogger.LogSystem ("GameManager: Restart game requested FROM GAME END");
+			if (gameEndManager != null) {
+				gameEndManager.OnRestartButtonClicked ();
+			} else {
+				TakiLogger.LogError ("Cannot restart: GameEndManager not assigned", TakiLogger.LogCategory.System);
+			}
+		}
+
+		/// <summary> 
+		/// Request restart game from pause - bypasses GameEndManager
+		/// This is different from RequestRestartGame() which expects a game-end state
+		/// </summary>
+		public void RequestRestartGameFromPause () {
+			TakiLogger.LogSystem ("GameManager: Restart game requested FROM PAUSE");
+
+			// For pause restarts, we don't need GameEndManager
+			// Just start a fresh game directly
+			StartNewSinglePlayerGame ();
+
+			TakiLogger.LogSystem ("GameManager: New game started from pause restart");
+		}
+
+		/// <summary>
+		/// Request return to menu - delegates to GameEndManager
+		/// </summary>
+		public void RequestReturnToMenu () {
+			TakiLogger.LogSystem ("GameManager: Return to menu requested");
+			if (gameEndManager != null) {
+				gameEndManager.OnGoHomeButtonClicked ();
+			} else {
+				TakiLogger.LogError ("Cannot return to menu: GameEndManager not assigned", TakiLogger.LogCategory.System);
+			}
+		}
+
+		/// <summary>
+		/// Request exit confirmation - delegates to ExitValidationManager
+		/// </summary>
+		public void RequestExitConfirmation () {
+			TakiLogger.LogSystem ("GameManager: Exit confirmation requested");
+			if (exitValidationManager != null) {
+				exitValidationManager.ShowExitConfirmation ();
+			} else {
+				TakiLogger.LogError ("Cannot show exit confirmation: ExitValidationManager not assigned", TakiLogger.LogCategory.System);
+			}
 		}
 
 		// ===== DEBUG METHODS =====
@@ -1258,10 +1533,15 @@ namespace TakiGame {
 		public bool AreComponentsValidated => areComponentsValidated;
 		public bool AreSystemsInitialized => areSystemsInitialized;
 
-		// ENHANCED: Turn flow properties
+		// Turn flow properties
 		public bool HasPlayerTakenAction => hasPlayerTakenAction;
 		public bool CanPlayerDrawCard => canPlayerDraw;
 		public bool CanPlayerPlayCard => canPlayerPlay;
 		public bool CanPlayerEndTurn => canPlayerEndTurn;
+
+		// Pause/Game End Properties 
+		public bool IsGamePaused => pauseManager != null && pauseManager.IsGamePaused;
+		public bool IsGameEndProcessed => gameEndManager != null && gameEndManager.IsGameEndProcessed;
+		public bool IsExitValidationActive => exitValidationManager != null && exitValidationManager.IsExitValidationActive;
 	}
 }

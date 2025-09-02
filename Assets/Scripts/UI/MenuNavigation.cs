@@ -31,6 +31,10 @@ namespace TakiGame {
 		[Tooltip ("Reference to GameManager for starting single player games")]
 		[SerializeField] private GameManager gameManager;
 
+		[Header ("Pause and Game End Screens")]
+		[SerializeField] private GameObject Screen_Paused;
+		[SerializeField] private GameObject Screen_GameEnd;
+
 		[Header ("Variables")]
 		[SerializeField] private float loadingScreenDuration = 2f;
 
@@ -49,6 +53,44 @@ namespace TakiGame {
 					Debug.LogWarning ("MenuNavigation: GameManager not found!");
 				}
 			}
+
+			// Find screen references if not assigned
+			FindScreenReferencesIfMissing ();
+		}
+
+		/// <summary>
+		/// Find screen references if not assigned in inspector
+		/// </summary>
+		void FindScreenReferencesIfMissing () {
+			GameObject canvas = GameObject.Find ("Canvas");
+			if (canvas == null) {
+				Debug.LogError ("MenuNavigation: Canvas not found!");
+				return;
+			}
+
+			// Find Screen_Paused if not assigned
+			if (Screen_Paused == null) {
+				Transform pausedTransform = canvas.transform.Find ("Screen_Paused");
+				if (pausedTransform != null) {
+					Screen_Paused = pausedTransform.gameObject;
+					Debug.Log ("MenuNavigation: Screen_Paused found automatically");
+				} else {
+					Debug.LogWarning ("MenuNavigation: Screen_Paused not found!");
+				}
+			}
+
+			// Find Screen_GameEnd if not assigned
+			if (Screen_GameEnd == null) {
+				Transform gameEndTransform = canvas.transform.Find ("Screen_GameEnd");
+				if (gameEndTransform != null) {
+					Screen_GameEnd = gameEndTransform.gameObject;
+					Debug.Log ("MenuNavigation: Screen_GameEnd found automatically");
+				} else {
+					Debug.LogWarning ("MenuNavigation: Screen_GameEnd not found!");
+				}
+			}
+
+			Debug.Log ("MenuNavigation: Screen references resolved");
 		}
 
 		/// <summary>
@@ -187,10 +229,6 @@ namespace TakiGame {
 			SetScreen (MultiPlayerScreen);
 		}
 
-		public void Btn_ExitLogic () {
-			SetScreen (ExitValidationScreen);
-		}
-
 		#endregion
 
 		#region Game Start Logic
@@ -211,16 +249,287 @@ namespace TakiGame {
 
 		#endregion
 
-		#region Exit Validation Logic
+		#region Pause and Game End Button Logic
 
-		public void Btn_ExitConfirmLogic () {
-			// Start graceful exit sequence with visual feedback
-			StartCoroutine (ShowExitingScreenAndQuit ());
+		/// <summary>
+		/// Handle Btn_Pause click - pause current game
+		/// </summary>
+		public void Btn_PauseLogic () {
+			Debug.Log ("MenuNavigation: Pause button clicked");
+
+			if (gameManager != null) {
+				gameManager.RequestPauseGame ();
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot pause - GameManager not assigned!");
+			}
+
+			// Show pause screen as OVERLAY (don't hide the game screen)
+			ShowPauseScreenOverlay ();
 		}
 
+		/// <summary>
+		/// Show pause screen as overlay without hiding game screen
+		/// </summary>
+		private void ShowPauseScreenOverlay () {
+			if (Screen_Paused == null) {
+				Debug.LogError ("MenuNavigation: Screen_Paused not assigned!");
+				return;
+			}
+
+			// Simply activate the pause screen - don't touch the navigation stack
+			// This keeps Screen_SinglePlayerGame visible underneath
+			Screen_Paused.SetActive (true);
+
+			Debug.Log ("MenuNavigation: Pause screen shown as overlay");
+		}
+
+		/// <summary>
+		/// Handle Btn_Continue click - resume paused game and hide overlay
+		/// </summary>
+		public void Btn_ContinueLogic () {
+			Debug.Log ("MenuNavigation: Continue button clicked");
+
+			if (gameManager != null) {
+				gameManager.RequestResumeGame ();
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot resume - GameManager not assigned!");
+			}
+
+			// Hide pause screen overlay
+			HidePauseScreenOverlay ();
+		}
+
+		/// <summary>
+		/// Hide pause screen overlay
+		/// </summary>
+		private void HidePauseScreenOverlay () {
+			if (Screen_Paused != null) {
+				Screen_Paused.SetActive (false);
+				Debug.Log ("MenuNavigation: Pause screen overlay hidden");
+			}
+		}
+
+		/// <summary>
+		/// Handle Btn_Restart click - restart current game - ENHANCED with AI state verification
+		/// </summary>
+		public void Btn_RestartLogic () {
+			Debug.Log ("MenuNavigation: Restart button clicked FROM PAUSE");
+
+			// Hide pause screen first
+			HidePauseScreenOverlay ();
+
+			if (gameManager != null) {
+				// ENHANCED: Pre-emptively fix AI state before restart
+				Debug.Log ("MenuNavigation: Pre-emptive AI state fix before restart...");
+
+				if (gameManager.computerAI != null && gameManager.computerAI.IsAIPaused) {
+					Debug.Log ("MenuNavigation: AI is paused - applying pre-emptive fix");
+					gameManager.computerAI.ForceCompleteReset ();
+				}
+
+				// Now restart 
+				RestartGameFromPause ();
+
+				// Verify after restart
+				StartCoroutine (VerifyAIStateAfterRestart ());
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot restart - GameManager not assigned!");
+			}
+		}
+
+		/// <summary>
+		/// Restart game specifically from pause state (not from game end)
+		/// </summary> 
+		private void RestartGameFromPause () {
+			Debug.Log ("MenuNavigation: Restarting game from pause state");
+
+			// Directly start a new single player game
+			// This bypasses the GameEndManager which expects a game-end state
+			if (gameManager != null) {
+				gameManager.StartNewSinglePlayerGame ();
+				Debug.Log ("MenuNavigation: New game started from pause restart");
+			}
+		}
+
+		/// <summary>
+		/// NEW: Verify AI state after restart to catch any issues
+		/// </summary>
+		private System.Collections.IEnumerator VerifyAIStateAfterRestart () {
+			// Wait a moment for restart to complete
+			yield return new WaitForSeconds (0.5f);
+
+			Debug.Log ("MenuNavigation: Verifying AI state after restart...");
+
+			if (gameManager != null && gameManager.computerAI != null) {
+				bool aiIsPaused = gameManager.computerAI.IsAIPaused;
+				bool gameIsActive = gameManager.IsGameActive;
+
+				Debug.Log ($"MenuNavigation: Post-restart verification - AI Paused: {aiIsPaused}, Game Active: {gameIsActive}");
+
+				if (aiIsPaused && gameIsActive) {
+					Debug.LogError ("MenuNavigation: PROBLEM DETECTED - AI still paused after restart!");
+
+					// IMPROVED Emergency fix - try multiple approaches
+					Debug.Log ("MenuNavigation: Applying comprehensive emergency AI fix...");
+
+					// Approach 1: Force complete reset
+					gameManager.computerAI.ForceCompleteReset ();
+
+					// Wait a moment
+					yield return new WaitForSeconds (0.1f);
+
+					// Check if that worked
+					if (gameManager.computerAI.IsAIPaused) {
+						Debug.LogError ("MenuNavigation: Force reset failed - trying additional fixes...");
+
+						// Approach 2: Try resume then clear
+						gameManager.computerAI.ResumeAI ();
+						yield return new WaitForSeconds (0.1f);
+						gameManager.computerAI.ClearHand ();
+
+						// Approach 3: Final check and manual field reset if needed
+						if (gameManager.computerAI.IsAIPaused) {
+							Debug.LogError ("MenuNavigation: All fixes failed - AI may be permanently stuck");
+							Debug.LogError ("MenuNavigation: Please restart the game completely");
+						} else {
+							Debug.Log ("MenuNavigation: AI unstuck with approach 2");
+						}
+					} else {
+						Debug.Log ("MenuNavigation: AI unstuck with force reset");
+					}
+
+				} else {
+					Debug.Log ("MenuNavigation: AI state verification passed - restart successful");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Handle Btn_GoHome click from pause screen - return to main menu
+		/// </summary>
+		public void Btn_GoHomeFromPauseLogic () {
+			Debug.Log ("MenuNavigation: Go Home button clicked FROM PAUSE");
+
+			// Hide pause screen first
+			HidePauseScreenOverlay ();
+
+			// Use loading screen transition to main menu
+			StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
+		}
+
+		/// <summary>
+		/// Enhanced Btn_GoHome logic that works from both pause and game end
+		/// </summary>
+		public void Btn_GoHomeLogic () {
+			Debug.Log ("MenuNavigation: Go Home button clicked");
+
+			// Check if we're coming from pause screen
+			if (Screen_Paused != null && Screen_Paused.activeSelf) {
+				Btn_GoHomeFromPauseLogic ();
+			} else {
+				// This is from game end screen - use existing logic
+				StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
+			}
+		}
+
+		/// <summary>
+		/// Go to main menu with loading screen transition - COROUTINE VERSION
+		/// </summary>
+		private IEnumerator GoToMainMenuWithLoadingCoroutine () {
+			Debug.Log ("MenuNavigation: Transitioning to main menu with loading screen");
+			yield return StartCoroutine (ShowScreenTemporarily (LoadingScreen, MainMenuScreen, clearStack: true));
+		}
+
+		/// <summary>
+		/// Go to main menu with loading screen transition - PUBLIC METHOD for external use
+		/// </summary>
+		public void GoToMainMenuWithLoading () {
+			Debug.Log ("MenuNavigation: Go to main menu with loading screen requested");
+			StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
+		}
+
+		#endregion
+
+		#region Enhanced Exit Logic
+
+		/// <summary>
+		/// Handle Btn_Exit click - show exit validation instead of direct exit
+		/// </summary>
+		public void Btn_ExitLogic () {
+			Debug.Log ("MenuNavigation: Exit button clicked - showing validation");
+
+			// Request exit confirmation through GameManager
+			if (gameManager != null) {
+				gameManager.RequestExitConfirmation ();
+			} else {
+				Debug.LogError ("MenuNavigation: Cannot show exit confirmation - GameManager not assigned!");
+				// Fallback to direct validation screen
+				SetScreen (ExitValidationScreen);
+			}
+		}
+
+		/// <summary>
+		/// Show exit validation screen as overlay (similar to pause)
+		/// </summary>
+		private void ShowExitValidationOverlay () {
+			if (ExitValidationScreen == null) {
+				Debug.LogError ("MenuNavigation: ExitValidationScreen not assigned!");
+				return;
+			}
+
+			// Show as overlay, keeping the game screen visible underneath
+			ExitValidationScreen.SetActive (true);
+			Debug.Log ("MenuNavigation: Exit validation screen shown as overlay");
+		}
+
+		/// <summary>
+		/// Handle Btn_ExitCancel click - treat as continue/resume
+		/// </summary>
 		public void Btn_ExitCancelLogic () {
-			GoBack ();
+			Debug.Log ("MenuNavigation: Exit cancelled - treating as continue");
+
+			// Let ExitValidationManager handle the cancellation logic
+			if (gameManager != null && gameManager.exitValidationManager != null) {
+				gameManager.exitValidationManager.CancelExit ();
+			} else {
+				Debug.LogWarning ("MenuNavigation: ExitValidationManager not available - using fallback");
+
+				// Fallback: hide exit validation screen
+				if (ExitValidationScreen != null) {
+					ExitValidationScreen.SetActive (false);
+				}
+
+				// Try to resume game 
+				if (gameManager != null) {
+					gameManager.RequestResumeGame ();
+				}
+			}
 		}
+
+		/// <summary>
+		/// Handle Btn_ExitConfirm click - confirm application exit
+		/// </summary>
+		public void Btn_ExitConfirmLogic () {
+			Debug.Log ("MenuNavigation: Exit confirmed - application will close");
+
+			// Let ExitValidationManager handle the confirmation
+			if (gameManager != null && gameManager.exitValidationManager != null) {
+				gameManager.exitValidationManager.ConfirmExit ();
+			} else {
+				Debug.LogWarning ("MenuNavigation: ExitValidationManager not available - using direct exit");
+				// Existing exit logic will run
+				StartCoroutine (ShowExitingScreenAndQuit ());
+			}
+		}
+
+		public void StartExitSequence () {
+			Debug.Log ("MenuNavigation: Starting exit sequence");
+			StartCoroutine (ShowExitingScreenAndQuit ());
+		} 
+
+		#endregion
+
+		#region Exit Application Logic
 
 		/// <summary>
 		/// Shows the exiting screen temporarily, then quits the application
@@ -242,9 +551,9 @@ namespace TakiGame {
 			UnityEditor.EditorApplication.isPlaying = false;
 			Debug.Log ("MenuNavigation: Exiting application (Editor mode)");
 #else
-				// Close the application in builds
-				Application.Quit();
-				Debug.Log("MenuNavigation: Exiting application");
+            // Close the application in builds
+            Application.Quit();
+            Debug.Log("MenuNavigation: Exiting application");
 #endif
 		}
 

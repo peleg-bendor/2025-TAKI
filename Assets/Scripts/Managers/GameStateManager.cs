@@ -144,8 +144,13 @@ namespace TakiGame {
 		/// </summary>
 		/// <returns>True if player can take actions</returns>
 		public bool CanPlayerAct () {
-			return gameStatus == GameStatus.Active &&
-				   (turnState == TurnState.PlayerTurn || interactionState == InteractionState.ColorSelection);
+			// Player can't act if game is paused or game over
+			if (gameStatus != GameStatus.Active) {
+				return false;
+			}
+
+			return turnState == TurnState.PlayerTurn ||
+				   interactionState == InteractionState.ColorSelection;
 		}
 
 		/// <summary>
@@ -153,7 +158,12 @@ namespace TakiGame {
 		/// </summary>
 		/// <returns>True if computer can take actions</returns>
 		public bool CanComputerAct () {
-			return gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
+			// Computer can't act if game is paused or game over
+			if (gameStatus != GameStatus.Active) {
+				return false;
+			}
+
+			return turnState == TurnState.ComputerTurn;
 		}
 
 		/// <summary>
@@ -187,9 +197,15 @@ namespace TakiGame {
 		/// </summary>
 		/// <returns>Description of current game state</returns>
 		public string GetStateDescription () {
-			// If game is not active, show that first
-			if (gameStatus != GameStatus.Active) {
-				return gameStatus == GameStatus.GameOver ? "Game Over" : "Game Paused";
+			// Check game status first
+			switch (gameStatus) {
+				case GameStatus.Paused:
+					return "Game Paused";
+				case GameStatus.GameOver:
+					return "Game Over";
+				case GameStatus.Active:
+					// Continue to check other states
+					break;
 			}
 
 			// Handle special interactions
@@ -231,20 +247,75 @@ namespace TakiGame {
 					return turnState.ToString ();
 			}
 		}
-		
+
+		/// <summary>
+		/// Pause the game - preserves all state for resumption
+		/// </summary>
+		public void PauseGame () {
+			if (gameStatus == GameStatus.Paused) {
+				TakiLogger.LogWarning ("Game is already paused", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
+			GameStatus previousStatus = gameStatus;
+			ChangeGameStatus (GameStatus.Paused);
+
+			TakiLogger.LogGameState ($"Game paused from status: {previousStatus}");
+		}
+
+		/// <summary>
+		/// Resume the game - restore to active state
+		/// </summary>
+		public void ResumeGame () {
+			if (gameStatus != GameStatus.Paused) {
+				TakiLogger.LogWarning ($"Cannot resume game - current status: {gameStatus}", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
+			ChangeGameStatus (GameStatus.Active);
+			TakiLogger.LogGameState ("Game resumed to active state");
+		}
+
+		/// <summary>
+		/// Check if game can be paused in current state
+		/// </summary>
+		/// <returns>True if game can be paused</returns>
+		public bool CanGameBePaused () {
+			// Can pause if game is active and not during critical interactions
+			return gameStatus == GameStatus.Active &&
+				   interactionState != InteractionState.ColorSelection;
+		}
+
+		/// <summary>
+		/// Check if game can be resumed from current state
+		/// </summary>
+		/// <returns>True if game can be resumed</returns>
+		public bool CanGameBeResumed () {
+			return gameStatus == GameStatus.Paused;
+		}
+
 		// Properties for external access using new architecture
 		public bool IsGameActive => gameStatus == GameStatus.Active;
 		public bool IsPlayerTurn => turnState == TurnState.PlayerTurn;
 		public bool IsComputerTurn => turnState == TurnState.ComputerTurn;
 		public bool IsGameOver => gameStatus == GameStatus.GameOver;
-		public bool IsGamePaused => gameStatus == GameStatus.Paused;
 		public bool IsColorSelectionActive => interactionState == InteractionState.ColorSelection;
 		public bool IsTakiSequenceActive => interactionState == InteractionState.TakiSequence;
 		public bool IsPlusTwoChainActive => interactionState == InteractionState.PlusTwoChain;
 		public bool IsNormalGameplay => interactionState == InteractionState.Normal;
 
-		// Combined state checks
+		// Enhanced state properties
+		public bool IsGamePaused => gameStatus == GameStatus.Paused;
+		public bool CanPause => CanGameBePaused ();
+		public bool CanResume => CanGameBeResumed ();
+
+		// Combined state checks 
 		public bool IsPlayerTurnNormal => IsPlayerTurn && IsNormalGameplay;
 		public bool IsComputerTurnNormal => IsComputerTurn && IsNormalGameplay;
+
+		// Enhanced combined state checks
+		public bool IsActivePlayerTurn => gameStatus == GameStatus.Active && turnState == TurnState.PlayerTurn;
+		public bool IsActiveComputerTurn => gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
+		public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionState == InteractionState.Normal;
 	}
 }

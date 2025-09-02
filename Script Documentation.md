@@ -2,8 +2,8 @@
 
 ## 📋 **Document Overview**
 **Purpose**: Master reference for all scripts in the TAKI game project  
-**Total Scripts**: 23 core scripts + utilities  
-**Last Updated**: Based on Milestone 7 (Strict Turn Flow System) completion  
+**Total Scripts**: 27 core scripts + utilities  
+**Last Updated**: Based on Phase 6 (Pause System & Game Flow Enhancement) completion  
 **Architecture**: Single Responsibility Pattern with Event-Driven Communication
 
 ---
@@ -14,6 +14,9 @@
 - **Adding New Card Effects**: `GameManager.cs`, `CardData.cs`, `GameStateManager.cs`
 - **UI Modifications**: `GameplayUIManager.cs`, `DeckUIManager.cs`, `MenuNavigation.cs`
 - **Game Flow Changes**: `GameManager.cs`, `TurnManager.cs`, `GameStateManager.cs`
+- **Pause/Resume Logic**: `PauseManager.cs`, `GameManager.cs`
+- **Game End Handling**: `GameEndManager.cs`, `GameManager.cs`
+- **Exit Confirmation**: `ExitValidationManager.cs`, `MenuNavigation.cs`
 - **AI Improvements**: `BasicComputerAI.cs`
 - **Visual Card System**: `CardController.cs`, `HandManager.cs`, `PileManager.cs`
 - **Debugging Issues**: `TakiGameDiagnostics.cs`
@@ -24,6 +27,9 @@ GameManager (Coordinator)
 ├── DeckManager → CardDataLoader, Deck, DeckUIManager, GameSetupManager
 ├── GameStateManager → TurnManager, BasicComputerAI
 ├── GameplayUIManager → ColorSelection, PlayerActions
+├── PauseManager → GameStateManager, TurnManager, BasicComputerAI, GameplayUIManager
+├── GameEndManager → GameStateManager, GameplayUIManager, MenuNavigation
+├── ExitValidationManager → PauseManager, GameStateManager, MenuNavigation
 ├── HandManager (Player) ←→ CardController (Individual Cards)
 ├── HandManager (Computer) ←→ CardController (Individual Cards)
 └── PileManager → DeckUIManager
@@ -34,15 +40,16 @@ GameManager (Coordinator)
 # 🏗️ **Core Architecture Scripts**
 
 ## **GameManager.cs** 🎯 **CENTRAL HUB**
-**Purpose**: Main game coordinator with strict turn flow system  
+**Purpose**: Main game coordinator with strict turn flow system and manager integration  
 **Responsibility**: Orchestrates all gameplay systems and enforces turn rules  
-**Status**: ✅ Enhanced with strict turn flow control
+**Status**: ✅ Enhanced with pause/game end/exit validation coordination
 
 ### **Key Features**:
 - **Strict Turn Flow**: Player must take ONE action (PLAY/DRAW) then END TURN
 - **Bulletproof Button Control**: Immediate disable on action, prevent multiple clicks
 - **System Integration**: Connects all major components via events
 - **Game State Management**: Handles setup, play, and end conditions
+- **Manager Coordination**: Integrates with PauseManager, GameEndManager, ExitValidationManager
 
 ### **Critical Methods**:
 ```csharp
@@ -60,6 +67,17 @@ PlayCardWithStrictFlow(card) // Safe card playing with validation
 DrawCardWithStrictFlow() // Safe card drawing with rules
 EndPlayerTurnWithStrictFlow() // Safe turn completion
 
+// Manager Integration
+RequestPauseGame() // Delegate to PauseManager
+RequestResumeGame() // Delegate to PauseManager
+RequestRestartGame() // Delegate to GameEndManager
+RequestReturnToMenu() // Delegate to GameEndManager
+RequestExitConfirmation() // Delegate to ExitValidationManager
+
+// Turn Flow State Preservation
+CaptureTurnFlowState() // For pause preservation
+RestoreTurnFlowState() // From pause restoration
+
 // Game Integration
 UpdateAllUI() // Comprehensive UI updates
 RefreshPlayerHandStates() // Visual card state updates
@@ -69,6 +87,7 @@ LogCardEffectRules(card) // Special card logging system
 ### **Dependencies**:
 - **Direct**: `GameStateManager`, `TurnManager`, `BasicComputerAI`, `GameplayUIManager`, `DeckManager`
 - **Visual**: `HandManager` (Player), `HandManager` (Computer)
+- **Managers**: `PauseManager`, `GameEndManager`, `ExitValidationManager`
 - **Events**: All major components via event system
 
 ### **Integration Points**:
@@ -79,6 +98,7 @@ OnGameStarted, OnGameEnded, OnTurnStarted, OnCardPlayed
 // Events TO GameManager  
 OnInitialGameSetup, OnCardDrawn, OnTurnStateChanged, OnAICardSelected
 OnPlayCardClicked, OnDrawCardClicked, OnEndTurnClicked
+OnGamePaused, OnGameResumed, OnGameEndProcessed, OnExitConfirmed
 ```
 
 ### **Turn Flow State Variables**:
@@ -92,8 +112,8 @@ private bool canPlayerEndTurn = false;
 ---
 
 ## **GameStateManager.cs** 🎮 **GAME RULES ENGINE**
-**Purpose**: Manages game state using multi-enum architecture  
-**Responsibility**: Rule validation, state transitions, color management  
+**Purpose**: Manages game state using multi-enum architecture with pause/resume support  
+**Responsibility**: Rule validation, state transitions, color management, pause handling  
 
 ### **Multi-Enum Architecture**:
 ```csharp
@@ -104,62 +124,246 @@ public CardColor activeColor;      // Current active color
 public TurnDirection turnDirection; // Play direction
 ```
 
-### **Key Methods**:
+### **Enhanced Methods**:
 ```csharp
 // State Management
 ChangeTurnState(newState) // Switch whose turn it is
 ChangeInteractionState(newState) // Handle special interactions
+ChangeGameStatus(newState) // Handle game status changes
 ChangeActiveColor(newColor) // Update active color
 UpdateActiveColorFromCard(playedCard) // Auto-update from played card
 
+// Pause System Integration
+PauseGame() // Preserve state and set to paused
+ResumeGame() // Restore to active state
+CanGameBePaused() // Check if pause is safe
+CanGameBeResumed() // Check if resume is possible
+
 // Rule Validation
 IsValidMove(cardToPlay, topDiscardCard) // Core game rule checking
-CanPlayerAct() // Check if player can take actions
-CanComputerAct() // Check if computer can take actions
+CanPlayerAct() // Check if player can take actions (considers pause)
+CanComputerAct() // Check if computer can take actions (considers pause)
 
 // Game Control
 DeclareWinner(winner) // End game with winner
 ResetGameState() // Clean slate for new game
 ```
 
+### **Enhanced Properties**:
+```csharp
+// Pause State Properties
+public bool IsGamePaused => gameStatus == GameStatus.Paused;
+public bool CanPause => CanGameBePaused();
+public bool CanResume => CanGameBeResumed();
+
+// Combined State Checks
+public bool IsActivePlayerTurn => gameStatus == GameStatus.Active && turnState == TurnState.PlayerTurn;
+public bool IsActiveComputerTurn => gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
+public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionState == InteractionState.Normal;
+```
+
 ### **Dependencies**: Standalone (other systems depend on this)
-### **Used By**: `GameManager`, `TurnManager`, `BasicComputerAI`, `GameplayUIManager`
+### **Used By**: `GameManager`, `TurnManager`, `BasicComputerAI`, `GameplayUIManager`, `PauseManager`, `GameEndManager`
 
 ---
 
 ## **TurnManager.cs** 🔄 **TURN ORCHESTRATOR**  
-**Purpose**: Manages turn switching and timing  
-**Responsibility**: Player transitions, turn timing, computer turn scheduling  
+**Purpose**: Manages turn switching and timing with pause awareness  
+**Responsibility**: Player transitions, turn timing, computer turn scheduling, pause handling  
 
-### **Key Features**:
+### **Enhanced Features**:
 - **Turn Switching**: Clean player-to-player transitions
 - **Computer Turn Delay**: Natural AI thinking time
 - **Turn Timer**: Optional player time limits
 - **Turn Skip Logic**: For Stop cards
+- **Pause Awareness**: Proper pause/resume handling
 
-### **Key Methods**:
+### **Enhanced Methods**:
 ```csharp
-// Turn Control
-StartTurn(player) // Begin specific player's turn
+// Turn Control with Pause Awareness
+StartTurn(player) // Begin specific player's turn (checks pause state)
 EndTurn() // End current turn and switch
-SwitchToNextPlayer() // Alternate between players
+SwitchToNextPlayer() // Alternate between players (pause aware)
 SkipTurn() // Skip current player (Stop card effect)
 ForceTurnTo(player) // Force turn to specific player
 
+// Pause System Integration
+PauseTurns() // Preserve state for accurate resumption
+ResumeTurns() // Restore to exact previous state
+ForceCancelComputerOperations() // Emergency AI cleanup
+CanBeSafelyPaused() // Safety check for pause timing
+
 // Turn Management
 InitializeTurns(firstPlayer) // Start turn system
-PauseTurns() // Pause turn system
-ResumeTurns() // Resume after pause
 ResetTurns() // Clean slate
+AreTurnsActive() // Check if someone has active turn
 
 // Turn Timing
-HandleTurnTiming() // Process timers and delays
+HandleTurnTiming() // Process timers and delays (pause aware)
 StartTurnTimer() // Begin player time limit
 ScheduleComputerTurn() // Delay computer action
 ```
 
+### **Pause State Data**:
+```csharp
+[System.Serializable]
+public class TurnStateData {
+    public PlayerType currentPlayer;
+    public float turnTimeRemaining;
+    public bool isTurnTimerActive;
+    public bool isComputerTurnScheduled;
+    public float computerTurnStartTime;
+}
+```
+
 ### **Dependencies**: `GameStateManager`
 ### **Events**: `OnTurnChanged`, `OnTurnTimeOut`, `OnComputerTurnReady`
+
+---
+
+# 🎮 **Game Flow Managers** (NEW)
+
+## **PauseManager.cs** ⏸️ **PAUSE SYSTEM COORDINATOR** (NEW)
+**Purpose**: Handles ALL pause-related functionality following Single Responsibility Principle  
+**Responsibility**: Pause/resume game state coordination, system state preservation and restoration
+
+### **Key Features**:
+- **Comprehensive State Preservation**: Captures exact game state during pause
+- **System Coordination**: Pauses/resumes all game systems safely
+- **Turn Flow Integration**: Preserves strict turn flow state
+- **Exit Validation Support**: Handles pause for exit confirmation
+
+### **Core Methods**:
+```csharp
+// Main Pause/Resume API
+PauseGame() // Main pause entry point - preserves all systems
+ResumeGame() // Main resume entry point - restores all systems
+PauseForExitValidation() // Pause triggered by exit validation
+CancelExitValidation() // Resume after exit cancellation
+
+// State Management
+CaptureGameState() // Comprehensive state snapshot
+RestoreGameState() // Restore from snapshot
+PauseAllSystems() // Safely pause all game systems
+RestoreAllSystems() // Restore all systems to pre-pause state
+
+// Integration
+FindDependenciesIfMissing() // Auto-discovery of required components
+```
+
+### **State Preservation**:
+```csharp
+// GameStateSnapshot - Complete game state preservation
+private class GameStateSnapshot {
+    public TurnState turnState;
+    public InteractionState interactionState;
+    public GameStatus gameStatus;
+    public CardColor activeColor;
+    public TurnDirection turnDirection;
+    public bool isComputerTurnActive;
+    public bool isComputerTurnPending;
+    public PlayerType currentPlayer;
+}
+
+// GameManagerTurnFlowSnapshot - Turn flow state preservation
+public class GameManagerTurnFlowSnapshot {
+    public bool hasPlayerTakenAction;
+    public bool canPlayerDraw;
+    public bool canPlayerPlay;
+    public bool canPlayerEndTurn;
+}
+```
+
+### **Dependencies**: `GameManager`, `GameStateManager`, `TurnManager`, `BasicComputerAI`, `GameplayUIManager`
+### **Events**: `OnGamePaused`, `OnGameResumed`, `OnPauseStateChanged`
+
+---
+
+## **GameEndManager.cs** 🏁 **GAME END COORDINATOR** (NEW)
+**Purpose**: Handles ALL game end scenarios following Single Responsibility Principle  
+**Responsibility**: Win condition detection, game over screen management, post-game actions
+
+### **Key Features**:
+- **Professional Game End Flow**: Winner announcement with smooth transitions
+- **Multiple End Paths**: Restart game or return to main menu
+- **Screen Management**: Game end screen with proper UI flow
+- **Clean Transitions**: Loading screen integration for menu navigation
+
+### **Core Methods**:
+```csharp
+// Main Game End API
+ProcessGameEnd(winner) // Main entry point for game end
+ShowGameEndScreen(winner) // Display winner announcement
+OnRestartButtonClicked() // Handle restart from game end
+OnGoHomeButtonClicked() // Handle return to menu from game end
+
+// Game End Flow
+ShowGameEndSequence(winner) // Complete end sequence with timing
+UpdateWinnerText(winner) // Set appropriate winner message
+RestartGameSequence() // Smooth restart with cleanup
+GoHomeSequence() // Smooth menu return with cleanup
+
+// State Management
+ResetGameEndState() // Reset for new game
+CleanupGameState() // Full cleanup before menu return
+HideGameEndScreen() // External hide capability
+```
+
+### **Winner Messages**:
+```csharp
+// Professional winner announcements
+PlayerType.Human → "Congratulations!\nYou Win!"
+PlayerType.Computer → "Game Over!\nComputer Wins!"
+Default → "Game Over!"
+```
+
+### **Dependencies**: `GameManager`, `GameStateManager`, `GameplayUIManager`, `MenuNavigation`
+### **Events**: `OnGameEnded`, `OnGameRestarted`, `OnReturnedToMenu`
+
+---
+
+## **ExitValidationManager.cs** 🚪 **EXIT CONFIRMATION COORDINATOR** (NEW)
+**Purpose**: Handles exit confirmation and safe cleanup following Single Responsibility Principle  
+**Responsibility**: Exit confirmation dialog, pause coordination, comprehensive system cleanup
+
+### **Key Features**:
+- **Safe Exit Process**: Proper system cleanup before application exit
+- **Pause Integration**: Coordinates with PauseManager for state preservation
+- **Memory Leak Prevention**: Comprehensive cleanup of all game systems
+- **Emergency Cleanup**: Handles stuck AI states and pending operations
+
+### **Core Methods**:
+```csharp
+// Main Exit API
+ShowExitConfirmation() // Main entry point for exit validation
+ConfirmExit() // User confirmed exit - perform cleanup and quit
+CancelExit() // User cancelled exit - resume game state
+
+// Exit Screen Management
+ShowExitValidationScreen() // Display confirmation dialog
+HideExitValidationScreen() // Hide confirmation dialog
+ForceHideExitValidation() // Emergency hide for cleanup
+
+// Comprehensive System Cleanup
+PerformComprehensiveSystemCleanup() // CRITICAL - prevents memory leaks
+QuitApplicationSafely() // Safe application termination
+DelayedApplicationQuit() // Ensures cleanup completion before exit
+```
+
+### **Comprehensive Cleanup Process**:
+```csharp
+// CRITICAL: Prevents memory leaks and stuck states
+1. Stop AI operations (CancelAllAIOperations, ForceCompleteReset)
+2. Stop turn manager operations (ForceCancelComputerOperations, ResetTurns)
+3. Cancel all GameManager Invoke calls and coroutines
+4. Cancel operations on all managers
+5. Force garbage collection
+6. Small delay to ensure completion
+7. Safe application quit
+```
+
+### **Dependencies**: `PauseManager`, `GameStateManager`, `MenuNavigation`, `GameManager`
+### **Events**: `OnExitValidationShown`, `OnExitValidationCancelled`, `OnExitConfirmed`
 
 ---
 
@@ -408,10 +612,10 @@ ResetPiles() // Clean slate for new game
 # 🖥️ **User Interface System**
 
 ## **GameplayUIManager.cs** 🎮 **GAMEPLAY UI CONTROLLER**
-**Purpose**: Handles UI updates for gameplay - turn system, player actions  
-**Responsibility**: Turn display, button control, color selection, game feedback
+**Purpose**: Handles UI updates for gameplay with pause/resume integration  
+**Responsibility**: Turn display, button control, color selection, game feedback, pause state UI
 
-### **Enhanced Button Control System** (Milestone 7):
+### **Enhanced Button Control System**:
 ```csharp
 // Strict Button State Management
 UpdateStrictButtonStates(enablePlay, enableDraw, enableEndTurn)
@@ -419,19 +623,30 @@ ForceEnableEndTurn() // After successful action
 EmergencyButtonFix() // Debug recovery
 ValidateButtonStates() // Debug verification
 
+// Pause System Integration
+UpdateForPauseState() // UI updates for pause mode
+UpdateForResumeState(turnState) // UI updates for resume mode
+UpdateForExitValidation() // UI updates for exit confirmation
+
 // Button State Tracking
 private bool playButtonEnabled = false;
 private bool drawButtonEnabled = false;  
 private bool endTurnButtonEnabled = false;
 ```
 
-### **UI Management**:
+### **Enhanced UI Management**:
 ```csharp
-// Display Updates
-UpdateTurnDisplay(turnState) // Whose turn display
+// Display Updates with Pause Awareness
+UpdateTurnDisplay(turnState) // Whose turn display (handles pause)
 UpdateActiveColorDisplay(activeColor) // Color indicator
 UpdateHandSizeDisplay(player1Size, player2Size) // Hand counts
 UpdateAllDisplays() // Complete UI refresh using multi-enum
+
+// Pause/Resume UI Methods
+ShowPauseMessage(message) // Pause-related feedback
+ShowGameEndMessage(message) // Game end feedback
+UpdateForPauseState() // Comprehensive pause UI update
+UpdateForResumeState(turnState) // Comprehensive resume UI update
 
 // User Interaction  
 ShowColorSelection(show) // Color picker panel
@@ -445,10 +660,12 @@ OnEndTurnClicked() // Validate and forward to GameManager
 OnColorSelected(color) // Handle color choice
 ```
 
-### **Multi-Enum Integration**:
+### **Pause State Properties**:
 ```csharp
-// Uses GameStateManager's multi-enum architecture
-UpdateAllDisplays(turnState, gameStatus, interactionState, activeColor)
+// Enhanced state checking
+public bool IsUIInPauseState => turnIndicatorText != null && turnIndicatorText.text == "Game Paused";
+public bool AreAllButtonsDisabled => !PlayButtonEnabled && !DrawButtonEnabled && !EndTurnButtonEnabled;
+public string GetButtonStateSummary() // Debug information
 ```
 
 ### **Dependencies**: `GameManager` (via events), `GameStateManager` (state display)
@@ -460,7 +677,7 @@ UpdateAllDisplays(turnState, gameStatus, interactionState, activeColor)
 **Purpose**: Handles ONLY deck-related UI updates  
 **Responsibility**: Deck counts, deck events, pile visuals (NO gameplay UI conflicts)
 
-### **Clean UI Separation** (Fixed in Milestone 7):
+### **Clean UI Separation**:
 ```csharp
 // ONLY handles:
 DrawPileCountText // "Draw: 45"
@@ -493,10 +710,10 @@ UpdateDiscardPileDisplay(topCard) // Delegates to PileManager
 ---
 
 ## **MenuNavigation.cs** 🧭 **MENU SYSTEM**
-**Purpose**: Navigation between menu screens using stack-based approach  
-**Responsibility**: Screen transitions, loading screens, game startup integration
+**Purpose**: Navigation between menu screens with enhanced game integration  
+**Responsibility**: Screen transitions, loading screens, game startup integration, pause/game end flow
 
-### **Navigation System**:
+### **Enhanced Navigation System**:
 ```csharp
 // Stack-Based Navigation
 SetScreen(newScreen) // Navigate forward with history
@@ -504,64 +721,103 @@ SetScreenAndClearStack(newScreen) // Clear history for games
 GoBack() // Return to previous screen
 ClearStack() // Reset navigation
 
-// Transition System  
+// Enhanced Transition System  
 ShowScreenTemporarily(tempScreen, targetScreen) // Loading screens
 StartGameIfNeeded(gameScreen) // Automatic game startup
+ShowPauseScreenOverlay() // Pause screen as overlay
+HidePauseScreenOverlay() // Hide pause overlay
 ```
 
-### **Game Integration** (Updated for proper initialization):
+### **Enhanced Game Integration**:
 ```csharp
 // Game Startup
 StartSinglePlayerGame() // Calls GameManager.StartNewSinglePlayerGame()
 StartMultiPlayerGame() // Future: GameManager.InitializeMultiPlayerSystems()
 
-// Button Handlers
-Btn_PlaySinglePlayerLogic() // Single player game start
-Btn_PlayMultiPlayerLogic() // Multiplayer (future implementation)
+// Pause System Integration
+Btn_PauseLogic() // Handle pause button click
+Btn_ContinueLogic() // Handle continue from pause
+Btn_RestartLogic() // Handle restart from pause with AI state verification
+Btn_GoHomeFromPauseLogic() // Handle return to menu from pause
+
+// Enhanced Exit Logic
+Btn_ExitLogic() // Show exit validation instead of direct exit
+Btn_ExitCancelLogic() // Handle exit cancellation
+Btn_ExitConfirmLogic() // Handle exit confirmation
+StartExitSequence() // Final exit sequence
 ```
+
+### **Enhanced Features**:
+- **Pause Screen Overlay**: Keeps game screen visible underneath
+- **AI State Verification**: Prevents AI stuck states during restart
+- **Exit Validation Integration**: Safe exit with confirmation
+- **Loading Screen Transitions**: Smooth transitions to/from menu
 
 ### **Screen Management**:
 - **Menu Screens**: MainMenu, StudentInfo, Settings, etc.
 - **Game Screens**: SinglePlayerGame, MultiPlayerGame  
+- **Overlay Screens**: Screen_Paused, Screen_GameEnd, Screen_ExitValidation
 - **Transition Screens**: Loading, Exiting
 - **Stack History**: Automatic back navigation
 
-### **Dependencies**: `GameManager` (game startup)
+### **Dependencies**: `GameManager` (game startup), Enhanced manager integration
 
 ---
 
 # 🤖 **AI System**
 
 ## **BasicComputerAI.cs** 🧠 **COMPUTER PLAYER**
-**Purpose**: Simple AI for computer player decisions  
-**Responsibility**: Card selection strategy, color choices (NO turn management, NO UI)
+**Purpose**: Simple AI for computer player decisions with pause/resume support  
+**Responsibility**: Card selection strategy, color choices, pause state management
 
-### **AI Strategy System**:
+### **Enhanced AI System**:
 ```csharp
-// Decision Making
-MakeDecision(topDiscardCard) // Main AI entry point
-ExecuteDecision() // After thinking delay
+// Decision Making with Pause Awareness
+MakeDecision(topDiscardCard) // Main AI entry point (pause aware)
+ExecuteDecision() // After thinking delay (pause checking)
 GetValidCards(topDiscardCard) // Rule-based filtering
 SelectBestCard(validCards) // Strategic selection
 
-// Card Selection Strategy
-SelectFromSpecialCards() // Priority: Taki > PlusTwo > Stop > Plus > ChangeDirection > ChangeColor
-SelectFromNumberCards() // Prefer higher numbers with randomness
-SelectColor() // Choose most common color in hand
+// Pause System Integration
+PauseAI() // Pause operations and preserve state
+ResumeAI() // Resume operations and restore state
+CancelAllAIOperations() // Emergency cleanup
+CanMakeDecisions() // Check if AI can act (considers pause)
+
+// Enhanced State Management
+ForceCompleteReset() // Comprehensive reset (fixes stuck states)
+IsAIStuckInPauseState() // Diagnostic for stuck detection
+GetAIStateDescription() // Current state information
 ```
 
-### **AI Behavior**:
+### **Pause State Preservation**:
+```csharp
+// AI pause state variables
+private bool isPaused = false;
+private CardData pausedTopDiscardCard = null;
+private bool wasThinkingWhenPaused = false;
+private float pausedThinkingTimeRemaining = 0f;
+
+// Pause-aware AI behavior
+StartThinkingProcess() // Respects pause state
+ExecuteDecision() // Double-checks pause before execution
+```
+
+### **Enhanced AI Behavior**:
 - **Thinking Time**: Configurable delay for natural feel
 - **Special Card Preference**: 70% chance to prefer special over number cards
 - **Strategic Priority**: Logical card type preferences
 - **Fallback Logic**: Random selection if strategy fails
+- **Pause Recovery**: Proper state restoration after pause
+- **Emergency Reset**: Fixes stuck AI states
 
 ### **Hand Management**:
 ```csharp
-// Hand Operations
+// Hand Operations with Comprehensive Reset
 AddCardsToHand(cards) // Receive dealt cards
 AddCardToHand(card) // Single card (drawn)
-ClearHand() // New game cleanup
+ClearHand() // NEW: Includes comprehensive state reset
+ResetForNewGame() // Complete AI reset
 GetHandCopy() // Safe copy for visual display
 ```
 
@@ -575,10 +831,22 @@ OnAICardSelected // AI chose a card to play
 OnAIDrawCard // AI needs to draw card
 OnAIColorSelected // AI chose color for ChangeColor  
 OnAIDecisionMade // AI made decision (for UI feedback)
+OnAIPaused // AI paused successfully
+OnAIResumed // AI resumed successfully
+```
+
+### **Enhanced Properties**:
+```csharp
+// AI pause state properties 
+public bool IsAIPaused => isPaused;
+public bool WasThinkingWhenPaused => wasThinkingWhenPaused;
+public float ThinkingTimeRemaining => pausedThinkingTimeRemaining;
+public CardData PausedTopCard => pausedTopDiscardCard;
+public string AIState => GetAIStateDescription();
 ```
 
 ### **Dependencies**: `GameStateManager` (rule validation)
-### **Used By**: `GameManager` (game integration), `HandManager` (visual display)
+### **Used By**: `GameManager` (game integration), `HandManager` (visual display), `PauseManager` (pause coordination)
 
 ---
 
@@ -680,9 +948,9 @@ CreateWildCard(cardType, copyNumber) // 6 wild cards
 // Wild cards: SuperTaki ×2, ChangeColor ×4 = 6 cards
 ```
 
-### **Turn Behavior Configuration** (FIXED):
+### **Turn Behavior Configuration**:
 ```csharp
-// isActiveCard assignments (CORRECTED):
+// isActiveCard assignments:
 Number cards: isActiveCard = false     // END turn after playing
 Most special cards: isActiveCard = false // END turn after playing  
 TAKI cards: isActiveCard = true        // CONTINUE turn (multi-card play)
@@ -720,6 +988,87 @@ RunFullDiagnostics() // Complete system check
 - **Context Menu**: Manual diagnostic triggers
 
 **Integration**: Finds and analyzes all game components automatically
+
+---
+
+## **TakiLogger.cs** 🔍 **CENTRALIZED LOGGING SYSTEM**
+**Purpose**: Centralized logging system with categorized, level-controlled output  
+**Responsibility**: Replaces scattered Debug.Log calls with organized, configurable logging
+
+### **Log Level System**:
+```csharp
+public enum LogLevel {
+    None = 0,       // No logging
+    Error = 1,      // Only errors
+    Warning = 2,    // Errors + warnings  
+    Info = 3,       // Errors + warnings + info
+    Debug = 4,      // Errors + warnings + info + debug
+    Verbose = 5     // Everything including verbose details
+}
+```
+
+### **Log Categories**:
+```csharp
+public enum LogCategory {
+    TurnFlow,       // Strict turn flow system
+    CardPlay,       // Card playing and drawing
+    GameState,      // Game state changes
+    TurnManagement, // Turn switching and timing
+    UI,             // UI updates and user interaction
+    AI,             // Computer AI decisions
+    Deck,           // Deck operations
+    Rules,          // Rule validation
+    System,         // System integration and events
+    Diagnostics     // Debug and diagnostic information
+}
+```
+
+### **Category-Specific Methods**:
+```csharp
+// Main logging methods
+TakiLogger.LogTurnFlow(message)     // Turn system logging
+TakiLogger.LogCardPlay(message)     // Card operations
+TakiLogger.LogGameState(message)    // State changes
+TakiLogger.LogAI(message)           // AI decisions
+TakiLogger.LogUI(message)           // UI updates
+TakiLogger.LogDeck(message)         // Deck operations
+TakiLogger.LogSystem(message)       // System integration
+
+// Direct level methods
+TakiLogger.LogError(message)        // Always shown (unless None)
+TakiLogger.LogWarning(message)      // Warning level
+TakiLogger.LogInfo(message)         // Info level
+```
+
+### **Configuration**:
+```csharp
+// Runtime configuration
+TakiLogger.SetLogLevel(LogLevel.Info)     // Set verbosity level
+TakiLogger.SetProductionMode(true)        // Minimal logging for release
+TakiLogger.GetLoggerInfo()                // Current configuration
+
+// Production mode: Only shows Error and Warning levels
+// Development mode: Shows all levels based on currentLogLevel setting
+```
+
+### **Integration Status**:
+```csharp
+// ✅ ORGANIZED LOGGING (Updated with TakiLogger):
+BasicComputerAI.cs         // AI decision logging
+GameManager.cs             // Turn flow and card play logging
+DeckManager.cs             // Deck operation logging  
+DeckUIManager.cs           // UI update logging
+GameStateManager.cs        // State change logging
+TurnManager.cs             // Turn management logging
+GameplayUIManager.cs       // UI interaction logging
+TakiGameDiagnostics.cs     // Diagnostic logging
+PauseManager.cs            // Pause system logging
+GameEndManager.cs          // Game end logging
+ExitValidationManager.cs   // Exit validation logging
+```
+
+**Dependencies**: None (standalone utility)  
+**Used By**: All major game systems for organized debug output
 
 ---
 
@@ -821,89 +1170,82 @@ MenuNavigation.StartSinglePlayerGame()
                └→ TurnManager.InitializeTurns()
 ```
 
-#### **Turn Flow**:
+#### **Pause Flow**:
 ```
-TurnManager.StartTurn() 
-└→ GameStateManager.ChangeTurnState()
-   └→ OnTurnStateChanged Event
-      └→ GameManager.OnTurnStateChanged()
-         └→ GameplayUIManager.UpdateTurnDisplay()
-         └→ Start strict turn flow control
-```
-
-#### **Card Play Flow**:
-```  
-CardController.OnCardButtonClicked()
-└→ HandManager.HandleCardSelection()
-   └→ OnCardSelected Event
-      └→ GameManager.OnPlayerCardSelected()
-         └→ Player clicks "Play Card" button
-            └→ GameplayUIManager.OnPlayCardClicked Event
-               └→ GameManager.OnPlayCardButtonClicked()
-                  └→ GameManager.PlayCardWithStrictFlow()
+MenuNavigation.Btn_PauseLogic()
+└→ GameManager.RequestPauseGame()
+   └→ PauseManager.PauseGame()
+      └→ CaptureGameState() + PauseAllSystems()
+         └→ OnGamePaused Event
+            └→ GameplayUIManager.UpdateForPauseState()
 ```
 
-#### **AI Turn Flow**:
+#### **Resume Flow**:
 ```
-TurnManager.OnComputerTurnReady Event
-└→ GameManager.OnComputerTurnReady()
-   └→ BasicComputerAI.MakeDecision()
-      └→ OnAICardSelected Event
-         └→ GameManager.OnAICardSelected()
-            └→ TurnManager.EndTurn()
+MenuNavigation.Btn_ContinueLogic()
+└→ GameManager.RequestResumeGame()
+   └→ PauseManager.ResumeGame()
+      └→ RestoreGameState() + RestoreAllSystems()
+         └→ OnGameResumed Event
+            └→ GameplayUIManager.UpdateForResumeState()
 ```
 
-## **Coordinator Pattern Usage**
+#### **Game End Flow**:
+```
+GameStateManager.DeclareWinner()
+└→ GameManager.OnGameWon()
+   └→ GameEndManager.ProcessGameEnd()
+      └→ ShowGameEndSequence()
+         └→ OnGameEnded Event
+```
 
-### **DeckManager Coordination**:
+#### **Exit Validation Flow**:
+```
+MenuNavigation.Btn_ExitLogic()
+└→ GameManager.RequestExitConfirmation()
+   └→ ExitValidationManager.ShowExitConfirmation()
+      └→ PauseManager.PauseForExitValidation()
+         └→ OnExitValidationShown Event
+```
+
+## **Manager Coordination Patterns**
+
+### **GameManager as Central Coordinator**:
 ```csharp
-// DeckManager delegates to:
-DrawCard() → Deck.DrawCard()           // Pure deck operation
-ShowMessage() → DeckUIManager.ShowMessage() // UI update
-SetupGame() → GameSetupManager.SetupInitialGame() // Game logic
-GetStats() → CardDataLoader.GetDeckStats() // Resource info
+// GameManager delegates to specialized managers:
+RequestPauseGame() → PauseManager.PauseGame()
+RequestResumeGame() → PauseManager.ResumeGame()
+RequestRestartGame() → GameEndManager.OnRestartButtonClicked()
+RequestReturnToMenu() → GameEndManager.OnGoHomeButtonClicked()
+RequestExitConfirmation() → ExitValidationManager.ShowExitConfirmation()
 ```
 
-### **GameManager Coordination**:
-```csharp  
-// GameManager orchestrates:
-Game State → GameStateManager         // Rules and state
-Turn Flow → TurnManager              // Turn transitions
-AI Logic → BasicComputerAI           // Computer decisions  
-UI Updates → GameplayUIManager       // Player interface
-Visual Cards → HandManager × 2       // Player + Computer hands
-Deck Operations → DeckManager        // All deck functionality
-```
-
-## **Data Flow Patterns**
-
-### **Visual Card Data Flow**:
-```
-CardData (ScriptableObject)
-└→ CardController.InitializeCard() 
-   └→ CardController.LoadCardImages()
-      └→ HandManager.CreateCardPrefabs()
-         └→ HandManager.UpdateHandDisplay()
-            └→ GameManager.UpdateAllUI()
-```
-
-### **Rule Validation Flow**:
-```
-CardData.CanPlayOn() ← Core rule implementation
-└→ GameStateManager.IsValidMove() ← Game context validation
-   └→ HandManager.UpdatePlayableStates() ← Visual feedback
-      └→ CardController.SetPlayable() ← Individual card tinting
+### **State Preservation Patterns**:
+```csharp
+// Comprehensive state preservation for pause/resume:
+PauseManager.CaptureGameState() → GameStateSnapshot
+PauseManager.CaptureTurnFlowState() → GameManagerTurnFlowSnapshot
+BasicComputerAI.PauseAI() → AI thinking state preservation
+TurnManager.PauseTurns() → Turn timing preservation
 ```
 
 ---
 
 # 🚨 **Known Issues & Fixes**
 
-## **Current Issues Identified**:
+## **Recent Fixes Applied**:
 
-### **1. Excessive Logging** 📝  
-**Issue**: Console filled with debug messages  
-**Solution**: Implement log level system, reduce verbose debugging
+### **1. AI State Management** ✅ FIXED
+**Issue**: AI could get stuck in paused state during restart  
+**Solution**: Comprehensive AI state reset in ClearHand() and ForceCompleteReset()
+
+### **2. Pause State Preservation** ✅ FIXED  
+**Issue**: Game state not properly preserved during pause  
+**Solution**: Complete state snapshot system with restoration capability
+
+### **3. Exit Confirmation Memory Leaks** ✅ FIXED
+**Issue**: Application exit without proper cleanup  
+**Solution**: Comprehensive system cleanup before exit to prevent memory leaks
 
 ---
 
@@ -916,6 +1258,23 @@ CardData.CanPlayOn() ← Core rule implementation
 - **AI Improvements**: Focus on `BasicComputerAI.SelectBestCard()`  
 - **Rule Changes**: Update `GameStateManager.IsValidMove()`
 - **Turn Flow**: Modify `GameManager` strict flow methods
+
+### **⏸️ Pause/Resume Changes**:
+- **Pause Logic**: `PauseManager.PauseGame()` and state preservation
+- **Resume Logic**: `PauseManager.ResumeGame()` and state restoration  
+- **UI Updates**: `GameplayUIManager.UpdateForPauseState()`
+- **AI Integration**: `BasicComputerAI.PauseAI()` and `ResumeAI()`
+
+### **🏁 Game End Changes**:
+- **Win Detection**: `GameStateManager.DeclareWinner()`
+- **End Screen**: `GameEndManager.ShowGameEndScreen()`
+- **Post-Game Flow**: `GameEndManager.OnRestartButtonClicked()` and `OnGoHomeButtonClicked()`
+- **Cleanup**: `GameEndManager.CleanupGameState()`
+
+### **🚪 Exit System Changes**:
+- **Exit Confirmation**: `ExitValidationManager.ShowExitConfirmation()`
+- **Safe Cleanup**: `ExitValidationManager.PerformComprehensiveSystemCleanup()`
+- **Menu Integration**: `MenuNavigation.Btn_ExitLogic()`
 
 ### **🎨 Visual Changes**:
 - **Card Appearance**: `CardController.LoadCardImages()` and image paths
@@ -933,6 +1292,8 @@ CardData.CanPlayOn() ← Core rule implementation
 - **Start Here**: `TakiGameDiagnostics.RunFullDiagnostics()` (F1 key)
 - **Rule Testing**: `TakiGameDiagnostics.TestRuleValidation()` (F2 key)
 - **Turn Issues**: `TakiGameDiagnostics.TestTurnSequence()` (F3 key)
+- **Pause Issues**: `PauseManager.LogPauseState()` context menu
+- **AI Issues**: `BasicComputerAI.LogAIPauseState()` context menu
 - **Manual Checks**: Context menu options on diagnostic script
 
 ## **Modification Safety Guidelines**
@@ -941,7 +1302,8 @@ CardData.CanPlayOn() ← Core rule implementation
 - `GameManager` event connections  
 - `GameStateManager` rule validation
 - `TurnManager` turn switching logic
-- `DeckManager` component coordination
+- `PauseManager` state preservation logic
+- Manager integration points
 
 ### **✅ Low Risk Changes** (Safe to modify):
 - UI text and styling
@@ -949,18 +1311,26 @@ CardData.CanPlayOn() ← Core rule implementation
 - Visual card spacing and sizing
 - Audio settings and volume controls
 - Menu navigation and transitions
+- Logging messages and levels
 
 ### **🔒 Don't Modify** (Unless necessary):
 - Core event system patterns
 - Multi-enum state architecture  
 - Card resource loading paths
 - Strict turn flow control logic
+- State preservation mechanisms
 
 ---
 
 # 📊 **Performance Characteristics**
 
 ## **System Performance**:
+
+### **Enhanced Performance**:
+- **Pause/Resume**: Instant state preservation and restoration
+- **Memory Management**: Comprehensive cleanup prevents memory leaks
+- **AI Performance**: Pause-aware decision making with proper state handling
+- **UI Responsiveness**: Smooth transitions between pause/resume states
 
 ### **Visual Card System**:
 - **Hand Display**: Efficient with 8+ cards, instant updates
@@ -979,37 +1349,39 @@ CardData.CanPlayOn() ← Core rule implementation
 - **Memory Management**: Automatic cleanup, no memory leaks detected
 
 ## **Scalability Notes**:
-- **Current**: Optimized for 2-player gameplay
+- **Current**: Optimized for 2-player gameplay with full pause/resume support
 - **Expandable**: Architecture supports multiplayer extension
 - **Resource**: Resource loading scales with total unique cards (110)
-- **UI**: UI system handles dynamic hand sizes efficiently
+- **UI**: UI system handles dynamic hand sizes and state changes efficiently
 
 ---
 
 # 🏁 **Next Steps & Recommendations**
 
-## **Immediate Actions** (Milestone 8):
-1. **✅ DONE**: Complete script documentation (this document)
-2. **🔍 INVESTIGATE**: Fix "Card data is null!" issue in DeckMessageText
-3. **🧹 CLEANUP**: Implement log level system to reduce console spam
-4. **📝 OPTIMIZE**: Create quick reference cards for common modifications
+## **Current Status**: ✅ **Phase 6 Complete**
+1. **✅ DONE**: Pause System Implementation
+2. **✅ DONE**: Game End Screen System  
+3. **✅ DONE**: Exit Validation System
+4. **✅ DONE**: Manager Integration and State Preservation
 
-## **Upcoming Milestones**:
+## **Upcoming Phase 7**: Special Cards Implementation
 
-### **Milestone 9**: Pause System
-- **Focus Scripts**: `GameStateManager`, `TurnManager`, `GameplayUIManager`
-- **New State**: Add pause handling to GameStatus enum
-- **UI Integration**: Connect pause button to game state
+### **Immediate Actions** (Phase 7 - Basic Special Cards):
+1. **🎯 CURRENT FOCUS**: Implement PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR card effects
+2. **🔧 MODIFY**: `GameManager.HandleSpecialCardEffects()` method
+3. **🔧 MODIFY**: `GameStateManager` for special interaction states
+4. **🔧 ADD**: UI button `Btn_Player1EndTakiSequence` integration (for future TAKI cards)
 
-### **Milestone 10**: Game End Screen  
-- **Focus Scripts**: `GameManager`, `GameplayUIManager`, `MenuNavigation`
-- **Win Detection**: Enhance win condition handling
-- **Screen Transitions**: Smooth game-to-menu flow
+### **Phase 7 Implementation Order**:
+1. **Plus Card**: Additional action after playing (must play/draw one more card)
+2. **Stop Card**: Skip opponent's next turn 
+3. **ChangeDirection Card**: Reverse turn direction (visual/message only for 2-player)
+4. **ChangeColor Card**: Full color selection implementation
 
-### **Milestone 11**: UI Restructuring
-- **Focus Scripts**: `GameplayUIManager`, `DeckUIManager`, Scene hierarchy
-- **Naming Cleanup**: Fix UI element names for clarity
-- **Component Validation**: Ensure all references maintained
+### **Phase 8**: Advanced Special Cards
+- **PlusTwo Card**: Chaining system implementation
+- **Taki Card**: Multi-card play sequence of same color
+- **SuperTaki Card**: Multi-card play sequence of any color
 
 ## **Long-term Architecture**:
 - **Multiplayer Ready**: Current architecture supports extension
@@ -1034,13 +1406,19 @@ HandManager.RefreshPlayableStates()
 
 // AI not responding? Check turn manager state
 TurnManager.CurrentPlayer and TurnManager.IsComputerTurnPending
+
+// AI stuck in pause state? Force complete reset
+BasicComputerAI.ForceCompleteReset()
+
+// Pause not working? Check pause manager state
+PauseManager.LogPauseState()
 ```
 
 ## **🔧 Common Code Patterns**
 ```csharp
 // Add new card effect in GameManager:
 case CardType.NewEffect:
-    Debug.Log("RULE: NewEffect card - [describe rule]");
+    TakiLogger.LogRules("RULE: NewEffect card - [describe rule]");
     gameplayUI?.ShowComputerMessage("NewEffect message");
     // Implement effect logic
     break;
@@ -1052,13 +1430,22 @@ public void UpdateNewDisplay(data) {
     }
 }
 
+// Add new manager coordination in GameManager:
+public void RequestNewAction() {
+    if (newManager != null) {
+        newManager.HandleNewAction();
+    } else {
+        TakiLogger.LogError("Cannot perform action: NewManager not assigned", TakiLogger.LogCategory.System);
+    }
+}
+
 // Add new AI strategy in BasicComputerAI:
 // Modify SelectFromSpecialCards() or SelectFromNumberCards()
 ```
 
 ---
 
-**📄 Document Status**: ✅ Complete - Covers all 24+ scripts  
-**🎯 Current Milestone**: 8 (Documentation & Cleanup)  
-**📅 Last Updated**: Based on Milestone 7 completion  
-**🔄 Next Review**: After Milestone 9 (Pause System) completion
+**📄 Document Status**: ✅ Complete - Covers all 27+ scripts including new managers  
+**🎯 Current Phase**: 6 Complete → Moving to Phase 7 (Special Cards)  
+**📅 Last Updated**: Based on Phase 6 (Pause System & Game Flow Enhancement) completion  
+**🔄 Next Review**: After Phase 7 (Basic Special Cards) completion
