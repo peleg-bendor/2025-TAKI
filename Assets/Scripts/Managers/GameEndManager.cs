@@ -73,10 +73,8 @@ namespace TakiGame {
 			gameWinner = winner;
 			gameEndProcessed = true;
 
-			// Update game state to Game Over
-			if (gameState != null) {
-				gameState.DeclareWinner (winner);
-			}
+			// Just log that we're processing the end, don't change game state again
+			TakiLogger.LogGameState ("Game state should already be GameOver - not calling DeclareWinner again");
 
 			// Disable all gameplay UI
 			if (gameplayUI != null) {

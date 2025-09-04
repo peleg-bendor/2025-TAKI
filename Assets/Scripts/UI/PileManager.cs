@@ -5,6 +5,7 @@ namespace TakiGame {
 	/// Manages visual display of draw and discard pile cards
 	/// NO animations, instant updates only
 	/// Uses CardController for consistency with hand system
+	/// LOGGING: Reduced spam - only errors and warnings
 	/// </summary>
 	public class PileManager : MonoBehaviour {
 
@@ -51,7 +52,10 @@ namespace TakiGame {
 				}
 			}
 
-			Debug.Log ($"Draw pile visual updated: {cardCount} cards");
+			// Only log when pile becomes empty (potential issue)
+			if (cardCount == 0) {
+				TakiLogger.LogInfo ("Draw pile is now empty", TakiLogger.LogCategory.Deck);
+			}
 		}
 
 		/// <summary>
@@ -64,7 +68,6 @@ namespace TakiGame {
 				if (discardPileCardController != null) {
 					discardPileCardController.gameObject.SetActive (false);
 				}
-				Debug.Log ("Discard pile visual cleared");
 				return;
 			}
 
@@ -78,8 +81,6 @@ namespace TakiGame {
 				discardPileCardController.InitializeCard (topCard, null, true); // Face-up, no hand manager
 				discardPileCardController.gameObject.SetActive (true);
 				discardPileCardController.SetCardFacing (true); // Face-up
-
-				Debug.Log ($"Discard pile visual updated: {topCard.GetDisplayText ()}");
 			}
 		}
 
@@ -88,7 +89,7 @@ namespace TakiGame {
 		/// </summary>
 		void CreateDrawPileVisual () {
 			if (cardPrefab == null || drawPileContainer == null) {
-				Debug.LogWarning ("PileManager: Cannot create draw pile visual - missing prefab or container");
+				TakiLogger.LogWarning ("PileManager: Cannot create draw pile visual - missing prefab or container", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -110,10 +111,8 @@ namespace TakiGame {
 			if (drawPileCardController != null) {
 				drawPileCardController.InitializeCard (drawPileVisualCard, null, false); // Face-down, no hand manager
 				drawPileCardController.SetCardFacing (false); // Ensure face-down
-
-				Debug.Log ("Draw pile visual created");
 			} else {
-				Debug.LogError ("PileManager: CardPrefab missing CardController component!");
+				TakiLogger.LogError ("PileManager: CardPrefab missing CardController component!", TakiLogger.LogCategory.System);
 				Destroy (cardObj);
 			}
 		}
@@ -123,7 +122,7 @@ namespace TakiGame {
 		/// </summary>
 		void CreateDiscardPileVisual () {
 			if (cardPrefab == null || discardPileContainer == null) {
-				Debug.LogWarning ("PileManager: Cannot create discard pile visual - missing prefab or container");
+				TakiLogger.LogWarning ("PileManager: Cannot create discard pile visual - missing prefab or container", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -136,9 +135,8 @@ namespace TakiGame {
 			if (discardPileCardController != null) {
 				// Start inactive - will be activated when first card is discarded
 				cardObj.SetActive (false);
-				Debug.Log ("Discard pile visual created (inactive)");
 			} else {
-				Debug.LogError ("PileManager: CardPrefab missing CardController component!");
+				TakiLogger.LogError ("PileManager: CardPrefab missing CardController component!", TakiLogger.LogCategory.System);
 				Destroy (cardObj);
 			}
 		}
@@ -156,8 +154,6 @@ namespace TakiGame {
 				Destroy (discardPileCardController.gameObject);
 				discardPileCardController = null;
 			}
-
-			Debug.Log ("Pile visuals cleared");
 		}
 
 		/// <summary>

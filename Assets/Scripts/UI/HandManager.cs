@@ -7,6 +7,7 @@ namespace TakiGame {
 	/// Manages hand display and card prefab instantiation
 	/// Handles both player and computer hands with different facing
 	/// Manual positioning system with adaptive spacing
+	/// LOGGING: Reduced spam - only essential info and errors
 	/// </summary>
 	public class HandManager : MonoBehaviour {
 
@@ -52,7 +53,7 @@ namespace TakiGame {
 			}
 
 			if (cardPrefab == null) {
-				Debug.LogError ($"HandManager {gameObject.name}: Card prefab not assigned!");
+				TakiLogger.LogError ($"HandManager {gameObject.name}: Card prefab not assigned!", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -60,7 +61,7 @@ namespace TakiGame {
 			// Find GameManager reference
 			gameManager = FindObjectOfType<GameManager> ();
 			if (gameManager == null) {
-				Debug.LogWarning ($"HandManager {gameObject.name}: GameManager not found!");
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: GameManager not found!", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -71,7 +72,7 @@ namespace TakiGame {
 		/// <param name="newHand">Updated hand of CardData</param>
 		public void UpdateHandDisplay (List<CardData> newHand) {
 			if (newHand == null) {
-				Debug.LogWarning ("UpdateHandDisplay called with null hand");
+				TakiLogger.LogWarning ("UpdateHandDisplay called with null hand", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -93,8 +94,6 @@ namespace TakiGame {
 			}
 
 			OnHandUpdated?.Invoke (currentHand);
-
-			Debug.Log ($"HandManager {gameObject.name}: Updated display with {newHand.Count} cards");
 		}
 
 		/// <summary>
@@ -122,8 +121,6 @@ namespace TakiGame {
 			if (showFaceUpCards) {
 				UpdatePlayableStates ();
 			}
-
-			Debug.Log ($"HandManager {gameObject.name}: Added card {cardData.GetDisplayText ()}");
 		}
 
 		/// <summary>
@@ -137,7 +134,7 @@ namespace TakiGame {
 			// Find card in current hand
 			int cardIndex = currentHand.FindIndex (card => card == cardData);
 			if (cardIndex < 0) {
-				Debug.LogWarning ($"Card not found in hand: {cardData.GetDisplayText ()}");
+				TakiLogger.LogWarning ($"Card not found in hand: {cardData.GetDisplayText ()}", TakiLogger.LogCategory.System);
 				return false;
 			}
 
@@ -163,7 +160,6 @@ namespace TakiGame {
 			// Rearrange remaining cards
 			ArrangeCards ();
 
-			Debug.Log ($"HandManager {gameObject.name}: Removed card {cardData.GetDisplayText ()}");
 			return true;
 		}
 
@@ -192,8 +188,6 @@ namespace TakiGame {
 			}
 
 			OnCardSelected?.Invoke (selectedCard);
-
-			Debug.Log ($"HandManager {gameObject.name}: Card selection - {cardController.CardData?.GetDisplayText ()}, Selected: {!wasSelected}");
 		}
 
 		/// <summary>
@@ -229,7 +223,7 @@ namespace TakiGame {
 			// Get CardController component
 			CardController controller = cardObj.GetComponent<CardController> ();
 			if (controller == null) {
-				Debug.LogError ($"Card prefab missing CardController component!");
+				TakiLogger.LogError ($"Card prefab missing CardController component!", TakiLogger.LogCategory.System);
 				Destroy (cardObj);
 				return null;
 			}
@@ -270,8 +264,6 @@ namespace TakiGame {
 				// Update controller's original position
 				controller.UpdateOriginalPosition (position);
 			}
-
-			Debug.Log ($"HandManager {gameObject.name}: Arranged {cardControllers.Count} cards with {spacing:F1}px spacing");
 		}
 
 		/// <summary>
@@ -293,29 +285,23 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update which cards are playable with better logging and validation
+		/// Update which cards are playable - REDUCED LOGGING
 		/// </summary>
 		void UpdatePlayableStates () {
 			if (!showFaceUpCards || gameManager == null) {
-				Debug.Log ($"HandManager {gameObject.name}: Skipping playable update - not face-up or no GameManager");
 				return;
 			}
 
 			// Get top discard card for rule validation
 			CardData topCard = gameManager.GetTopDiscardCard ();
 			if (topCard == null) {
-				Debug.LogWarning ($"HandManager {gameObject.name}: Cannot update playable states - no top discard card");
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Cannot update playable states - no top discard card", TakiLogger.LogCategory.Rules);
 				return;
 			}
 
-			Debug.Log ($"=== UPDATING PLAYABLE STATES for {gameObject.name} ===");
-			Debug.Log ($"Top discard card: {topCard.GetDisplayText ()}");
-			Debug.Log ($"Active color: {gameManager.gameState?.activeColor}");
-			Debug.Log ($"Checking {cardControllers.Count} cards in hand");
-
 			int playableCount = 0;
 
-			// Check each card's playability
+			// Check each card's playability - MINIMAL LOGGING
 			for (int i = 0; i < cardControllers.Count && i < currentHand.Count; i++) {
 				CardController controller = cardControllers [i];
 				CardData cardData = currentHand [i];
@@ -326,21 +312,21 @@ namespace TakiGame {
 					controller.SetPlayable (isPlayable);
 
 					if (isPlayable) playableCount++;
-
-					Debug.Log ($"  [{i}] {cardData.GetDisplayText ()} -> {(isPlayable ? "PLAYABLE" : "NOT PLAYABLE")}");
 				} else {
-					Debug.LogWarning ($"  [{i}] Missing controller or card data");
+					TakiLogger.LogWarning ($"HandManager {gameObject.name}: Missing controller or card data at index {i}", TakiLogger.LogCategory.System);
 				}
 			}
 
-			Debug.Log ($"Playable state update complete: {playableCount}/{cardControllers.Count} cards playable");
+			// Only log summary if no playable cards (potential issue)
+			if (playableCount == 0 && showFaceUpCards) {
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: No playable cards found (0/{cardControllers.Count})", TakiLogger.LogCategory.Rules);
+			}
 		}
 
 		/// <summary>
 		/// Delayed playable state update (for timing issues)
 		/// </summary>
 		public void DelayedPlayableUpdate () {
-			Debug.Log ($"HandManager {gameObject.name}: Performing delayed playable state update");
 			UpdatePlayableStates ();
 		}
 
@@ -381,8 +367,6 @@ namespace TakiGame {
 		/// Force update of playable states (called by GameManager after game state changes)
 		/// </summary>
 		public void RefreshPlayableStates () {
-			Debug.Log ($"HandManager {gameObject.name}: Refreshing playable states (forced)");
-
 			if (showFaceUpCards) {
 				UpdatePlayableStates ();
 
@@ -399,17 +383,17 @@ namespace TakiGame {
 		/// Get debug information about current hand
 		/// </summary>
 		public void LogHandDebugInfo () {
-			Debug.Log ($"HandManager {gameObject.name} Debug Info:");
-			Debug.Log ($"  Cards in hand: {currentHand.Count}");
-			Debug.Log ($"  Card controllers: {cardControllers.Count}");
-			Debug.Log ($"  Selected card: {selectedCard?.CardData?.GetDisplayText () ?? "None"}");
-			Debug.Log ($"  Show face up: {showFaceUpCards}");
+			TakiLogger.LogDiagnostics ($"HandManager {gameObject.name} Debug Info:");
+			TakiLogger.LogDiagnostics ($"  Cards in hand: {currentHand.Count}");
+			TakiLogger.LogDiagnostics ($"  Card controllers: {cardControllers.Count}");
+			TakiLogger.LogDiagnostics ($"  Selected card: {selectedCard?.CardData?.GetDisplayText () ?? "None"}");
+			TakiLogger.LogDiagnostics ($"  Show face up: {showFaceUpCards}");
 
 			// Log each card
 			for (int i = 0; i < currentHand.Count; i++) {
 				string cardInfo = currentHand [i]?.GetDisplayText () ?? "NULL";
 				string controllerInfo = (i < cardControllers.Count && cardControllers [i] != null) ? "OK" : "MISSING";
-				Debug.Log ($"    [{i}] {cardInfo} - Controller: {controllerInfo}");
+				TakiLogger.LogDiagnostics ($"    [{i}] {cardInfo} - Controller: {controllerInfo}");
 			}
 		}
 

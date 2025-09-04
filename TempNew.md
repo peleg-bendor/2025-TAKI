@@ -1,643 +1,417 @@
-# TAKI Game Development Plan - Unity Engine
-## Comprehensive Implementation Guide
-
-### ⚠️ CRITICAL NOTES
-- **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **Current Status**: Phase 1-6 Complete ✅, Currently at **Phase 7: Special Cards Implementation** 🎯
-- **Target Platform**: PC/Desktop Unity Build
-- **Scope**: Singleplayer (Human vs Computer) with multiplayer-ready architecture
-
----
-
-## Project Structure
-
-### Scripts Organization:
-```
-Scripts/
-├── Controllers/
-├── Core/
-│   ├── AI/
-│   │   └── BasicComputerAI.cs
-│   └── GameManager.cs
-├── Data/
-│   ├── CardData.cs
-│   └── Enums.cs
-├── Editor/
-│   └── TakiDeckGenerator.cs
-├── Managers/
-│   ├── CardDataLoader.cs
-│   ├── Deck.cs
-│   ├── DeckManager.cs
-│   ├── DeckUIManager.cs
-│   ├── DontDestroyOnLoad.cs
-│   ├── ExitValidationManager.cs
-│   ├── GameEndManager.cs
-│   ├── GameSetupManager.cs
-│   ├── GameStateManager.cs
-│   ├── PauseManager.cs
-│   └── TurnManager.cs
-├── UI/
-│   ├── CardController.cs
-│   ├── DifficultySlider.cs
-│   ├── GameplayUIManager.cs
-│   ├── HandManager.cs
-│   ├── MenuNavigation.cs
-│   └── PileManager.cs
-├── ButtonSFX.cs
-├── MusicSlider.cs
-├── SfxSlider.cs
-├── TakiGameDiagnostics.cs
-└── TakiLogger.cs
-```
-
-### Assets Structure:
-```
-Assets
-├── Audio
-│   ├── Music
-│   └── Sfx
-├── Data
-│   ├── Cards
-├── Plugins
-└── Prefabs/
-│   └── Cards/
-│   │   └── CardPrefab.prefab      ← Visual card prefab
-│   └── UI
-Resources/
-├── Data/
-│   └── Cards/                     ← 110 CardData assets
-├── Sprites/
-│   └── Cards/
-│       ├── Backs/
-│       │   └── card_back.png      ← Single back image
-│       └── Fronts/
-│           ├── Red/               ← Red cards
-│           ├── Blue/              ← Blue cards  
-│           ├── Green/             ← Green cards
-│           ├── Yellow/            ← Yellow cards
-│           └── Wild/              ← Wild cards
-├── Scenes
-├── Scripts
-└── TextMesh Pro
-```
-
-### Scene Hierarchy:
-```
-Scene_Menu
-├── Main Camera
-├── Canvas
-│   ├── Img_Background
-│   ├── Screen_MainMenu
-│   ├── Screen_StudentInfo
-│   ├── Screen_SinglePlayer
-│   ├── Screen_MultiPlayer
-│   ├── Screen_SinglePlayerGame
-│   │   ├── Player1Panel (Human Player)
-│   │   │   ├── Player1HandPanel - (Components: HandManager)
-│   │   │   └── Player1ActionPanel
-│   │   │       ├── Btn_Player1PlayCard - Play selected card
-│   │   │       ├── Btn_Player1DrawCard - Draw from deck
-│   │   │       ├── Btn_Player1EndTurn - End current turn
-│   │   │       └── Player1HandSizePanel
-│   │   │           └── Player1HandSizeText - Hand size display
-│   │   ├── Player2Panel (Computer Player)
-│   │   │   ├── Player2HandPanel - (Components: HandManager)
-│   │   │   └── Player2ActionPanel
-│   │   │       ├── Player2MessageText - Computer actions and thinking
-│   │   │       └── Player2HandSizePanel 
-│   │   │           └── Player2HandSizeText - Computer hand size
-│   │   ├── GameBoardPanel
-│   │   │   ├── DrawPilePanel
-│   │   │   │   └── DrawPileCountText - Draw pile count
-│   │   │   └── DiscardPilePanel
-│   │   │       └── DiscardPileCountText - Discard pile count
-│   │   ├── GameInfoPanel
-│   │   │   ├── TurnIndicatorText - Current turn display
-│   │   │   ├── DeckMessageText - Deck event messages
-│   │   │   └── GameMessageText - General game feedback
-│   │   ├── ColorSelectionPanel - Color choice UI
-│   │   │   ├── Btn_SelectRed
-│   │   │   ├── Btn_SelectBlue
-│   │   │   ├── Btn_SelectGreen
-│   │   │   └── Btn_SelectYellow
-│   │   ├── CurrentColorIndicator - Active color display
-│   │   ├── Btn_Exit - Exit completely (not return to Main Menu)
-│   │   ├── Btn_Pause - Pause functionality
-│   │   └── Screen_GameEnd - Game over popup
-│   │       ├── GameEndMessage - Winner announcement
-│   │       ├── Btn_PlayAgain - Start new game
-│   │       └── Btn_ReturnToMenu - Back to main menu
-│   ├── Screen_MultiPlayerGame
-│   ├── Screen_Settings
-│   ├── Screen_ExitValidation
-│   │   └── Image
-│   │       ├── Text (TMP)
-│   │       ├── Btn_ExitConfirm
-│   │       └── Btn_ExitCancel
-│   ├── Screen_Paused
-│   │   └── Image
-│   │       ├── Text (TMP)
-│   │       ├── Btn_Continue
-│   │       ├── Btn_Restart
-│   │       └── Btn_GoHome
-│   ├── Screen_GameEnd
-│   │   └── Image
-│   │       ├── EndDeclarationText
-│   │       ├── Btn_Restart
-│   │       └── Btn_GoHome
-│   ├── Screen_Loading
-│   └── Screen_Exiting
-├── EventSystem
-├── GameObject
-├── MenuManager
-├── BackgroundMusic
-├── SFXController
-└── GameManager
-```
-
----
-
-## Phase 1: Foundation Setup ✅ COMPLETE
-
-### Milestone 1: Menu System ✅ COMPLETE
-**Status**: All scenes and navigation working
-
-### Milestone 2: UI Framework Creation ✅ COMPLETE  
-**Status**: Full UI hierarchy established, all panels created
-
----
-
-## Phase 2: Core Card System ✅ COMPLETE
-
-### Milestone 3: Data Architecture Implementation ✅ COMPLETE
-**Achievements**:
-- ✅ Complete enum system with **Multi-Enum Architecture**:
-  - `TurnState`: WHO is acting? (PlayerTurn, ComputerTurn, Neutral)
-  - `InteractionState`: WHAT special interaction? (Normal, ColorSelection, TakiSequence, PlusTwoChain) 
-  - `GameStatus`: WHAT is overall status? (Active, Paused, GameOver)
-- ✅ CardData ScriptableObject with helper methods and rule validation
-- ✅ Namespace organization (`TakiGame`)
-- ✅ 110-card complete deck system with automatic generation
-- ✅ UI integration tested and working
-
-### Milestone 4: Complete Deck System ✅ COMPLETE
-**Achievements**:
-- ✅ **Refactored Architecture** using **Single Responsibility Principle**:
-  - `Deck`: Pure card operations (draw, discard, shuffle)
-  - `CardDataLoader`: Resource management (load 110 cards from Resources)
-  - `DeckUIManager`: UI updates only (deck counts, messages) 
-  - `GameSetupManager`: Game initialization logic (deal hands, place starting card)
-  - `DeckManager`: Coordinator pattern (delegates to specialized components)
-- ✅ All 110 cards load and distribute correctly (8+8+1 setup working)
-- ✅ Automatic deck initialization and UI updates
-- ✅ **Wild as initial color** (represents "no color set yet")
-- ✅ Event-driven architecture connecting all components
-- ✅ Clean separation of concerns for future multiplayer readiness
-
-### Milestone 5: Turn Management System ✅ COMPLETE
-**Achievements**:
-- ✅ **Multi-Enum Game State Architecture**:
-  - `GameStateManager`: Manages TurnState, InteractionState, GameStatus, active color, rules
-  - `TurnManager`: Handles turn switching, timing, player transitions
-  - `BasicComputerAI`: Simple AI with strategic card selection
-  - `GameplayUIManager`: Turn-related UI updates, player actions, color selection
-  - `GameManager`: Main coordinator for all gameplay systems
-- ✅ All gameplay components properly integrated on GameManager GameObject
-- ✅ Multi-enum state transitions working correctly
-- ✅ Turn switching between Human ↔ Computer functioning
-- ✅ UI updates reflecting current game state accurately
-- ✅ Computer AI making decisions and playing cards
-- ✅ Basic card play validation working
-- ✅ Draw card functionality working for both players
-- ✅ Hand size tracking and display working
-- ✅ Event system connecting all components properly
-- ✅ Color selection system functional
-- ✅ **Clean UI Ownership Architecture**:
-  - GameplayUIManager: Turn system, player actions, computer feedback
-  - DeckUIManager: Deck counts and deck event messages only
-
----
-
-## Phase 3: Visual Card System ✅ COMPLETE
-
-### Milestone 6: Interactive Visual Cards ✅ COMPLETE
-**Achievements**:
-- ✅ **Complete Visual Card System**:
-  - `CardController`: Individual card behavior with real scanned images
-  - `HandManager`: Dynamic hand display with adaptive spacing  
-  - `PileManager`: Draw/discard pile visual cards
-- ✅ **CardPrefab Architecture**:
-  - Face-up/face-down instant image swapping (no animations)
-  - Click selection with 10px Y-offset movement
-  - Gold/red tint feedback for valid/invalid cards
-  - Professional 100px height, calculated 67px width
-- ✅ **Hand Display System**:
-  - Manual positioning with adaptive spacing algorithm
-  - Player hand: Face-up cards with selection
-  - Computer hand: Face-down cards for privacy
-  - Instant prefab add/remove with position recalculation
-- ✅ **Pile Visual System**:
-  - Draw pile: Face-down card when not empty
-  - Discard pile: Face-up current top card
-  - Integrated with DeckUIManager through PileManager
-- ✅ **Image Architecture Consistency**:
-  - Fixed folder structure: `Wild/` instead of `Special/`
-  - Consistent naming: Wild cards no color suffix
-  - All cards use real scanned images from Resources
-- ✅ **Performance & Integration**:
-  - Smooth gameplay with 8+ cards in hand
-  - All existing Milestone 5 functionality preserved
-  - Event-driven integration with GameManager
-  - No memory leaks or performance issues
-
----
-
-## Phase 4: Strict Turn Flow System ✅ COMPLETE
-
-### Milestone 7: Enhanced Card Rules with Strict Turn Flow ✅ COMPLETE
-**Achievements**:
-- ✅ **Strict Turn Flow Implementation**:
-  - Player must take ONE action (PLAY or DRAW) then END TURN
-  - END TURN button disabled until action taken
-  - DRAW button disabled after playing card
-  - All special cards logged but act as basic cards
-  - Immediate button disable on click to prevent multiple actions
-- ✅ **Comprehensive Card Effect Logging**:
-  - All special card rules documented in console
-  - Clear feedback for player actions and constraints
-  - Safe testing environment for all card types
-- ✅ **Enhanced Button Control System**:
-  - Smart button state management based on game flow
-  - Clear visual feedback for valid/invalid actions
-  - Bulletproof turn completion enforcement
-- ✅ **Rule Validation Working**:
-  - Color matching validation functional
-  - Number matching validation functional
-  - Wild card acceptance working
-  - Basic special card type matching working
-
----
-
-## Phase 5: Code Quality & Polish ✅ COMPLETE
-
-### Milestone 8: Code Cleanup & Logging Improvements ✅ COMPLETE
-**Status**: **✅ COMPLETED** - TakiLogger system implemented successfully
-
-**Achievements**:
-- ✅ **Centralized Logging System**: `TakiLogger.cs` utility class created
-- ✅ **Log Level Control**: Configurable verbosity (None, Error, Warning, Info, Debug, Verbose)
-- ✅ **Categorized Logging**: System-specific logging categories (TurnFlow, CardPlay, AI, UI, etc.)
-- ✅ **Production Mode**: Clean output toggle for release builds
-- ✅ **Performance Optimized**: Conditional logging prevents unnecessary string operations
-- ✅ **Clean Console Output**: Organized debug messages with category prefixes
-
-### **Logging Architecture**:
-```csharp
-// Category-based logging system
-TakiLogger.LogTurnFlow("Strict turn flow messages")
-TakiLogger.LogCardPlay("Card play and draw operations") 
-TakiLogger.LogAI("Computer decision making")
-TakiLogger.LogUI("User interface updates")
-TakiLogger.LogGameState("State transitions")
-TakiLogger.SetLogLevel(LogLevel.Info) // Runtime configuration
-```
-
----
-
-## Phase 6: Game Flow Enhancement ✅ COMPLETE
-
-### Milestone 9: Pause System Implementation ✅ COMPLETE
-**Objective**: Implement functional pause button with proper game state management
-**Status**: **✅ COMPLETED** - Full pause/resume system with state preservation
-
-**Achievements**:
-- ✅ **PauseManager.cs**: Complete pause system coordinator
-- ✅ **State Preservation**: Comprehensive game state snapshots during pause
-- ✅ **Turn Flow Integration**: Strict turn flow state preserved and restored
-- ✅ **AI Pause Handling**: Computer AI properly pauses and resumes with state preservation
-- ✅ **UI Integration**: Pause screen overlay with proper button flow
-- ✅ **System Coordination**: All game systems properly pause/resume together
-
-### Milestone 10: Game End Screen System ✅ COMPLETE  
-**Objective**: Professional game over experience with proper flow control
-**Status**: **✅ COMPLETED** - Full game end system with smooth transitions
-
-**Achievements**:
-- ✅ **GameEndManager.cs**: Complete game end coordinator
-- ✅ **Winner Announcement**: Professional game end screen with winner display
-- ✅ **Post-Game Actions**: Restart and return to menu functionality
-- ✅ **Smooth Transitions**: Loading screen integration for menu navigation
-- ✅ **State Cleanup**: Proper game state reset for new games
-
-### Milestone 11: Exit Validation System ✅ COMPLETE
-**Objective**: Safe application exit with confirmation and cleanup
-**Status**: **✅ COMPLETED** - Complete exit validation with comprehensive cleanup
-
-**Achievements**:
-- ✅ **ExitValidationManager.cs**: Complete exit confirmation coordinator
-- ✅ **Exit Confirmation Dialog**: Proper confirmation UI with cancel option
-- ✅ **Comprehensive Cleanup**: Prevents memory leaks and stuck AI states
-- ✅ **Pause Integration**: Coordinates with PauseManager for state preservation
-- ✅ **Safe Application Exit**: Ensures all systems properly cleaned before quit
-
-### Milestone 12: Enhanced MenuNavigation ✅ COMPLETE
-**Objective**: Integrate new managers with menu system for seamless flow
-**Status**: **✅ COMPLETED** - Full menu integration with all game flow managers
-
-**Achievements**:
-- ✅ **Pause Screen Integration**: Overlay system with proper game state preservation
-- ✅ **Restart with AI Verification**: Prevents AI stuck states during restart
-- ✅ **Exit Validation Flow**: Smooth exit confirmation without breaking game flow
-- ✅ **Enhanced Button Logic**: All pause, restart, and exit buttons properly integrated
-
----
-
-## Phase 7: Special Cards Implementation 🎯
-
-## 🎯 **Current Focus: Basic Special Cards Implementation**
-
-### **Primary Goal**: Implement real special card effects for PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR
-**Status**: 🎯 **IMMEDIATE FOCUS** - Ready for implementation
-
-### **Current State**: All cards currently act as basic cards (end turn after playing)
-**Target**: Make special cards have their unique effects
-
-### **Implementation Priority Order**:
-
-#### **1. Plus Card** 🔧
-**Rule**: Player must take ONE additional action after playing Plus card
-```csharp
-// Implementation Logic:
-- If PLUS played during normal gameplay (not TAKI sequence):
-  - Player gets one additional action (PLAY or DRAW)
-  - Cannot end turn until additional action taken
-  - isActiveCard = true for PLUS cards
-```
-
-#### **2. Stop Card** 🛑
-**Rule**: Skip opponent's next turn (player gets another full turn)
-```csharp
-// Implementation Logic:
-- If STOP played during normal gameplay:
-  - Opponent's turn is completely skipped
-  - Player gets an entirely new turn
-  - Use TurnManager.SkipTurn() functionality
-```
-
-#### **3. ChangeDirection Card** 🔄
-**Rule**: Reverse turn direction (visual/message only for 2-player)
-```csharp
-// Implementation Logic:
-- If CHANGEDIRECTION played during normal gameplay:
-  - Update GameStateManager.turnDirection
-  - Show appropriate UI message about direction change
-  - No actual gameplay impact (2-player game)
-```
-
-#### **4. ChangeColor Card** 🎨
-**Rule**: Player must choose new active color
-```csharp
-// Implementation Logic:
-- If CHANGECOLOR played during normal gameplay:
-  - Show ColorSelectionPanel
-  - Disable PLAY/DRAW buttons until color selected
-  - Set InteractionState.ColorSelection
-  - Update activeColor when color chosen
-```
-
-### **Implementation Tasks**:
-
-#### **A. Modify GameManager.HandleSpecialCardEffects()**:
-```csharp
-// Update existing method to implement real effects
-// Currently only has placeholder logic
-// Add proper special card handling for each type
-```
-
-#### **B. Add Special Card State Tracking**:
-```csharp
-// Add variables to track special card states:
-- bool isWaitingForAdditionalAction = false; // For PLUS cards
-```
-
-#### **C. Update Turn Flow Logic**:
-```csharp
-// Modify strict turn flow to handle:
-- Additional actions for PLUS cards
-- Turn skipping for STOP cards  
-- Color selection requirements for CHANGECOLOR cards
-```
-
-#### **D. Enhanced UI Integration**:
-```csharp
-// Update GameplayUIManager to show:
-- Appropriate messages for each special card
-- Color selection panel for CHANGECOLOR
-- Additional action prompts for PLUS
-```
-
-### **Testing Strategy**:
-- Test each special card type individually
-- Verify turn flow remains strict and controlled
-- Ensure AI can handle special cards appropriately
-- Test special card combinations and edge cases
-
-### **Cards NOT Modified in Phase 7**:
-- **PLUSTWO**: Advanced chaining system (Phase 8)
-- **TAKI**: Multi-card sequence system (Phase 8)  
-- **SUPERTAKI**: Multi-card sequence system (Phase 8)
-
----
-
-## Phase 8: Advanced Special Cards Implementation
-
-### Future Milestone: Advanced Special Card Mechanics
-**Objective**: Complex card interactions and chaining
-
-#### **1. PlusTwo Card** 🎴
-**Rule**: Chaining system - player can stack +2 cards or draw cards
-```csharp
-// Advanced Implementation:
-- Track NumberOfChainedPlusTwos
-- Allow stacking or force drawing
-- AI strategy for PLUSTWO responses
-```
-
-#### **2. Taki Card** 🎯
-**Rule**: Multi-card play sequence of same color
-```csharp
-// Advanced Implementation:
-- TakiSequence interaction state
-- Btn_Player1EndTakiSequence integration
-- Multi-card validation system
-```
-
-#### **3. SuperTaki Card** 🌟
-**Rule**: Multi-card play sequence of any color
-```csharp
-// Advanced Implementation:
-- Same as TAKI essentially
-- SuperTaki sequence management
-```
-
-**Tasks**:
-- PlusTwo stacking system implementation
-- Taki sequence validation and UI integration
-- Special card combination rules
-- Edge case handling for all special cards
-- AI strategy enhancement for all special cards
-
----
-
-## Phase 9: Final Polish & Release Preparation
-
-### Future Milestone: Final Polish & Testing
-**Objective**: Complete game polish for release
-
-**Tasks**:
-- Performance optimization
-- Final UI polish and animations
-- Audio integration testing
-- Complete gameplay testing
-- Build preparation and testing
-- Final bug fixes and stability improvements
-
----
-
-## Current Architecture Highlights
-
-### **Enhanced Manager Architecture**:
-```csharp
-// Complete game flow management
-GameManager: Central coordinator with manager integration
-PauseManager: Complete pause/resume with state preservation  
-GameEndManager: Professional game end flow
-ExitValidationManager: Safe exit with comprehensive cleanup
-```
-
-### **Strict Turn Flow System** (Enhanced):
-```csharp
-// Bulletproof turn control with manager integration
-- Player takes ONE action (PLAY or DRAW)
-- Action buttons immediately disabled on click
-- END TURN button enabled only after action
-- Clear feedback for all game states
-- Ready for special card effect integration
-- Enhanced button state tracking and validation
-```
-
-### **Multi-Enum State Management**:
-```csharp
-// Clean separation of state concerns with pause support
-public enum TurnState { PlayerTurn, ComputerTurn, Neutral }
-public enum InteractionState { Normal, ColorSelection, TakiSequence, PlusTwoChain }
-public enum GameStatus { Active, Paused, GameOver }
-```
-
-### **Visual Card Architecture**:
-```csharp
-// Complete visual card system
-CardController: Individual card behavior, image loading, selection
-HandManager: Dynamic hand layout, card positioning, user interaction
-PileManager: Draw/discard pile visual representation
-```
-
-### **Enhanced UI System**:
-```csharp
-// Complete UI management with pause/resume integration
-GameplayUIManager: Enhanced with pause state handling
-MenuNavigation: Complete pause/game end/exit integration
-DeckUIManager: Clean separation of deck-only UI
-```
-
----
-
-## Development Guidelines
-
-### Architecture Principles
-- **Separation of Concerns**: Each component has single responsibility
-- **Event-Driven Communication**: Components communicate via events
-- **Coordinator Pattern**: Managers delegate to specialized components  
-- **Multi-Enum State**: Separate enums for different state aspects
-- **Visual-Data Separation**: CardData separate from visual representation
-- **Strict Turn Flow**: One action per turn with enforced completion
-- **Clean Logging**: Categorized, level-controlled debugging information
-- **State Preservation**: Complete pause/resume capability
-- **Safe Cleanup**: Comprehensive system cleanup for memory leak prevention
-
-### Current Development Workflow
-1. **Start with Special Cards**: Implement PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR effects
-2. **Test in Controlled Environment**: Use strict turn flow for safe testing
-3. **Minimal Console Spam**: Use TakiLogger for organized debugging
-4. **Preserve Architecture**: Maintain clean separation of concerns
-5. **State-Aware Development**: Consider pause/resume in all new features
-
----
-
-## Success Metrics
-
-### Phase 7 Success Criteria 🎯 CURRENT TARGET
-- ✅ **Plus Card Effect**: Additional action requirement working correctly
-- ✅ **Stop Card Effect**: Turn skipping mechanism implemented
-- ✅ **ChangeDirection Effect**: Direction change with proper messaging
-- ✅ **ChangeColor Effect**: Full color selection integration working
-- ✅ **Turn Flow Integration**: Special cards work within strict turn flow system
-- ✅ **AI Compatibility**: Computer AI handles all basic special cards correctly
-
-### Phase 8 Success Criteria
-- ✅ **PlusTwo Chaining**: Card stacking system working correctly
-- ✅ **Taki Sequences**: Multi-card play with proper validation
-- ✅ **Complex Interactions**: All special card combinations working
-- ✅ **AI Enhancement**: Computer AI strategically uses all special cards
-
-### Overall Project Success  
-- Complete playable TAKI game (Human vs Computer)  
-- All special card types implemented correctly  
-- Intuitive UI with clear visual feedback  
-- Stable gameplay without crashes  
-- Professional pause/resume system
-- Clean, maintainable, well-documented code architecture  
-- Code ready for multiplayer extension  
-- Professional visual presentation with real card images
-- Efficient development workflow with clean debugging
-- Comprehensive game flow management (pause, end, exit)
-
----
-
-## Current Status Summary
-
-**✅ COMPLETED**:
-- **Phase 1**: Complete foundation (Menu + UI Framework)
-- **Phase 2**: Complete card system (Data + Deck + Turn Management)  
-- **Phase 3**: Complete visual system (Interactive cards + Hand management + Pile visuals)
-- **Phase 4**: Complete strict turn flow system with enhanced button control
-- **Phase 5**: Complete code cleanup and centralized logging system
-- **Phase 6**: Complete game flow enhancement (Pause + Game End + Exit Validation)
-- All 110 cards loading with real scanned images
-- Multi-enum state management working perfectly
-- Bulletproof turn-based gameplay with visual cards
-- Computer AI making strategic decisions with pause/resume support
-- Professional visual card system with adaptive layouts
-- Comprehensive pause/resume system with state preservation
-- Professional game end flow with restart/menu options
-- Safe exit validation with comprehensive cleanup
-- Enhanced UI message routing system
-- Complete manager integration for all game flow
-
-**🎯 CURRENT FOCUS**:
-- **IMMEDIATE**: Basic Special Cards Implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
-- Modify GameManager.HandleSpecialCardEffects() for real effects
-- Update turn flow logic to handle special card requirements
-- Integrate color selection for CHANGECOLOR cards
-- Test all special card effects with AI compatibility
-
-**🚀 UPCOMING PHASES**:
-- Advanced special cards (PLUSTWO, TAKI, SUPERTAKI) implementation
-- Final polish and release preparation
-
-**📋 PRIORITY ORDER**:
-1. **Basic Special Cards Implementation (Current Focus)** 🎯
-2. Advanced special cards (PlusTwo chaining, Taki sequences)
-3. Final polish & release preparation
-
-The architecture is now fully mature with complete game flow management, ready for special card implementation while maintaining all existing functionality including pause/resume, game end handling, and safe exit confirmation.
+using UnityEngine;
+
+namespace TakiGame {
+	/// <summary>
+	/// Manages the current game state using multi-enum architecture
+	/// Handles turn state, interaction state, game status, active color, and rules
+	/// NO turn management, NO AI logic, NO UI updates
+	/// </summary>
+	public class GameStateManager : MonoBehaviour {
+
+		[Header ("Game State")]
+		[Tooltip ("Whose turn is it currently?")]
+		public TurnState turnState = TurnState.Neutral;
+
+		[Tooltip ("What special interaction is happening?")]
+		public InteractionState interactionState = InteractionState.Normal;
+
+		[Tooltip ("Overall game status")]
+		public GameStatus gameStatus = GameStatus.Active;
+
+		[Header ("Game Properties")]
+		[Tooltip ("Active color that must be matched (Wild = no color set yet)")]
+		public CardColor activeColor = CardColor.Wild; // Wild = neutral/white initially
+
+		[Tooltip ("Direction of play (for ChangeDirection cards)")]
+		public TurnDirection turnDirection = TurnDirection.Clockwise;
+
+		[Header("PlusTwo Chain State")]
+		[Tooltip("Is a PlusTwo chain currently active")]
+		private bool isPlusTwoChainActive = false;
+
+		[Tooltip("Number of PlusTwo cards played in current chain")]
+		private int numberOfChainedPlusTwos = 0;
+
+		[Tooltip("Player who initiated the current chain")]
+		private PlayerType chainInitiator = PlayerType.Human;
+
+		[Header ("Game Rules")]
+		[Tooltip ("Maximum number of cards a player can hold")]
+		public int maxHandSize = 30;
+
+		// Events for state changes
+		public System.Action<TurnState> OnTurnStateChanged;
+		public System.Action<InteractionState> OnInteractionStateChanged;
+		public System.Action<GameStatus> OnGameStatusChanged;
+		public System.Action<CardColor> OnActiveColorChanged;
+		public System.Action<TurnDirection> OnTurnDirectionChanged;
+		public System.Action<PlayerType> OnGameWon;
+
+		/// <summary>
+		/// Change whose turn it is
+		/// </summary>
+		/// <param name="newTurnState">New turn state</param>
+		public void ChangeTurnState (TurnState newTurnState) {
+			if (turnState == newTurnState) return;
+
+			TurnState previousState = turnState;
+			turnState = newTurnState;
+
+			TakiLogger.LogGameState ($"Turn state changed: {previousState} -> {newTurnState}");
+			OnTurnStateChanged?.Invoke (newTurnState);
+		}
+
+		/// <summary>
+		/// Change what special interaction is happening
+		/// </summary>
+		/// <param name="newInteractionState">New interaction state</param>
+		public void ChangeInteractionState (InteractionState newInteractionState) {
+			if (interactionState == newInteractionState) return;
+
+			InteractionState previousState = interactionState;
+			interactionState = newInteractionState;
+
+			TakiLogger.LogGameState ($"Interaction state changed: {previousState} -> {newInteractionState}");
+			OnInteractionStateChanged?.Invoke (newInteractionState);
+		}
+
+		/// <summary>
+		/// Change overall game status
+		/// </summary>
+		/// <param name="newGameStatus">New game status</param>
+		public void ChangeGameStatus (GameStatus newGameStatus) {
+			if (gameStatus == newGameStatus) return;
+
+			GameStatus previousStatus = gameStatus;
+			gameStatus = newGameStatus;
+
+			TakiLogger.LogGameState ($"Game status changed: {previousStatus} -> {newGameStatus}");
+			OnGameStatusChanged?.Invoke (newGameStatus);
+		}
+
+		/// <summary>
+		/// Change the active color (when ChangeColor card is played)
+		/// </summary>
+		/// <param name="newColor">New active color</param>
+		public void ChangeActiveColor (CardColor newColor) {
+			if (activeColor == newColor) return;
+
+			CardColor previousColor = activeColor;
+			activeColor = newColor;
+
+			TakiLogger.LogGameState ($"Active color changed: {previousColor} -> {newColor}");
+			OnActiveColorChanged?.Invoke (newColor);
+		}
+
+		/// <summary>
+		/// Change turn direction (when ChangeDirection card is played)
+		/// </summary>
+		public void ChangeTurnDirection () {
+			turnDirection = turnDirection == TurnDirection.Clockwise ?
+							TurnDirection.CounterClockwise : TurnDirection.Clockwise;
+
+			TakiLogger.LogGameState ($"Turn direction changed to: {turnDirection}");
+			OnTurnDirectionChanged?.Invoke (turnDirection);
+		}
+
+		/// <summary>
+		/// Check if a card can be legally played - ENHANCED with PlusTwo chain awareness
+		/// </summary>
+		/// <param name="cardToPlay">Card player wants to play</param>
+		/// <param name="topDiscardCard">Current top card of discard pile</param>
+		/// <returns>True if the move is legal</returns>
+		public bool IsValidMove (CardData cardToPlay, CardData topDiscardCard) {
+			if (cardToPlay == null || topDiscardCard == null) {
+				TakiLogger.LogWarning ("Cannot validate move: Null card provided", TakiLogger.LogCategory.Rules);
+				return false;
+			}
+
+			// CRITICAL RULE: During PlusTwo chain, only PlusTwo cards are valid
+			if (isPlusTwoChainActive && cardToPlay.cardType != CardType.PlusTwo) {
+				TakiLogger.LogRules ($"CHAIN RULE: Only PlusTwo cards allowed during chain, blocked {cardToPlay.GetDisplayText ()}");
+				return false;
+			}
+
+			// Use the normal CanPlayOn method for other validation
+			bool isValid = cardToPlay.CanPlayOn (topDiscardCard, activeColor);
+
+			if (isPlusTwoChainActive && isValid) {
+				TakiLogger.LogRules ($"CHAIN VALID: {cardToPlay.GetDisplayText ()} can continue chain");
+			}
+
+			TakiLogger.LogRules ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
+			return isValid;
+		}
+
+		/// <summary>
+		/// Update active color based on played card
+		/// </summary>
+		/// <param name="playedCard">Card that was just played</param>
+		public void UpdateActiveColorFromCard (CardData playedCard) {
+			if (playedCard == null) return;
+
+			// For non-wild cards, update active color to match the card
+			if (!playedCard.IsWildCard) {
+				ChangeActiveColor (playedCard.color);
+			}
+			// For wild cards (ChangeColor, SuperTaki), color will be set separately
+		}
+
+		/// <summary>
+		/// Start a new PlusTwo chain
+		/// </summary>
+		/// <param name="initiator">Player who started the chain</param>
+		public void StartPlusTwoChain (PlayerType initiator) {
+			isPlusTwoChainActive = true;
+			numberOfChainedPlusTwos = 1;
+			chainInitiator = initiator;
+
+			TakiLogger.LogGameState ($"PlusTwo chain started by {initiator}");
+			TakiLogger.LogRules ($"CHAIN START: {initiator} plays PlusTwo #1 - opponent must draw 2 or continue");
+		}
+
+		/// <summary>
+		/// Continue existing PlusTwo chain
+		/// </summary>
+		public void ContinuePlusTwoChain () {
+			numberOfChainedPlusTwos++;
+			int drawCount = ChainDrawCount;
+
+			TakiLogger.LogGameState ($"PlusTwo chain continued - now {numberOfChainedPlusTwos} cards, draw count: {drawCount}");
+			TakiLogger.LogRules ($"CHAIN CONTINUE: PlusTwo #{numberOfChainedPlusTwos} played - opponent must draw {drawCount} or continue");
+		}
+
+		/// <summary>
+		/// Break PlusTwo chain
+		/// </summary>
+		public void BreakPlusTwoChain () {
+			int finalDrawCount = ChainDrawCount;
+			int finalChainLength = numberOfChainedPlusTwos;
+
+			TakiLogger.LogGameState ($"PlusTwo chain broken - was {finalChainLength} cards ({finalDrawCount} total draw)");
+			TakiLogger.LogRules ($"CHAIN BREAK: Chain of {finalChainLength} PlusTwo cards broken by drawing {finalDrawCount} cards");
+
+			isPlusTwoChainActive = false;
+			numberOfChainedPlusTwos = 0;
+		}
+
+		/// <summary>
+		/// Reset chain state for new game
+		/// </summary>
+		public void ResetPlusTwoChainState () {
+			bool wasActive = isPlusTwoChainActive;
+			isPlusTwoChainActive = false;
+			numberOfChainedPlusTwos = 0;
+
+			if (wasActive) {
+				TakiLogger.LogGameState ("PlusTwo chain state reset for new game");
+			}
+		}
+
+		/// <summary>
+		/// Set chain count directly (for pause/resume restoration)
+		/// </summary>
+		/// <param name="count">Number of chained cards</param>
+		public void SetChainCount (int count) {
+			numberOfChainedPlusTwos = count;
+			TakiLogger.LogGameState ($"Chain count set to {count} (for pause restoration)");
+		}
+
+		/// <summary>
+		/// Check if current state allows player actions
+		/// </summary>
+		/// <returns>True if player can take actions</returns>
+		public bool CanPlayerAct () {
+			// Player can't act if game is paused or game over
+			if (gameStatus != GameStatus.Active) {
+				return false;
+			}
+
+			return turnState == TurnState.PlayerTurn ||
+				   interactionState == InteractionState.ColorSelection;
+		}
+
+		/// <summary>
+		/// Check if current state allows computer actions
+		/// </summary>
+		/// <returns>True if computer can take actions</returns>
+		public bool CanComputerAct () {
+			// Computer can't act if game is paused or game over
+			if (gameStatus != GameStatus.Active) {
+				return false;
+			}
+
+			return turnState == TurnState.ComputerTurn;
+		}
+
+		/// <summary>
+		/// Declare a winner and end the game
+		/// </summary>
+		/// <param name="winner">The winning player type</param>
+		public void DeclareWinner (PlayerType winner) {
+			ChangeGameStatus (GameStatus.GameOver);
+			ChangeTurnState (TurnState.Neutral);
+			ChangeInteractionState (InteractionState.Normal);
+
+			TakiLogger.LogGameState ($"Game Over! Winner: {winner}");
+			OnGameWon?.Invoke (winner);
+		}
+
+		/// <summary>
+		/// Reset game state for a new game
+		/// </summary>
+		public void ResetGameState () {
+			turnState = TurnState.Neutral;
+			interactionState = InteractionState.Normal;
+			gameStatus = GameStatus.Active;
+			activeColor = CardColor.Wild; // No color set initially
+			turnDirection = TurnDirection.Clockwise;
+
+			ResetPlusTwoChainState ();
+
+			TakiLogger.LogGameState ("Game state reset for new game (including PlusTwo chain state)");
+		}
+
+		/// <summary>
+		/// Get user-friendly description of current combined state
+		/// </summary>
+		/// <returns>Description of current game state</returns>
+		public string GetStateDescription () {
+			// Check game status first
+			switch (gameStatus) {
+				case GameStatus.Paused:
+					return "Game Paused";
+				case GameStatus.GameOver:
+					return "Game Over";
+				case GameStatus.Active:
+					// Continue to check other states
+					break;
+			}
+
+			// Handle special interactions
+			switch (interactionState) {
+				case InteractionState.ColorSelection:
+					return "Choose a color";
+				case InteractionState.TakiSequence:
+					return "TAKI sequence - play more cards or close";
+				case InteractionState.PlusTwoChain:
+					return "Plus Two chain - play +2 or draw cards";
+			}
+
+			// Normal gameplay - show whose turn
+			switch (turnState) {
+				case TurnState.PlayerTurn:
+					return "Your turn - play a card or draw";
+				case TurnState.ComputerTurn:
+					return "Computer's turn";
+				case TurnState.Neutral:
+					return "Setting up...";
+				default:
+					return "Unknown state";
+			}
+		}
+
+		/// <summary>
+		/// Get simple turn description for UI
+		/// </summary>
+		/// <returns>Simple turn description</returns>
+		public string GetTurnDescription () {
+			switch (turnState) {
+				case TurnState.PlayerTurn:
+					return "Your Turn";
+				case TurnState.ComputerTurn:
+					return "Computer's Turn";
+				case TurnState.Neutral:
+					return "Game Setup";
+				default:
+					return turnState.ToString ();
+			}
+		}
+
+		/// <summary>
+		/// Pause the game - preserves all state for resumption
+		/// </summary>
+		public void PauseGame () {
+			if (gameStatus == GameStatus.Paused) {
+				TakiLogger.LogWarning ("Game is already paused", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
+			GameStatus previousStatus = gameStatus;
+			ChangeGameStatus (GameStatus.Paused);
+
+			TakiLogger.LogGameState ($"Game paused from status: {previousStatus}");
+		}
+
+		/// <summary>
+		/// Resume the game - restore to active state
+		/// </summary>
+		public void ResumeGame () {
+			if (gameStatus != GameStatus.Paused) {
+				TakiLogger.LogWarning ($"Cannot resume game - current status: {gameStatus}", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
+			ChangeGameStatus (GameStatus.Active);
+			TakiLogger.LogGameState ("Game resumed to active state");
+		}
+
+		/// <summary>
+		/// Check if game can be paused in current state
+		/// </summary>
+		/// <returns>True if game can be paused</returns>
+		public bool CanGameBePaused () {
+			// Can pause if game is active and not during critical interactions
+			return gameStatus == GameStatus.Active &&
+				   interactionState != InteractionState.ColorSelection;
+		}
+
+		/// <summary>
+		/// Check if game can be resumed from current state
+		/// </summary>
+		/// <returns>True if game can be resumed</returns>
+		public bool CanGameBeResumed () {
+			return gameStatus == GameStatus.Paused;
+		}
+
+		// Properties for external access using new architecture
+		public bool IsGameActive => gameStatus == GameStatus.Active;
+		public bool IsPlayerTurn => turnState == TurnState.PlayerTurn;
+		public bool IsComputerTurn => turnState == TurnState.ComputerTurn;
+		public bool IsGameOver => gameStatus == GameStatus.GameOver;
+		public bool IsColorSelectionActive => interactionState == InteractionState.ColorSelection;
+		public bool IsTakiSequenceActive => interactionState == InteractionState.TakiSequence;
+		public bool IsNormalGameplay => interactionState == InteractionState.Normal;
+
+		// Enhanced state properties
+		public bool IsGamePaused => gameStatus == GameStatus.Paused;
+		public bool CanPause => CanGameBePaused ();
+		public bool CanResume => CanGameBeResumed ();
+
+		// Combined state checks
+		public bool IsPlayerTurnNormal => IsPlayerTurn && IsNormalGameplay;
+		public bool IsComputerTurnNormal => IsComputerTurn && IsNormalGameplay;
+
+		// Enhanced combined state checks
+		public bool IsActivePlayerTurn => gameStatus == GameStatus.Active && turnState == TurnState.PlayerTurn;
+		public bool IsActiveComputerTurn => gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
+		public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionState == InteractionState.Normal;
+
+		// FIXED: PlusTwo Chain Properties - using private field instead of interaction state
+		public bool IsPlusTwoChainActive => isPlusTwoChainActive;
+		public int ChainDrawCount => numberOfChainedPlusTwos * 2;
+		public int NumberOfChainedCards => numberOfChainedPlusTwos;
+		public PlayerType ChainInitiator => chainInitiator;
+
+		// Enhanced state check that includes chain awareness
+		public bool IsActivePlayerTurnNormal => gameStatus == GameStatus.Active &&
+												turnState == TurnState.PlayerTurn &&
+												interactionState == InteractionState.Normal &&
+												!isPlusTwoChainActive;
+
+		public bool IsActiveComputerTurnNormal => gameStatus == GameStatus.Active &&
+												  turnState == TurnState.ComputerTurn &&
+												  interactionState == InteractionState.Normal &&
+												  !isPlusTwoChainActive;
+	}
+}

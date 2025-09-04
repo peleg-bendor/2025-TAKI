@@ -1894,3 +1894,984 @@ I  want to play it safely, so here are my rules - user story:
     4. Turn ends
 
 I want us to start basic, and safe - so as of now, ALL cards must act like BASIC cards and COMPLETELY obey the legal flow.
+
+
+
+
+
+
+
+
+
+
+
+My notes in response:
+
+## 🔧 **Minor Refinements to Consider**
+
+### **1. Chain Breaking Conditions**
+Consider clarifying exactly when chains break:
+Chain breaks when:
+1. Player draws accumulated cards (your current plan ✓)
+  1. If player is human, this means: player clicks on DRAW button
+  2. If player is computer, this means: player necesarily has no plustwo cards
+2. Player attempts to play non-PlusTwo card (force break + draw) - no, I don't agree on this
+  1. If player is human, this means: this should already probably happen automaticly- let's say the player clicks on a non plustwo card, the card will just be red and unplayble, we DO NOT want to break the chain in any way other than the player clicking on DRAW button
+  2. If player is computer, this means: the logic won't try to do this, since it makes no sense to
+3. Player has no valid moves (auto-break + draw)
+  1. If player is human, this means: NO AUTO BREAK! We wait for the player to click on DRAW button. Note that if Player has no valid moves, AKA no plustwo cards in hand to respond with, PLAY button needs to be disabled
+  2. If player is computer, this means: This works, if player sees there are no plustwos in hand then player will draw and break the chain
+
+
+### **2. Edge Case Handling**
+Add these considerations to your testing phase:
+Edge cases to test:
+- Deck exhaustion during multi-card draw - right! The solution is that the drawmultiplecards function needs to call on a loop a function that draws one card, drawcard if i'm not mistaken, and this function is the one that safely checks on the deck. BTW I think we already have a function drawcards
+- Pause/resume with active chain state- Yes! very important to be mindful of this
+- Game end during active chain - good point! The game will not end as long as the chain is active! if i play my last card, plustwo, and my opponent resnds with plustwo, I will have to draw 4 cards
+- AI with no PlusTwo cards (forced break) - this isn't an edge case tho, just obvius logic
+
+### **3. Enhanced UI Messaging**
+Consider progressive chain messaging:
+Chain progression messages:
+- "PlusTwo played! Draw 4 cards or play PlusTwo" - yes, as playerMessage
+- "PlusTwo played! Opponent draws 2 or continues chain" - yes, as computerMessage
+- "Chain grows! Draw 4 cards or play PlusTwo"  - yes, as playerMessage
+- "Chain grows! Opponent draws 4 or continues chain"  - yes, as computerMessage
+- "Chain grows! Draw 6 cards or play PlusTwo" - yes, as playerMessage
+- "Chain grows! Opponent draws 6 or continues chain"  - yes, as computerMessage
+- "Chain broken! You are/ Opponent's Drawing 4 cards" - yes, as playerMessage or computerMessage depending on wo's drawing
+
+### **Quick Win Strategy**
+For rapid progress, consider implementing a "basic chain" first:
+- Just track chain count and accumulated draw
+- Simple "draw cards or play PlusTwo" logic
+- Then enhance with all the polish and edge cases
+
+Yes, that's a great idea:
+
+## 🎯 **Quick Win Strategy Breakdown**
+
+Good question! Let me clarify the **incremental implementation approach** to get you seeing results fast while building toward the full system.
+
+## **"Basic Chain" - Minimal Viable Implementation**
+
+### **Goal**: Get PlusTwo chaining working with **simplest possible logic** first
+
+### **Phase 8A-Quick: Basic Chain (1-2 hours work)**
+
+#### **Step 1: Minimal State Tracking** 
+**File**: `GameStateManager.cs`
+```csharp
+// Add ONLY these variables first:
+private bool isPlusTwoChainActive = false;
+private int numberOfChainedPlusTwos = 0;
+
+// Add ONLY these basic methods:
+public void StartPlusTwoChain() {
+    isPlusTwoChainActive = true;
+    numberOfChainedPlusTwos = 1;
+}
+
+public void ContinuePlusTwoChain() {
+    numberOfChainedPlusTwos++;
+}
+
+public void BreakPlusTwoChain() {
+    isPlusTwoChainActive = false;
+    numberOfChainedPlusTwos = 0;
+}
+
+// Simple property:
+public int ChainDrawCount => numberOfChainedPlusTwos * 2;
+```
+
+#### **Step 2: Basic GameManager Logic**
+**File**: `GameManager.cs`
+```csharp
+// Modify ONLY the PlusTwo case in HandleSpecialCardEffects():
+case CardType.PlusTwo:
+    if (!gameState.isPlusTwoChainActive) {
+        gameState.StartPlusTwoChain();
+        gameplayUI?.ShowPlayerMessage("PlusTwo chain started!");
+    } else {
+        gameState.ContinuePlusTwoChain(); 
+        gameplayUI?.ShowPlayerMessage($"Chain continues! Draw {gameState.ChainDrawCount} or play PlusTwo");
+    }
+    // Normal turn end for now - no special button logic yet
+    break;
+```
+
+#### **Step 3: Basic Chain Breaking**
+**File**: `GameManager.cs`
+```csharp
+// Modify OnDrawCardButtonClicked() to add simple chain check:
+void OnDrawCardButtonClicked() {
+    // ... existing validation code ...
+    
+    if (gameState.isPlusTwoChainActive) {
+        // Simple multi-draw for chain breaking
+        int cardsToDraw = gameState.ChainDrawCount;
+        for (int i = 0; i < cardsToDraw; i++) {
+            DrawCardWithStrictFlow(); // Use existing method multiple times
+        }
+        gameState.BreakPlusTwoChain();
+        gameplayUI?.ShowPlayerMessage($"Chain broken! Drew {cardsToDraw} cards");
+        return; // Skip normal draw logic
+    }
+    
+    // ... existing normal draw logic ...
+}
+```
+
+Actualy, instead of this part:
+
+```
+  // Simple multi-draw for chain breaking
+  int cardsToDraw = gameState.ChainDrawCount;
+  for (int i = 0; i < cardsToDraw; i++) {
+      DrawCardWithStrictFlow(); // Use existing method multiple times
+  }
+```
+It makes more sense to probably cal drawmultiplecards
+
+### **Result of "Basic Chain"**:
+- ✅ PlusTwo cards start chains
+- ✅ Multiple PlusTwo cards continue chains  
+- ✅ Drawing breaks chains and draws accumulated cards
+- ✅ You can **test and see it working** immediately
+- ❌ No special UI (uses existing messages)
+- ❌ No AI strategy yet (AI will just draw to break chains)
+- ❌ No fancy button states (uses existing strict flow)
+
+---
+
+## **Full Implementation - Polish & Edge Cases**
+
+### **Phase 8A-Full: Complete the remaining substeps** 
+
+#### **What Gets Added Later**:
+
+1. **Enhanced UI** (Substep 8A-3):
+   ```csharp
+   // Dedicated chain status display
+   // Special button states during chains
+   // Progressive chain messaging
+   // Visual chain indicators
+   ```
+
+2. **AI Strategy** (Substep 8A-4):
+   ```csharp
+   // AI detects chains and plays PlusTwo cards strategically
+   // AI only draws when it has no PlusTwo cards
+   ```
+
+3. **Advanced State Management**:
+   ```csharp
+   // InteractionState.PlusTwoChain integration
+   // Proper pause/resume with chain state
+   // Player tracking (who started chain)
+   ```
+
+4. **Edge Case Handling**:
+   ```csharp
+   // Deck exhaustion during multi-draw
+   // Game end during chains
+   // Complex button state management
+   ```
+
+---
+
+CREATE IN A CANVAS A DETAILED PROMPT I CAN USE. Make it detailed with everything we have decided here on and a detailed plan!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Phase 8A: PlusTwo Card Chaining Implementation Guide
+## TAKI Game Development - Unity Engine
+
+### ⚠️ **CRITICAL DEVELOPMENT RULE**
+**NO UNICODE CHARACTERS IN SCRIPTS!**
+- No special characters in code, variable names, comments, or text displays
+- Use only standard ASCII characters (A-Z, a-z, 0-9, basic punctuation)
+- No emojis, arrows, bullets, or special symbols in any code files
+- Keep all text displays simple and compatible with all systems
+
+### 🎯 **CURRENT OBJECTIVE**
+Transform basic PlusTwo cards into a full chaining system where players can stack PlusTwo cards or break chains by drawing accumulated cards.
+
+### 📋 **CURRENT STATE vs TARGET STATE**
+- **Current**: PlusTwo card forces simple 2-card draw, turn ends
+- **Target**: Full chaining system with stacking (+2, +4, +6, +8...), strategic AI decisions, and proper UI feedback
+
+---
+
+## 🏗️ **IMPLEMENTATION STRATEGY: Two-Phase Approach**
+
+### **Phase 8A-Quick: Basic Chain (1-2 hours)**
+Get core chaining working with minimal changes - immediate visible results
+
+### **Phase 8A-Full: Complete Enhancement (3-4 hours)**
+Add full UI integration, AI strategy, edge case handling, and polish
+
+---
+
+## 📝 **USER STORIES & REQUIREMENTS**
+
+### **User Story 1: Chain Initiation**
+*"When I play a PlusTwo card, I want to start a chain that shows my opponent must either draw 2 cards or continue the chain with their own PlusTwo."*
+
+### **User Story 2: Chain Response**
+*"When facing a PlusTwo chain, I want to clearly see how many cards I would draw (2, 4, 6, 8...) and be able to either break the chain by drawing or continue it if I have a PlusTwo card."*
+
+### **User Story 3: Chain Breaking Rules**
+**Human Player Chain Breaking**:
+- Chain breaks ONLY when player clicks DRAW button
+- NO auto-break - wait for explicit player decision
+- If player has no PlusTwo cards, PLAY button becomes disabled, only DRAW button available
+- Clicking non-PlusTwo cards shows them as red/unplayable but does NOT break chain
+
+**Computer Player Chain Breaking**:
+- Chain breaks automatically when AI has no PlusTwo cards in hand
+- AI will always continue chain if PlusTwo cards available
+- AI draws accumulated cards to break chain
+
+### **User Story 4: UI Feedback**
+*"I want clear progressive messaging showing chain status and my options at each step."*
+
+---
+
+## 🔧 **TECHNICAL IMPLEMENTATION PLAN**
+
+### **PHASE 8A-QUICK: Basic Chain Implementation**
+
+#### **Step 1: Minimal State Tracking**
+**File**: `GameStateManager.cs`
+
+**Add These Variables**:
+```csharp
+[Header("PlusTwo Chain State")]
+[Tooltip("Is a PlusTwo chain currently active")]
+private bool isPlusTwoChainActive = false;
+
+[Tooltip("Number of PlusTwo cards played in current chain")]
+private int numberOfChainedPlusTwos = 0;
+
+[Tooltip("Player who initiated the current chain")]
+private PlayerType chainInitiator = PlayerType.Human;
+```
+
+**Add These Basic Methods**:
+```csharp
+/// <summary>
+/// Start a new PlusTwo chain
+/// </summary>
+public void StartPlusTwoChain(PlayerType initiator) {
+    isPlusTwoChainActive = true;
+    numberOfChainedPlusTwos = 1;
+    chainInitiator = initiator;
+    TakiLogger.LogGameState($"PlusTwo chain started by {initiator}");
+}
+
+/// <summary>
+/// Continue existing PlusTwo chain
+/// </summary>
+public void ContinuePlusTwoChain() {
+    numberOfChainedPlusTwos++;
+    TakiLogger.LogGameState($"PlusTwo chain continued - now {numberOfChainedPlusTwos} cards, draw count: {ChainDrawCount}");
+}
+
+/// <summary>
+/// Break PlusTwo chain
+/// </summary>
+public void BreakPlusTwoChain() {
+    TakiLogger.LogGameState($"PlusTwo chain broken - was {numberOfChainedPlusTwos} cards");
+    isPlusTwoChainActive = false;
+    numberOfChainedPlusTwos = 0;
+}
+
+/// <summary>
+/// Reset chain state for new game
+/// </summary>
+public void ResetPlusTwoChainState() {
+    isPlusTwoChainActive = false;
+    numberOfChainedPlusTwos = 0;
+}
+
+// Properties
+public bool IsPlusTwoChainActive => isPlusTwoChainActive;
+public int ChainDrawCount => numberOfChainedPlusTwos * 2;
+public int NumberOfChainedCards => numberOfChainedPlusTwos;
+public PlayerType ChainInitiator => chainInitiator;
+```
+
+**Update ResetGameState() Method**:
+```csharp
+public void ResetGameState() {
+    // ... existing reset code ...
+    ResetPlusTwoChainState(); // Add this line
+    TakiLogger.LogGameState("Game state reset for new game (including PlusTwo chain state)");
+}
+```
+
+#### **Step 2: Basic GameManager Chain Logic**
+**File**: `GameManager.cs`
+
+**Modify HandleSpecialCardEffects() - PlusTwo Case**:
+```csharp
+case CardType.PlusTwo:
+    TakiLogger.LogRules("PLUS TWO CARD: Chain System");
+    
+    if (!gameState.IsPlusTwoChainActive) {
+        // Start new chain
+        PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
+        gameState.StartPlusTwoChain(currentPlayer);
+        
+        TakiLogger.LogRules("PlusTwo chain started - opponent must draw 2 or continue chain");
+        gameplayUI?.ShowPlayerMessage("PlusTwo played! Opponent draws 2 or continues chain");
+        gameplayUI?.ShowComputerMessage("PlusTwo chain started! Draw 2 cards or play PlusTwo");
+    } else {
+        // Continue existing chain
+        gameState.ContinuePlusTwoChain();
+        
+        int drawCount = gameState.ChainDrawCount;
+        TakiLogger.LogRules($"PlusTwo chain continued - opponent must draw {drawCount} or continue chain");
+        gameplayUI?.ShowPlayerMessage($"Chain grows! Opponent draws {drawCount} or continues chain");
+        gameplayUI?.ShowComputerMessage($"Chain continues! Draw {drawCount} cards or play PlusTwo");
+    }
+    break;
+```
+
+**Modify OnDrawCardButtonClicked() for Chain Breaking**:
+```csharp
+void OnDrawCardButtonClicked() {
+    TakiLogger.LogTurnFlow("DRAW CARD BUTTON CLICKED - CHECKING FOR CHAIN");
+
+    if (!isGameActive || !gameState.CanPlayerAct()) {
+        TakiLogger.LogWarning("Cannot draw card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
+        gameplayUI?.ShowPlayerMessage("Not your turn!");
+        return;
+    }
+
+    // CHAIN BREAKING LOGIC - Check for active PlusTwo chain
+    if (gameState.IsPlusTwoChainActive) {
+        TakiLogger.LogTurnFlow("Player drawing to break PlusTwo chain");
+        BreakPlusTwoChainByDrawing();
+        return; // Skip normal draw logic
+    }
+
+    // ... existing normal draw validation and logic ...
+    if (!canPlayerDraw) {
+        TakiLogger.LogWarning("Cannot draw card: Player already took action", TakiLogger.LogCategory.TurnFlow);
+        gameplayUI?.ShowPlayerMessage("You already took an action - END TURN!");
+        return;
+    }
+
+    DrawCardWithStrictFlow();
+}
+```
+
+**Add Chain Breaking Method**:
+```csharp
+/// <summary>
+/// Handle player breaking PlusTwo chain by drawing accumulated cards
+/// </summary>
+void BreakPlusTwoChainByDrawing() {
+    int cardsToDraw = gameState.ChainDrawCount;
+    TakiLogger.LogCardPlay($"Breaking PlusTwo chain - drawing {cardsToDraw} cards");
+
+    // Use existing DrawMultipleCards method or create if doesn't exist
+    List<CardData> drawnCards = deckManager?.DrawCards(cardsToDraw) ?? new List<CardData>();
+    if (drawnCards.Count > 0) {
+        playerHand.AddRange(drawnCards);
+        
+        TakiLogger.LogCardPlay($"Player drew {drawnCards.Count} cards to break chain");
+        gameplayUI?.ShowPlayerMessage($"Chain broken! Drew {drawnCards.Count} cards");
+        gameplayUI?.ShowComputerMessage($"Player broke chain by drawing {drawnCards.Count} cards");
+    } else {
+        TakiLogger.LogError("Failed to draw cards for chain breaking", TakiLogger.LogCategory.CardPlay);
+        gameplayUI?.ShowPlayerMessage("Error: Cannot draw cards!");
+    }
+
+    // Break the chain
+    gameState.BreakPlusTwoChain();
+
+    // Update UI
+    UpdateAllUI();
+    RefreshPlayerHandStates();
+
+    // Handle turn flow - player has taken action by drawing
+    HandlePostDrawTurnFlow(drawnCards.LastOrDefault());
+}
+```
+
+**Check if DeckManager.DrawCards() exists - if not, add it**:
+```csharp
+// In DeckManager.cs, add if missing:
+public List<CardData> DrawCards(int count) {
+    List<CardData> drawnCards = new List<CardData>();
+    for (int i = 0; i < count; i++) {
+        CardData card = DrawCard();
+        if (card != null) {
+            drawnCards.Add(card);
+        } else {
+            break; // Deck exhausted
+        }
+    }
+    return drawnCards;
+}
+```
+
+#### **Step 3: Basic AI Chain Handling**
+**File**: `BasicComputerAI.cs`
+
+**Modify MakeDecision() to Check for Chains**:
+```csharp
+public void MakeDecision(CardData topDiscardCard) {
+    // ... existing pause and validation checks ...
+
+    TakiLogger.LogAI($"=== AI MAKING DECISION (Chain-Aware) ===");
+    TakiLogger.LogAI($"PlusTwo chain active: {gameState?.IsPlusTwoChainActive ?? false}");
+
+    if (topDiscardCard == null) {
+        TakiLogger.LogError("AI cannot make decision: No top discard card provided", TakiLogger.LogCategory.AI);
+        OnAIDecisionMade?.Invoke("Error: No discard card");
+        return;
+    }
+
+    // Store the top card for ExecuteDecision to use
+    currentTopDiscardCard = topDiscardCard;
+
+    // Check for PlusTwo chain
+    if (gameState != null && gameState.IsPlusTwoChainActive) {
+        TakiLogger.LogAI("AI handling PlusTwo chain decision");
+        HandlePlusTwoChainDecision();
+        return;
+    }
+
+    // ... existing normal thinking and decision logic ...
+    StartThinkingProcess();
+}
+```
+
+**Add Chain Decision Method**:
+```csharp
+/// <summary>
+/// Handle AI decision when PlusTwo chain is active
+/// </summary>
+void HandlePlusTwoChainDecision() {
+    TakiLogger.LogAI("=== AI HANDLING PLUS TWO CHAIN ===");
+    
+    // Check if AI has PlusTwo cards
+    var plusTwoCards = computerHand.Where(card => card.cardType == CardType.PlusTwo).ToList();
+    
+    if (plusTwoCards.Count > 0) {
+        // AI has PlusTwo cards - always continue chain
+        CardData selectedPlusTwo = plusTwoCards[Random.Range(0, plusTwoCards.Count)];
+        TakiLogger.LogAI($"AI continuing chain with {selectedPlusTwo.GetDisplayText()}");
+        
+        OnAIDecisionMade?.Invoke($"AI plays {selectedPlusTwo.GetDisplayText()} - chain continues!");
+        Invoke(nameof(PlayPlusTwoCard), thinkingTime);
+    } else {
+        // AI has no PlusTwo cards - must break chain by drawing
+        int cardsToDraw = gameState.ChainDrawCount;
+        TakiLogger.LogAI($"AI has no PlusTwo cards - breaking chain by drawing {cardsToDraw} cards");
+        
+        OnAIDecisionMade?.Invoke($"AI draws {cardsToDraw} cards - chain broken!");
+        Invoke(nameof(BreakChainByDrawing), thinkingTime);
+    }
+}
+
+/// <summary>
+/// AI plays PlusTwo card to continue chain
+/// </summary>
+void PlayPlusTwoCard() {
+    var plusTwoCards = computerHand.Where(card => card.cardType == CardType.PlusTwo).ToList();
+    if (plusTwoCards.Count > 0) {
+        CardData selectedCard = plusTwoCards[Random.Range(0, plusTwoCards.Count)];
+        PlayCard(selectedCard);
+    } else {
+        TakiLogger.LogError("AI tried to play PlusTwo but has none!", TakiLogger.LogCategory.AI);
+        BreakChainByDrawing();
+    }
+}
+
+/// <summary>
+/// AI breaks chain by drawing accumulated cards
+/// </summary>
+void BreakChainByDrawing() {
+    int cardsToDraw = gameState?.ChainDrawCount ?? 2;
+    TakiLogger.LogAI($"AI breaking chain by drawing {cardsToDraw} cards");
+    
+    // Trigger AI draw event - GameManager will handle the multi-card draw
+    OnAIDrawCard?.Invoke();
+}
+```
+
+**Modify GameManager.OnAIDrawCard() to Handle Chain Breaking**:
+```csharp
+void OnAIDrawCard() {
+    TakiLogger.LogAI("AI DRAWING CARD");
+
+    if (deckManager == null || computerAI == null) {
+        TakiLogger.LogError("AI draw card but components are null!", TakiLogger.LogCategory.AI);
+        return;
+    }
+
+    // Check for PlusTwo chain breaking
+    if (gameState != null && gameState.IsPlusTwoChainActive) {
+        int cardsToDraw = gameState.ChainDrawCount;
+        TakiLogger.LogAI($"AI breaking PlusTwo chain by drawing {cardsToDraw} cards");
+        
+        List<CardData> drawnCards = deckManager.DrawCards(cardsToDraw);
+        if (drawnCards.Count > 0) {
+            computerAI.AddCardsToHand(drawnCards);
+            TakiLogger.LogAI($"AI drew {drawnCards.Count} cards to break chain");
+            
+            gameplayUI?.ShowPlayerMessage($"AI broke chain by drawing {drawnCards.Count} cards");
+            gameplayUI?.ShowComputerMessage($"Drew {drawnCards.Count} cards - chain broken");
+        }
+        
+        // Break the chain
+        gameState.BreakPlusTwoChain();
+        UpdateAllUI();
+        
+        // End AI turn after breaking chain
+        if (turnManager != null) {
+            turnManager.EndTurn();
+        }
+        return;
+    }
+
+    // ... existing normal AI draw logic ...
+    CardData drawnCard = deckManager.DrawCard();
+    if (drawnCard != null) {
+        computerAI.AddCardToHand(drawnCard);
+        TakiLogger.LogAI("AI drew card: " + drawnCard.GetDisplayText());
+        UpdateAllUI();
+    } else {
+        TakiLogger.LogError("AI could not draw card - deck empty?", TakiLogger.LogCategory.AI);
+    }
+
+    TakiLogger.LogAI("Ending computer turn after draw");
+    EndAITurnWithStrictFlow();
+}
+```
+
+---
+
+### **TESTING YOUR BASIC CHAIN**
+
+After implementing the above changes, you should be able to:
+
+1. **Start Chain**: Play PlusTwo card → chain begins, opponent must draw 2 or continue
+2. **Continue Chain**: If opponent has PlusTwo, they can play it → chain grows to draw 4
+3. **Break Chain**: Click DRAW button → player draws accumulated cards, chain ends
+4. **AI Behavior**: AI will play PlusTwo if available, otherwise draws to break chain
+
+---
+
+### **PHASE 8A-FULL: Complete Enhancement**
+
+#### **Step 4: Enhanced UI Integration**
+**File**: `GameplayUIManager.cs`
+
+**Add Chain Status Display**:
+```csharp
+[Header("PlusTwo Chain UI")]
+[Tooltip("Panel showing chain status and accumulated draw count")]
+public GameObject plusTwoChainPanel;
+
+[Tooltip("Text showing chain information")]
+public TextMeshProUGUI chainStatusText;
+
+/// <summary>
+/// Show PlusTwo chain status
+/// </summary>
+public void ShowPlusTwoChainStatus(int chainCount, int accumulatedDraw) {
+    if (plusTwoChainPanel != null) {
+        plusTwoChainPanel.SetActive(true);
+    }
+    
+    if (chainStatusText != null) {
+        chainStatusText.text = $"PlusTwo Chain: {chainCount} cards (+{accumulatedDraw} draw)";
+    }
+    
+    TakiLogger.LogUI($"Chain status displayed: {chainCount} cards, +{accumulatedDraw} draw");
+}
+
+/// <summary>
+/// Hide PlusTwo chain status
+/// </summary>
+public void HidePlusTwoChainStatus() {
+    if (plusTwoChainPanel != null) {
+        plusTwoChainPanel.SetActive(false);
+    }
+    
+    TakiLogger.LogUI("Chain status hidden");
+}
+
+/// <summary>
+/// Update button states for PlusTwo chain scenario
+/// </summary>
+public void UpdateButtonsForPlusTwoChain(bool canDraw, bool canPlayPlusTwo) {
+    TakiLogger.LogUI($"Updating buttons for PlusTwo chain: Draw={canDraw}, PlayPlusTwo={canPlayPlusTwo}");
+    
+    // During chain: only DRAW or PLAY (if has PlusTwo) are valid
+    UpdateStrictButtonStates(canPlayPlusTwo, canDraw, false);
+    
+    if (!canPlayPlusTwo) {
+        ShowPlayerMessage("No PlusTwo cards - you must DRAW to break chain!");
+    }
+}
+```
+
+**Enhanced Chain Messaging**:
+```csharp
+/// <summary>
+/// Show progressive chain messages based on chain size and target player
+/// </summary>
+public void ShowChainProgressMessage(int chainCount, int drawCount, bool isForPlayer) {
+    string message;
+    
+    if (chainCount == 1) {
+        // First PlusTwo played
+        message = isForPlayer ? 
+            $"PlusTwo played! Draw {drawCount} cards or play PlusTwo" :
+            $"PlusTwo played! Opponent draws {drawCount} or continues chain";
+    } else {
+        // Chain continues
+        message = isForPlayer ?
+            $"Chain grows! Draw {drawCount} cards or play PlusTwo" :
+            $"Chain grows! Opponent draws {drawCount} or continues chain";
+    }
+    
+    if (isForPlayer) {
+        ShowPlayerMessageTimed(message, 0f); // Permanent until action taken
+    } else {
+        ShowComputerMessageTimed(message, 4.0f);
+    }
+}
+
+/// <summary>
+/// Show chain broken message
+/// </summary>
+public void ShowChainBrokenMessage(int cardsDrawn, PlayerType whoDraws) {
+    string playerMessage = whoDraws == PlayerType.Human ?
+        $"Chain broken! You drew {cardsDrawn} cards" :
+        $"Chain broken! AI drew {cardsDrawn} cards";
+        
+    string computerMessage = whoDraws == PlayerType.Computer ?
+        $"Drew {cardsDrawn} cards - chain broken" :
+        $"Opponent drew {cardsDrawn} cards - chain broken";
+    
+    ShowPlayerMessageTimed(playerMessage, 3.0f);
+    ShowComputerMessageTimed(computerMessage, 3.0f);
+}
+```
+
+#### **Step 5: Enhanced GameManager Integration**
+**File**: `GameManager.cs`
+
+**Add InteractionState.PlusTwoChain Integration**:
+```csharp
+// Modify HandleSpecialCardEffects() to include interaction state:
+case CardType.PlusTwo:
+    TakiLogger.LogRules("PLUS TWO CARD: Enhanced Chain System");
+    
+    PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
+    
+    if (!gameState.IsPlusTwoChainActive) {
+        // Start new chain
+        gameState.StartPlusTwoChain(currentPlayer);
+        gameState.ChangeInteractionState(InteractionState.PlusTwoChain);
+        
+        TakiLogger.LogRules("PlusTwo chain started with interaction state change");
+        gameplayUI?.ShowChainProgressMessage(1, 2, currentPlayer != PlayerType.Human);
+        gameplayUI?.ShowPlusTwoChainStatus(1, 2);
+    } else {
+        // Continue existing chain
+        gameState.ContinuePlusTwoChain();
+        
+        int chainCount = gameState.NumberOfChainedCards;
+        int drawCount = gameState.ChainDrawCount;
+        TakiLogger.LogRules($"PlusTwo chain continued - now {chainCount} cards, {drawCount} draw");
+        
+        gameplayUI?.ShowChainProgressMessage(chainCount, drawCount, currentPlayer != PlayerType.Human);
+        gameplayUI?.ShowPlusTwoChainStatus(chainCount, drawCount);
+    }
+    break;
+```
+
+**Enhanced Chain Breaking**:
+```csharp
+/// <summary>
+/// Enhanced chain breaking with full UI integration
+/// </summary>
+void BreakPlusTwoChainByDrawing() {
+    int cardsToDraw = gameState.ChainDrawCount;
+    int chainCount = gameState.NumberOfChainedCards;
+    
+    TakiLogger.LogCardPlay($"Breaking PlusTwo chain - {chainCount} cards, drawing {cardsToDraw} cards");
+
+    List<CardData> drawnCards = deckManager?.DrawCards(cardsToDraw) ?? new List<CardData>();
+    if (drawnCards.Count > 0) {
+        playerHand.AddRange(drawnCards);
+        
+        TakiLogger.LogCardPlay($"Player drew {drawnCards.Count} cards to break chain");
+        gameplayUI?.ShowChainBrokenMessage(drawnCards.Count, PlayerType.Human);
+    } else {
+        TakiLogger.LogError("Failed to draw cards for chain breaking", TakiLogger.LogCategory.CardPlay);
+        gameplayUI?.ShowPlayerMessage("Error: Cannot draw cards!");
+    }
+
+    // Break the chain and return to normal state
+    gameState.BreakPlusTwoChain();
+    gameState.ChangeInteractionState(InteractionState.Normal);
+    gameplayUI?.HidePlusTwoChainStatus();
+
+    // Update UI
+    UpdateAllUI();
+    RefreshPlayerHandStates();
+
+    // Handle turn flow
+    HandlePostDrawTurnFlow(drawnCards.LastOrDefault());
+}
+```
+
+**Chain-Aware Turn Flow**:
+```csharp
+// Modify StartPlayerTurnFlow() to handle chains:
+void StartPlayerTurnFlow() {
+    TakiLogger.LogTurnFlow("STARTING PLAYER TURN WITH CHAIN AWARENESS");
+
+    // Check for active PlusTwo chain
+    if (gameState.IsPlusTwoChainActive) {
+        TakiLogger.LogTurnFlow("PlusTwo chain active - special button logic");
+        
+        // Check if player has PlusTwo cards
+        bool hasPlusTwo = playerHand.Any(card => card.cardType == CardType.PlusTwo);
+        
+        if (hasPlusTwo) {
+            // Player can either play PlusTwo or draw to break chain
+            gameplayUI?.UpdateButtonsForPlusTwoChain(true, true);
+            gameplayUI?.ShowPlayerMessage($"Chain active! Play PlusTwo or draw {gameState.ChainDrawCount} cards");
+        } else {
+            // Player must draw to break chain
+            gameplayUI?.UpdateButtonsForPlusTwoChain(true, false);
+            gameplayUI?.ShowPlayerMessage($"No PlusTwo cards - draw {gameState.ChainDrawCount} cards to break chain");
+        }
+        
+        RefreshPlayerHandStates(); // This will show only PlusTwo cards as playable
+        return;
+    }
+
+    // ... existing normal turn flow logic ...
+}
+```
+
+#### **Step 6: Enhanced Card Validation**
+**File**: `GameStateManager.cs`
+
+**Add Chain-Aware Card Validation**:
+```csharp
+/// <summary>
+/// Enhanced IsValidMove with PlusTwo chain awareness
+/// </summary>
+public bool IsValidMove(CardData cardToPlay, CardData topDiscardCard) {
+    if (cardToPlay == null || topDiscardCard == null) {
+        TakiLogger.LogWarning("Cannot validate move: Null card provided", TakiLogger.LogCategory.Rules);
+        return false;
+    }
+
+    // Special rule: During PlusTwo chain, only PlusTwo cards are valid
+    if (isPlusTwoChainActive && cardToPlay.cardType != CardType.PlusTwo) {
+        TakiLogger.LogRules($"Move blocked: Only PlusTwo cards allowed during chain, attempted {cardToPlay.GetDisplayText()}");
+        return false;
+    }
+
+    // Use the normal CanPlayOn method for other validation
+    bool isValid = cardToPlay.CanPlayOn(topDiscardCard, activeColor);
+
+    TakiLogger.LogRules($"Move validation: {cardToPlay.GetDisplayText()} on {topDiscardCard.GetDisplayText()} with active color {activeColor} = {isValid}");
+
+    return isValid;
+}
+```
+
+#### **Step 7: Pause/Resume Integration**
+**File**: `PauseManager.cs`
+
+**Enhance GameStateSnapshot**:
+```csharp
+private class GameStateSnapshot {
+    public TurnState turnState;
+    public InteractionState interactionState;
+    public GameStatus gameStatus;
+    public CardColor activeColor;
+    public TurnDirection turnDirection;
+    public bool isComputerTurnActive;
+    public bool isComputerTurnPending;
+    public PlayerType currentPlayer;
+    
+    // Add PlusTwo chain state
+    public bool isPlusTwoChainActive;
+    public int numberOfChainedPlusTwos;
+    public PlayerType chainInitiator;
+}
+```
+
+**Update Capture and Restore Methods**:
+```csharp
+void CaptureGameState() {
+    // ... existing capture code ...
+    
+    // Capture PlusTwo chain state
+    pausedState.isPlusTwoChainActive = gameState.IsPlusTwoChainActive;
+    pausedState.numberOfChainedPlusTwos = gameState.NumberOfChainedCards;
+    pausedState.chainInitiator = gameState.ChainInitiator;
+    
+    TakiLogger.LogSystem($"Chain state captured: Active={pausedState.isPlusTwoChainActive}, Count={pausedState.numberOfChainedPlusTwos}");
+}
+
+void RestoreGameState() {
+    // ... existing restore code ...
+    
+    // Restore PlusTwo chain state
+    if (pausedState.isPlusTwoChainActive) {
+        gameState.StartPlusTwoChain(pausedState.chainInitiator);
+        // Manually set the count to restore exact chain state
+        // You'll need to add a method to set the count directly
+        gameState.SetChainCount(pausedState.numberOfChainedPlusTwos);
+        gameState.ChangeInteractionState(InteractionState.PlusTwoChain);
+        
+        TakiLogger.LogSystem("PlusTwo chain state restored from pause");
+    }
+}
+```
+
+#### **Step 8: Edge Case Handling**
+
+**Game End During Chain**:
+```csharp
+// In GameManager.PlayCardWithStrictFlow(), modify win condition check:
+// Check for win condition - but not during active PlusTwo chain
+if (playerHand.Count == 0) {
+    if (gameState.IsPlusTwoChainActive && card.cardType == CardType.PlusTwo) {
+        TakiLogger.LogGameState("Player played last card (PlusTwo) but chain is active - must wait for resolution");
+        gameplayUI?.ShowPlayerMessage("Chain active! Game continues until chain is resolved");
+        // Don't declare winner yet - chain must be resolved first
+    } else {
+        TakiLogger.LogGameState("Player wins - hand is empty!");
+        gameState.DeclareWinner(PlayerType.Human);
+        return;
+    }
+}
+```
+
+**Deck Exhaustion During Multi-Draw**:
+```csharp
+// In DeckManager.cs, enhance DrawCards() method:
+public List<CardData> DrawCards(int count) {
+    List<CardData> drawnCards = new List<CardData>();
+    
+    for (int i = 0; i < count; i++) {
+        CardData card = DrawCard(); // This handles deck exhaustion safely
+        if (card != null) {
+            drawnCards.Add(card);
+        } else {
+            TakiLogger.LogWarning($"Deck exhausted during multi-draw: requested {count}, got {drawnCards.Count}", TakiLogger.LogCategory.Deck);
+            break; // Stop when deck is exhausted
+        }
+    }
+    
+    return drawnCards;
+}
+```
+
+---
+
+## 🧪 **TESTING CHECKLIST**
+
+### **Basic Chain Testing**:
+- ✅ PlusTwo starts chain with correct count
+- ✅ Chain continues when PlusTwo played on PlusTwo  
+- ✅ Chain breaks when player draws accumulated cards
+- ✅ AI plays PlusTwo to continue chain if available
+- ✅ AI draws to break chain when no PlusTwo available
+
+### **UI Testing**:
+- ✅ Chain status messages appear correctly
+- ✅ Button states update appropriately during chains
+- ✅ Progressive messaging shows correct draw counts
+- ✅ Chain status panel shows/hides correctly
+
+### **Edge Case Testing**:
+- ✅ Pause/resume preserves chain state
+- ✅ Game end handling during active chains
+- ✅ Deck exhaustion during multi-card draw
+- ✅ Chain state resets between games
+
+### **Integration Testing**:
+- ✅ Chain system works with existing strict turn flow
+- ✅ All other special cards still function correctly
+- ✅ Visual card system updates appropriately
+- ✅ No conflicts with existing pause/resume system
+
+---
+
+## 🎯 **SUCCESS CRITERIA**
+
+**Phase 8A is complete when**:
+1. ✅ Players can start PlusTwo chains by playing PlusTwo cards
+2. ✅ Chains continue when players respond with PlusTwo cards
+3. ✅ Chains break when players draw accumulated cards
+4. ✅ AI strategically continues chains when possible
+5. ✅ UI clearly shows chain status and player options
+6. ✅ Chain system integrates seamlessly with existing game flow
+7. ✅ Pause/resume preserves chain state correctly
+8. ✅ All edge cases are handled gracefully
+
+**Visual Result**: Playing PlusTwo → opponent sees "Draw 2 or play PlusTwo" → if they play PlusTwo → first player sees "Draw 4 or play PlusTwo" → continues until someone draws to break chain.
+
+---
+
+## 📁 **FILES TO MODIFY**
+
+### **Primary Files** (Major changes):
+1. `GameStateManager.cs` - Chain state management
+2. `GameManager.cs` - Core chain logic and turn flow
+3. `GameplayUIManager.cs` - Chain UI and messaging
+4. `BasicComputerAI.cs` - AI chain strategy
+
+### **Secondary Files** (Minor changes):
+5. `PauseManager.cs` - Chain state preservation
+6. `DeckManager.cs` - Multi-card draw capability
+
+### **Optional Enhancement** (If UI elements missing):
+7. Add Chain Status UI elements to Scene Hierarchy
+
+---
+
+## 🚀 **IMPLEMENTATION ORDER**
+
+1. **Start with GameStateManager.cs** - Foundation chain state tracking
+2. **GameManager.cs Basic Logic** - Core chain start/continue/break
+3. **Test Basic Chain** - Verify core functionality works
+4. **BasicComputerAI.cs** - AI chain strategy
+5. **GameplayUIManager.cs** - Enhanced UI and messaging
+6. **PauseManager.cs** - State preservation
+7. **Edge Case Testing** - Deck exhaustion, game end scenarios
+8. **Final Integration Testing** - Complete system validation
+
+**Estimated Time**: 4-6 hours for complete Phase 8A implementation

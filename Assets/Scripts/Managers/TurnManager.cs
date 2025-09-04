@@ -37,7 +37,8 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Enhanced start turn with pause state checking
+		/// UPDATED: Enhanced start turn with pause state checking
+		/// STOP skip logic now handled by GameManager flag system
 		/// </summary>
 		/// <param name="player">Player whose turn it is</param>
 		public void StartTurn (PlayerType player) {
@@ -50,6 +51,8 @@ namespace TakiGame {
 			currentPlayer = player;
 
 			// Update turn state in GameStateManager
+			// This will trigger OnTurnStateChanged in GameManager
+			// which now checks for STOP flags
 			if (gameState != null) {
 				if (player == PlayerType.Human) {
 					gameState.ChangeTurnState (TurnState.PlayerTurn);
@@ -65,7 +68,7 @@ namespace TakiGame {
 				StopTurnTimer ();
 			}
 
-			// Schedule computer turn with delay
+			// Schedule computer turn with delay 
 			if (player == PlayerType.Computer) {
 				ScheduleComputerTurn ();
 			} else {
@@ -77,7 +80,8 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// End the current player's turn and switch to next player
+		/// UPDATED: End the current player's turn and switch to next player
+		/// No longer handles STOP cards - that's done by flag system
 		/// </summary>
 		public void EndTurn () {
 			TakiLogger.LogTurnManagement ($"Turn ended for: {currentPlayer}");
@@ -85,7 +89,8 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Enhanced turn switching with pause awareness
+		/// UPDATED: Enhanced turn switching with pause awareness
+		/// Clean turn switching - STOP handling moved to GameManager flag system
 		/// </summary>
 		void SwitchToNextPlayer () {
 			// Don't switch if game is paused
@@ -102,20 +107,20 @@ namespace TakiGame {
 			StartTurn (nextPlayer);
 		}
 
-		/// <summary>
-		/// Skip the current player's turn (for Stop cards)
-		/// </summary>
-		public void SkipTurn () {
-			TakiLogger.LogTurnManagement ($"Turn skipped for: {currentPlayer}");
-			// Switch to next player, then immediately switch again to skip them
-			PlayerType skippedPlayer = currentPlayer == PlayerType.Human ?
-									   PlayerType.Computer : PlayerType.Human;
+		///// <summary>
+		///// Skip the current player's turn (for Stop cards)
+		///// </summary>
+		//public void SkipTurn () {
+		//	TakiLogger.LogTurnManagement ($"Turn skipped for: {currentPlayer}");
+		//	// Switch to next player, then immediately switch again to skip them
+		//	PlayerType skippedPlayer = currentPlayer == PlayerType.Human ?
+		//							   PlayerType.Computer : PlayerType.Human;
 
-			TakiLogger.LogTurnManagement ($"Player {skippedPlayer} turn is skipped");
+		//	TakiLogger.LogTurnManagement ($"Player {skippedPlayer} turn is skipped");
 
-			// Don't actually start the skipped player's turn, just switch back
-			SwitchToNextPlayer ();
-		}
+		//	// Don't actually start the skipped player's turn, just switch back
+		//	SwitchToNextPlayer ();
+		//}
 
 		/// <summary>
 		/// Force turn to a specific player (for special cards)

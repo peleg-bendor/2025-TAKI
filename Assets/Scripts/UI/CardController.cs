@@ -5,6 +5,7 @@ namespace TakiGame {
 	/// <summary> 
 	/// Handles individual card prefab behavior and visual representation
 	/// FIXED: Uses correct image paths matching actual folder structure
+	/// LOGGING: Reduced spam - only errors and warnings
 	/// </summary>
 	public class CardController : MonoBehaviour {
 
@@ -86,7 +87,10 @@ namespace TakiGame {
 			SetSelected (false);
 			SetPlayable (true);
 
-			Debug.Log ($"CardController initialized: {cardData?.GetDisplayText ()}");
+			// Only log if card initialization fails
+			if (cardData == null) {
+				TakiLogger.LogError ("CardController initialized with null CardData", TakiLogger.LogCategory.System);
+			}
 		}
 
 		/// <summary>
@@ -129,9 +133,8 @@ namespace TakiGame {
 			if (cardSprite != null) {
 				cardFrontImage.sprite = cardSprite;
 				cardFrontImage.color = Color.white; // No tinting by default
-				Debug.Log ($"Loaded card front image: {imagePath}");
 			} else {
-				Debug.LogWarning ($"Could not load card front image: {imagePath}");
+				TakiLogger.LogWarning ($"Could not load card front image: {imagePath}", TakiLogger.LogCategory.System);
 				// Fallback to colored rectangle
 				cardFrontImage.sprite = null;
 				cardFrontImage.color = GetFallbackColor (cardData.color);
@@ -152,9 +155,8 @@ namespace TakiGame {
 			if (backSprite != null) {
 				cardBackImage.sprite = backSprite;
 				cardBackImage.color = Color.white;
-				Debug.Log ($"Loaded card back image: {backImagePath}");
 			} else {
-				Debug.LogWarning ($"Could not load card back image: {backImagePath}");
+				TakiLogger.LogWarning ($"Could not load card back image: {backImagePath}", TakiLogger.LogCategory.System);
 				// Fallback to gray color
 				cardBackImage.sprite = null;
 				cardBackImage.color = Color.gray;
@@ -299,8 +301,6 @@ namespace TakiGame {
 
 			// Always update visual feedback when selection changes
 			UpdateVisualFeedback ();
-
-			Debug.Log ($"Card {cardData?.GetDisplayText ()} selection: {selected}, playable: {isPlayable}");
 		}
 
 		/// <summary>
@@ -308,19 +308,14 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Test Tint Colors")]
 		public void TestTintColors () {
-			Debug.Log ("=== TESTING TINT COLORS ===");
-			Debug.Log ($"Card: {cardData?.GetDisplayText ()}");
-			Debug.Log ($"Selected: {isSelected}");
-			Debug.Log ($"Playable: {isPlayable}");
-			Debug.Log ($"Face Up: {isFaceUp}");
+			TakiLogger.LogDiagnostics ($"Testing tint colors for {cardData?.GetDisplayText ()}: Selected={isSelected}, Playable={isPlayable}, FaceUp={isFaceUp}");
 
 			if (cardFrontImage != null) {
-				Debug.Log ($"Front Image Color: {cardFrontImage.color}");
+				TakiLogger.LogDiagnostics ($"Front Image Color: {cardFrontImage.color}");
 			}
 
 			// Force visual feedback update
 			UpdateVisualFeedback ();
-			Debug.Log ("Tint test complete - check card appearance");
 		}
 
 		/// <summary>
@@ -328,7 +323,6 @@ namespace TakiGame {
 		/// </summary>
 		public void ForceVisualRefresh () {
 			UpdateVisualFeedback ();
-			Debug.Log ($"Visual refresh forced for {cardData?.GetDisplayText ()}");
 		}
 
 		/// <summary>
@@ -339,7 +333,6 @@ namespace TakiGame {
 			if (isPlayable == playable) return; // No change needed
 
 			isPlayable = playable;
-			Debug.Log ($"Card {cardData?.GetDisplayText ()} playability set to: {playable}");
 
 			// FIXED: Immediate visual feedback update
 			UpdateVisualFeedback ();
@@ -355,10 +348,8 @@ namespace TakiGame {
 				Color tintColor;
 				if (isPlayable) {
 					tintColor = validCardTint; // Gold for valid cards
-					Debug.Log ($"Card {cardData?.GetDisplayText ()}: SELECTED + PLAYABLE = GOLD tint");
 				} else {
 					tintColor = invalidCardTint; // Red for invalid cards  
-					Debug.Log ($"Card {cardData?.GetDisplayText ()}: SELECTED + INVALID = RED tint");
 				}
 
 				if (isFaceUp && cardFrontImage != null) {
@@ -373,7 +364,6 @@ namespace TakiGame {
 				if (cardBackImage != null) {
 					cardBackImage.color = Color.white;
 				}
-				Debug.Log ($"Card {cardData?.GetDisplayText ()}: NOT SELECTED = WHITE (no tint)");
 			}
 		}
 
@@ -382,8 +372,6 @@ namespace TakiGame {
 		/// </summary>
 		void OnCardButtonClicked () {
 			if (!isFaceUp) return; // Can't select face-down cards
-
-			Debug.Log ($"Card clicked: {cardData?.GetDisplayText ()}");
 
 			// Notify parent hand manager
 			if (parentHandManager != null) {

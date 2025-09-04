@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TakiGame {
@@ -28,7 +29,8 @@ namespace TakiGame {
 			Deck,           // Deck operations
 			Rules,          // Rule validation
 			System,         // System integration and events
-			Diagnostics     // Debug and diagnostic information
+			Diagnostics,    // Debug and diagnostic information
+			SpecialCards    // PHASE 7: Special card effects and validation
 		}
 
 		// Current log level - can be changed at runtime
@@ -107,6 +109,13 @@ namespace TakiGame {
 		/// </summary>
 		public static void LogDiagnostics (string message, LogLevel level = LogLevel.Verbose) {
 			Log (LogCategory.Diagnostics, message, level);
+		}
+
+		/// <summary>
+		/// PHASE 7: Log special card effects and validation
+		/// </summary>
+		public static void LogSpecialCards (string message, LogLevel level = LogLevel.Info) {
+			Log (LogCategory.SpecialCards, message, level);
 		}
 
 		// Direct level-based logging methods
@@ -197,6 +206,7 @@ namespace TakiGame {
 				case LogCategory.Rules: return "RULES";
 				case LogCategory.System: return "SYS";
 				case LogCategory.Diagnostics: return "DIAG";
+				case LogCategory.SpecialCards: return "SPECIAL";
 				default: return "GAME";
 			}
 		}
@@ -221,8 +231,8 @@ namespace TakiGame {
 			LogSystem ($"Switched to {mode} mode", LogLevel.Info);
 		}
 
-		/// <summary>
-		/// Get current configuration info 
+		/// <summary> 
+		/// Get current configuration info
 		/// </summary>
 		public static string GetLoggerInfo () {
 			string mode = isProductionMode ? "Production" : "Development";

@@ -3,7 +3,7 @@
 ## 📋 **Document Overview**
 **Purpose**: Master reference for all scripts in the TAKI game project  
 **Total Scripts**: 27 core scripts + utilities  
-**Last Updated**: Based on Phase 6 (Pause System & Game Flow Enhancement) completion  
+**Last Updated**: Based on Phase 7 (Basic Special Cards Implementation) completion  
 **Architecture**: Single Responsibility Pattern with Event-Driven Communication
 
 ---
@@ -40,9 +40,9 @@ GameManager (Coordinator)
 # 🏗️ **Core Architecture Scripts**
 
 ## **GameManager.cs** 🎯 **CENTRAL HUB**
-**Purpose**: Main game coordinator with strict turn flow system and manager integration  
-**Responsibility**: Orchestrates all gameplay systems and enforces turn rules  
-**Status**: ✅ Enhanced with pause/game end/exit validation coordination
+**Purpose**: Main game coordinator with strict turn flow system and comprehensive special card implementation  
+**Responsibility**: Orchestrates all gameplay systems and enforces turn rules with full special card effects  
+**Status**: ✅ Enhanced with Phase 7 special cards implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
 
 ### **Key Features**:
 - **Strict Turn Flow**: Player must take ONE action (PLAY/DRAW) then END TURN
@@ -50,6 +50,7 @@ GameManager (Coordinator)
 - **System Integration**: Connects all major components via events
 - **Game State Management**: Handles setup, play, and end conditions
 - **Manager Coordination**: Integrates with PauseManager, GameEndManager, ExitValidationManager
+- **✅ PHASE 7 COMPLETE**: Full special card implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
 
 ### **Critical Methods**:
 ```csharp
@@ -78,10 +79,49 @@ RequestExitConfirmation() // Delegate to ExitValidationManager
 CaptureTurnFlowState() // For pause preservation
 RestoreTurnFlowState() // From pause restoration
 
+// ✅ PHASE 7: IMPLEMENTED SPECIAL CARD EFFECTS
+HandleSpecialCardEffects(card) // Full special card implementation
+HandlePostCardPlayTurnFlow(card) // Special card turn flow management
+HandleAISpecialCardEffects(card) // AI special card handling
+
+// PLUS Card Implementation ✅
+HandlePlusCardEffect() // Additional action requirement
+IsWaitingForAdditionalAction // State tracking
+
+// STOP Card Implementation ✅  
+HandleStopCardEffect() // Turn skipping flag system
+ProcessStopSkipEffect() // Skip processing logic
+shouldSkipNextTurn // Skip flag tracking
+
+// ChangeDirection Card Implementation ✅
+HandleChangeDirectionCardEffect() // Direction reversal
+GetTwoPlayerDirectionNote() // 2-player messaging
+
+// ChangeColor Card Implementation ✅
+HandleChangeColorCardEffect() // Core color change logic
+OnColorSelectedByPlayer() // Human color selection
+computerAI.SelectColor() // AI color selection integration
+
 // Game Integration
 UpdateAllUI() // Comprehensive UI updates
 RefreshPlayerHandStates() // Visual card state updates
-LogCardEffectRules(card) // Special card logging system
+LogCardEffectRules(card) // Enhanced special card logging system
+```
+
+### **✅ PHASE 7 SPECIAL CARD STATE TRACKING**:
+```csharp
+// PLUS Card State
+private bool isWaitingForAdditionalAction = false;
+private CardType activeSpecialCardEffect = CardType.Number;
+
+// STOP Card State  
+private bool shouldSkipNextTurn = false;
+private PlayerType stopCardPlayer = PlayerType.Human;
+
+// Enhanced State Management
+HasPendingSpecialCardEffects() // Check for pending effects
+GetSpecialCardStateDescription() // Debug information
+ResetSpecialCardState() // Clean slate for new turn
 ```
 
 ### **Dependencies**:
@@ -175,8 +215,8 @@ public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionStat
 - **Turn Switching**: Clean player-to-player transitions
 - **Computer Turn Delay**: Natural AI thinking time
 - **Turn Timer**: Optional player time limits
-- **Turn Skip Logic**: For Stop cards
 - **Pause Awareness**: Proper pause/resume handling
+- **✅ PHASE 7**: Integration with STOP card skip system
 
 ### **Enhanced Methods**:
 ```csharp
@@ -184,7 +224,6 @@ public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionStat
 StartTurn(player) // Begin specific player's turn (checks pause state)
 EndTurn() // End current turn and switch
 SwitchToNextPlayer() // Alternate between players (pause aware)
-SkipTurn() // Skip current player (Stop card effect)
 ForceTurnTo(player) // Force turn to specific player
 
 // Pause System Integration
@@ -221,9 +260,9 @@ public class TurnStateData {
 
 ---
 
-# 🎮 **Game Flow Managers** (NEW)
+# 🎮 **Game Flow Managers**
 
-## **PauseManager.cs** ⏸️ **PAUSE SYSTEM COORDINATOR** (NEW)
+## **PauseManager.cs** ⏸️ **PAUSE SYSTEM COORDINATOR**
 **Purpose**: Handles ALL pause-related functionality following Single Responsibility Principle  
 **Responsibility**: Pause/resume game state coordination, system state preservation and restoration
 
@@ -232,6 +271,7 @@ public class TurnStateData {
 - **System Coordination**: Pauses/resumes all game systems safely
 - **Turn Flow Integration**: Preserves strict turn flow state
 - **Exit Validation Support**: Handles pause for exit confirmation
+- **✅ PHASE 7**: Enhanced special card state preservation
 
 ### **Core Methods**:
 ```csharp
@@ -279,7 +319,7 @@ public class GameManagerTurnFlowSnapshot {
 
 ---
 
-## **GameEndManager.cs** 🏁 **GAME END COORDINATOR** (NEW)
+## **GameEndManager.cs** 🏁 **GAME END COORDINATOR**
 **Purpose**: Handles ALL game end scenarios following Single Responsibility Principle  
 **Responsibility**: Win condition detection, game over screen management, post-game actions
 
@@ -322,7 +362,7 @@ Default → "Game Over!"
 
 ---
 
-## **ExitValidationManager.cs** 🚪 **EXIT CONFIRMATION COORDINATOR** (NEW)
+## **ExitValidationManager.cs** 🚪 **EXIT CONFIRMATION COORDINATOR**
 **Purpose**: Handles exit confirmation and safe cleanup following Single Responsibility Principle  
 **Responsibility**: Exit confirmation dialog, pause coordination, comprehensive system cleanup
 
@@ -634,6 +674,23 @@ private bool drawButtonEnabled = false;
 private bool endTurnButtonEnabled = false;
 ```
 
+### **✅ PHASE 7: Enhanced Special Card UI Support**:
+```csharp
+// Special Card Effect Display
+ShowSpecialCardEffect(cardType, playedBy, effectDescription) // Enhanced special card feedback
+ShowImmediateFeedback(message, toPlayer) // Urgent feedback system
+ShowPlayerMessageTimed(message, duration) // Timed messages
+ShowComputerMessageTimed(message, duration) // Timed AI messages
+
+// Color Selection Integration (ChangeColor Cards)
+ShowColorSelection(show) // Enhanced color panel management
+OnColorSelected(color) // Color selection event handling
+
+// Enhanced Messaging System
+ClearPlayerMessage() // Message management
+ClearComputerMessage() // Message management
+```
+
 ### **Enhanced UI Management**:
 ```csharp
 // Display Updates with Pause Awareness
@@ -767,16 +824,20 @@ StartExitSequence() // Final exit sequence
 # 🤖 **AI System**
 
 ## **BasicComputerAI.cs** 🧠 **COMPUTER PLAYER**
-**Purpose**: Simple AI for computer player decisions with pause/resume support  
-**Responsibility**: Card selection strategy, color choices, pause state management
+**Purpose**: Simple AI for computer player decisions with pause/resume support and special card handling  
+**Responsibility**: Card selection strategy, color choices, pause state management, special card integration
 
-### **Enhanced AI System**:
+### **✅ PHASE 7: Enhanced AI System with Special Card Support**:
 ```csharp
-// Decision Making with Pause Awareness
+// Decision Making with Pause Awareness and Special Cards
 MakeDecision(topDiscardCard) // Main AI entry point (pause aware)
 ExecuteDecision() // After thinking delay (pause checking)
 GetValidCards(topDiscardCard) // Rule-based filtering
-SelectBestCard(validCards) // Strategic selection
+SelectBestCard(validCards) // Strategic selection with special card preference
+
+// ✅ PHASE 7: Enhanced AI Color Selection for ChangeColor Cards
+SelectColor() // Smart color selection based on hand analysis
+OnAIColorSelected // Event for color selection integration
 
 // Pause System Integration
 PauseAI() // Pause operations and preserve state
@@ -788,6 +849,18 @@ CanMakeDecisions() // Check if AI can act (considers pause)
 ForceCompleteReset() // Comprehensive reset (fixes stuck states)
 IsAIStuckInPauseState() // Diagnostic for stuck detection
 GetAIStateDescription() // Current state information
+```
+
+### **✅ PHASE 7: Enhanced AI Special Card Strategy**:
+```csharp
+// Special Card Preference System
+ShouldAIUseSpecialCard(specialCards, numberCards) // 70% special card preference
+SelectFromSpecialCards(specialCards) // Enhanced special card selection
+SelectFromNumberCards(numberCards) // Number card fallback
+
+// Strategic Color Selection (ChangeColor Cards)
+SelectColor() // Analyzes hand to choose best color
+// Strategy: Select color that appears most in hand
 ```
 
 ### **Pause State Preservation**:
@@ -810,13 +883,14 @@ ExecuteDecision() // Double-checks pause before execution
 - **Fallback Logic**: Random selection if strategy fails
 - **Pause Recovery**: Proper state restoration after pause
 - **Emergency Reset**: Fixes stuck AI states
+- **✅ PHASE 7**: Enhanced color selection strategy for ChangeColor cards
 
 ### **Hand Management**:
 ```csharp
 // Hand Operations with Comprehensive Reset
 AddCardsToHand(cards) // Receive dealt cards
 AddCardToHand(card) // Single card (drawn)
-ClearHand() // NEW: Includes comprehensive state reset
+ClearHand() // Includes comprehensive state reset
 ResetForNewGame() // Complete AI reset
 GetHandCopy() // Safe copy for visual display
 ```
@@ -948,13 +1022,17 @@ CreateWildCard(cardType, copyNumber) // 6 wild cards
 // Wild cards: SuperTaki ×2, ChangeColor ×4 = 6 cards
 ```
 
-### **Turn Behavior Configuration**:
+### **✅ PHASE 7: Updated Turn Behavior Configuration**:
 ```csharp
 // isActiveCard assignments:
 Number cards: isActiveCard = false     // END turn after playing
-Most special cards: isActiveCard = false // END turn after playing  
-TAKI cards: isActiveCard = true        // CONTINUE turn (multi-card play)
-SuperTaki cards: isActiveCard = true   // CONTINUE turn (multi-card play)
+Stop cards: isActiveCard = false      // END turn after playing (effect handled separately)
+ChangeDirection cards: isActiveCard = false // END turn after playing
+ChangeColor cards: isActiveCard = false // END turn after playing (color selection required)
+Plus cards: isActiveCard = true       // CONTINUE turn (additional action required)
+PlusTwo cards: isActiveCard = false   // END turn after playing  
+TAKI cards: isActiveCard = true       // CONTINUE turn (multi-card play) - PHASE 8A
+SuperTaki cards: isActiveCard = true  // CONTINUE turn (multi-card play) - PHASE 8A
 ```
 
 **Editor Integration**: Creates assets in `Resources/Data/Cards/`
@@ -974,6 +1052,10 @@ CheckGameState() // Examine current game state
 CheckTurnManagement() // Turn system status
 CheckPlayerHand() // Hand contents and validation  
 CheckAIState() // AI system status
+
+// ✅ PHASE 7: Enhanced Special Card Diagnostics
+CheckSpecialCardState() // Special card effect state validation
+TestSpecialCardEffects() // Interactive special card testing
 
 // Interactive Testing
 TestRuleValidation() // Test card rules against current state
@@ -1054,13 +1136,13 @@ TakiLogger.GetLoggerInfo()                // Current configuration
 ### **Integration Status**:
 ```csharp
 // ✅ ORGANIZED LOGGING (Updated with TakiLogger):
-BasicComputerAI.cs         // AI decision logging
-GameManager.cs             // Turn flow and card play logging
+BasicComputerAI.cs         // AI decision logging with special card support
+GameManager.cs             // Turn flow and enhanced special card logging
 DeckManager.cs             // Deck operation logging  
 DeckUIManager.cs           // UI update logging
 GameStateManager.cs        // State change logging
 TurnManager.cs             // Turn management logging
-GameplayUIManager.cs       // UI interaction logging
+GameplayUIManager.cs       // UI interaction logging with special card support
 TakiGameDiagnostics.cs     // Diagnostic logging
 PauseManager.cs            // Pause system logging
 GameEndManager.cs          // Game end logging
@@ -1170,6 +1252,19 @@ MenuNavigation.StartSinglePlayerGame()
                └→ TurnManager.InitializeTurns()
 ```
 
+#### **✅ PHASE 7: Special Card Flow**:
+```
+Player plays special card
+└→ GameManager.PlayCardWithStrictFlow()
+   └→ GameManager.HandleSpecialCardEffects() ✅
+      ├→ PLUS: Set additional action flag ✅
+      ├→ STOP: Set turn skip flag ✅
+      ├→ ChangeDirection: Update direction ✅
+      └→ ChangeColor: Trigger color selection ✅
+         └→ GameManager.HandlePostCardPlayTurnFlow() ✅
+            └→ Enhanced turn flow based on card type ✅
+```
+
 #### **Pause Flow**:
 ```
 MenuNavigation.Btn_PauseLogic()
@@ -1247,6 +1342,10 @@ TurnManager.PauseTurns() → Turn timing preservation
 **Issue**: Application exit without proper cleanup  
 **Solution**: Comprehensive system cleanup before exit to prevent memory leaks
 
+### **4. ✅ PHASE 7: Special Card Implementation** ✅ FIXED
+**Issue**: All special cards acting as basic cards  
+**Solution**: Complete special card effect implementation for PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR
+
 ---
 
 # 📋 **Development Workflow Guide**
@@ -1254,8 +1353,8 @@ TurnManager.PauseTurns() → Turn timing preservation
 ## **Script Selection for Common Tasks**
 
 ### **🎮 Gameplay Changes**:
-- **New Card Effects**: Modify `GameManager.LogCardEffectRules()` and `CardData.CanPlayOn()`
-- **AI Improvements**: Focus on `BasicComputerAI.SelectBestCard()`  
+- **New Card Effects**: Modify `GameManager.HandleSpecialCardEffects()` and `CardData.CanPlayOn()`
+- **AI Improvements**: Focus on `BasicComputerAI.SelectBestCard()` and `SelectColor()`  
 - **Rule Changes**: Update `GameStateManager.IsValidMove()`
 - **Turn Flow**: Modify `GameManager` strict flow methods
 
@@ -1304,6 +1403,7 @@ TurnManager.PauseTurns() → Turn timing preservation
 - `TurnManager` turn switching logic
 - `PauseManager` state preservation logic
 - Manager integration points
+- Special card effect logic
 
 ### **✅ Low Risk Changes** (Safe to modify):
 - UI text and styling
@@ -1331,6 +1431,7 @@ TurnManager.PauseTurns() → Turn timing preservation
 - **Memory Management**: Comprehensive cleanup prevents memory leaks
 - **AI Performance**: Pause-aware decision making with proper state handling
 - **UI Responsiveness**: Smooth transitions between pause/resume states
+- **✅ PHASE 7**: Efficient special card effect processing
 
 ### **Visual Card System**:
 - **Hand Display**: Efficient with 8+ cards, instant updates
@@ -1342,6 +1443,7 @@ TurnManager.PauseTurns() → Turn timing preservation
 - **Card Matching**: O(1) rule checking per card
 - **Hand Analysis**: O(n) where n = hand size
 - **AI Decision**: O(n*m) where n = hand size, m = rule complexity
+- **✅ PHASE 7**: Special card effect validation integrated seamlessly
 
 ### **Event System**:
 - **Event Overhead**: Minimal - lightweight Action delegates
@@ -1349,7 +1451,7 @@ TurnManager.PauseTurns() → Turn timing preservation
 - **Memory Management**: Automatic cleanup, no memory leaks detected
 
 ## **Scalability Notes**:
-- **Current**: Optimized for 2-player gameplay with full pause/resume support
+- **Current**: Optimized for 2-player gameplay with full pause/resume support and special card effects
 - **Expandable**: Architecture supports multiplayer extension
 - **Resource**: Resource loading scales with total unique cards (110)
 - **UI**: UI system handles dynamic hand sizes and state changes efficiently
@@ -1358,34 +1460,37 @@ TurnManager.PauseTurns() → Turn timing preservation
 
 # 🏁 **Next Steps & Recommendations**
 
-## **Current Status**: ✅ **Phase 6 Complete**
+## **Current Status**: ✅ **Phase 7 Complete**
 1. **✅ DONE**: Pause System Implementation
 2. **✅ DONE**: Game End Screen System  
 3. **✅ DONE**: Exit Validation System
 4. **✅ DONE**: Manager Integration and State Preservation
+5. **✅ DONE**: Basic Special Cards Implementation (PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR)
 
-## **Upcoming Phase 7**: Special Cards Implementation
+## **Upcoming Phase 8A**: PlusTwo Card Implementation
 
-### **Immediate Actions** (Phase 7 - Basic Special Cards):
-1. **🎯 CURRENT FOCUS**: Implement PLUS, STOP, CHANGEDIRECTION, CHANGECOLOR card effects
-2. **🔧 MODIFY**: `GameManager.HandleSpecialCardEffects()` method
-3. **🔧 MODIFY**: `GameStateManager` for special interaction states
-4. **🔧 ADD**: UI button `Btn_Player1EndTakiSequence` integration (for future TAKI cards)
+### **Immediate Actions** (Phase 8A - PlusTwo Card):
+1. **🎯 CURRENT FOCUS**: Implement PLUSTWO card chaining system
+2. **🔧 MODIFY**: `GameManager.HandleSpecialCardEffects()` for PlusTwo logic
+3. **🔧 ADD**: PlusTwo chain state management in `GameStateManager`
+4. **🔧 IMPLEMENT**: Chain stacking logic and AI strategy for breaking chains
 
-### **Phase 7 Implementation Order**:
-1. **Plus Card**: Additional action after playing (must play/draw one more card)
-2. **Stop Card**: Skip opponent's next turn 
-3. **ChangeDirection Card**: Reverse turn direction (visual/message only for 2-player)
-4. **ChangeColor Card**: Full color selection implementation
+### **Phase 8A Implementation Strategy**:
+1. **Basic PlusTwo Effect**: Force opponent to draw 2 cards
+2. **Chain Detection**: Check if PlusTwo can be stacked
+3. **Chain Management**: Track chain count and accumulated draw amount
+4. **AI Strategy**: Implement chain breaking vs chain extending logic
+5. **UI Integration**: Display chain status and accumulated draw count
 
-### **Phase 8**: Advanced Special Cards
-- **PlusTwo Card**: Chaining system implementation
-- **Taki Card**: Multi-card play sequence of same color
-- **SuperTaki Card**: Multi-card play sequence of any color
+### **Phase 8B**: Multi-Card Sequences (TAKI/SuperTAKI)
+- **TAKI Card**: Multi-card play sequence of same color
+- **SuperTAKI Card**: Multi-card play sequence of any color
+- **Btn_Player1EndTakiSequence** integration
+- **InteractionState.TakiSequence** implementation
 
 ## **Long-term Architecture**:
 - **Multiplayer Ready**: Current architecture supports extension
-- **Special Cards**: Framework ready for complex card implementations  
+- **Advanced Special Cards**: Framework ready for complex card implementations  
 - **AI Enhancement**: Modular AI system ready for improvements
 - **Performance**: Solid foundation for additional features
 
@@ -1412,11 +1517,14 @@ BasicComputerAI.ForceCompleteReset()
 
 // Pause not working? Check pause manager state
 PauseManager.LogPauseState()
+
+// Special cards not working? Check special card state
+GameManager.LogSpecialCardState()
 ```
 
 ## **🔧 Common Code Patterns**
 ```csharp
-// Add new card effect in GameManager:
+// Add new special card effect in GameManager:
 case CardType.NewEffect:
     TakiLogger.LogRules("RULE: NewEffect card - [describe rule]");
     gameplayUI?.ShowComputerMessage("NewEffect message");
@@ -1441,11 +1549,17 @@ public void RequestNewAction() {
 
 // Add new AI strategy in BasicComputerAI:
 // Modify SelectFromSpecialCards() or SelectFromNumberCards()
+
+// ✅ PHASE 7: Special card effect pattern:
+// 1. Add case in HandleSpecialCardEffects() for core logic
+// 2. Add case in HandlePostCardPlayTurnFlow() for turn flow
+// 3. Add case in HandleAISpecialCardEffects() for AI behavior
+// 4. Update UI messaging in GameplayUIManager
 ```
 
 ---
 
-**📄 Document Status**: ✅ Complete - Covers all 27+ scripts including new managers  
-**🎯 Current Phase**: 6 Complete → Moving to Phase 7 (Special Cards)  
-**📅 Last Updated**: Based on Phase 6 (Pause System & Game Flow Enhancement) completion  
-**🔄 Next Review**: After Phase 7 (Basic Special Cards) completion
+**📄 Document Status**: ✅ Complete - Covers all 27+ scripts including Phase 7 special cards implementation  
+**🎯 Current Phase**: 7 Complete → Moving to Phase 8A (PlusTwo Card Implementation)  
+**📅 Last Updated**: Based on Phase 7 (Basic Special Cards Implementation) completion  
+**🔄 Next Review**: After Phase 8A (PlusTwo Card Implementation) completion

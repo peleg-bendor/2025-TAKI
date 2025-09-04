@@ -5,8 +5,8 @@ using System.IO;
 
 namespace TakiGame {
 	/// <summary>
-	/// FIXED: Editor script to automatically generate all 110 CardData assets for TAKI deck
-	/// CORRECTED: isActiveCard property assignments according to TAKI rules
+	/// PHASE 7: Editor script to automatically generate all 110 CardData assets for TAKI deck
+	/// UPDATED: isActiveCard property assignments for Phase 7 Special Cards Implementation
 	/// </summary>
 	public class TakiDeckGenerator : EditorWindow {
 
@@ -21,7 +21,7 @@ namespace TakiGame {
 		}
 
 		void OnGUI () {
-			GUILayout.Label ("TAKI Deck Generator", EditorStyles.boldLabel);
+			GUILayout.Label ("TAKI Deck Generator - PHASE 7", EditorStyles.boldLabel);
 			GUILayout.Space (10);
 
 			outputPath = EditorGUILayout.TextField ("Output Path:", outputPath);
@@ -38,15 +38,19 @@ namespace TakiGame {
 
 			GUILayout.Space (10);
 
-			// ADDED: Turn behavior display
-			GUILayout.Label ("FIXED Turn Behavior:", EditorStyles.boldLabel);
+			// PHASE 7: Updated turn behavior display
+			GUILayout.Label ("PHASE 7: Special Card Turn Behavior:", EditorStyles.boldLabel);
 			GUILayout.Label ("• Number Cards: END turn after play (isActiveCard = false)");
-			GUILayout.Label ("• Most Special Cards: END turn after play (isActiveCard = false)");
-			GUILayout.Label ("• TAKI & SuperTAKI: CONTINUE turn (isActiveCard = true)");
+			GUILayout.Label ("• Plus Cards: CONTINUE turn for additional action (isActiveCard = true)", EditorStyles.boldLabel);
+			GUILayout.Label ("• Stop Cards: END turn after play (isActiveCard = false)");
+			GUILayout.Label ("• ChangeDirection: END turn after play (isActiveCard = false)");
+			GUILayout.Label ("• ChangeColor: END turn after color selection (isActiveCard = false)");
+			GUILayout.Label ("• TAKI & SuperTAKI: CONTINUE turn - Phase 8 (isActiveCard = true)");
+			GUILayout.Label ("• PlusTwo: END turn - Phase 8 chaining (isActiveCard = false)");
 
 			GUILayout.Space (20);
 
-			if (GUILayout.Button ("Generate Complete Deck", GUILayout.Height (30))) {
+			if (GUILayout.Button ("Generate Complete Deck - PHASE 7", GUILayout.Height (30))) {
 				GenerateCompleteDeck ();
 			}
 
@@ -115,8 +119,8 @@ namespace TakiGame {
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
-			Debug.Log ($"TAKI Deck Generation Complete! Generated {cardsGenerated} cards.");
-			Debug.Log ("FIXED: All cards now have correct isActiveCard values for proper turn management.");
+			Debug.Log ($"PHASE 7: TAKI Deck Generation Complete! Generated {cardsGenerated} cards.");
+			Debug.Log ("PHASE 7: Updated Plus cards to isActiveCard = true for additional actions");
 
 			// Verify count
 			if (cardsGenerated == 110) {
@@ -142,8 +146,8 @@ namespace TakiGame {
 			card.cardType = CardType.Number;
 			card.cardName = $"{color} {number}";
 
-			// FIXED: Number cards should END turn after being played
-			card.isActiveCard = false; // CORRECTED from true
+			// Number cards should END turn after being played
+			card.isActiveCard = false;
 
 			AssetDatabase.CreateAsset (card, assetPath);
 			Debug.Log ($"Generated NUMBER card: {card.cardName} (isActiveCard = {card.isActiveCard})");
@@ -166,22 +170,24 @@ namespace TakiGame {
 			card.cardType = cardType;
 			card.cardName = $"{color} {cardType}";
 
-			// CORRECTED: Set activeCard status based on TAKI rules
+			// PHASE 7: Updated activeCard status based on special card effects
 			switch (cardType) {
 				case CardType.Plus:
-					card.isActiveCard = false; // End turn after playing - CORRECT
+					// PHASE 7 CHANGE: Plus cards now allow additional action
+					card.isActiveCard = true; // NEW: Allow additional action after playing
+					Debug.Log ($"PHASE 7: Plus card set to isActiveCard = true for additional actions");
 					break;
 				case CardType.Stop:
-					card.isActiveCard = false; // End turn after playing - CORRECT
+					card.isActiveCard = false; // END turn after playing (turn skip handled in game logic)
 					break;
 				case CardType.ChangeDirection:
-					card.isActiveCard = false; // End turn after playing - CORRECT
+					card.isActiveCard = false; // END turn after playing (direction change handled in game logic)
 					break;
 				case CardType.PlusTwo:
-					card.isActiveCard = false; // End turn after playing - CORRECT
+					card.isActiveCard = false; // END turn after playing - Phase 8 will add chaining
 					break;
 				case CardType.Taki:
-					card.isActiveCard = true; // Allows continued play - CORRECT
+					card.isActiveCard = true; // Allows continued play - Phase 8 implementation
 					break;
 				default:
 					// Default to ending turn for safety
@@ -211,16 +217,17 @@ namespace TakiGame {
 			card.cardType = cardType;
 			card.cardName = cardType.ToString ();
 
-			// CORRECTED: Wild cards behavior according to TAKI rules
+			// Wild cards behavior according to TAKI rules
 			switch (cardType) {
 				case CardType.SuperTaki:
-					card.isActiveCard = true; // Allows multi-card play - CORRECT
+					card.isActiveCard = true; // Allows multi-card play - Phase 8 implementation
 					break;
 				case CardType.ChangeColor:
-					card.isActiveCard = false; // End turn after color selection - CORRECT
+					// PHASE 7: ChangeColor cards END turn after color selection
+					card.isActiveCard = false; // END turn after color selection
 					break;
 				default:
-					// Default to ending turn for safety
+					// Default to ending turn for safety 
 					card.isActiveCard = false;
 					Debug.LogWarning ($"Unknown wild card type: {cardType} - defaulting to isActiveCard = false");
 					break;

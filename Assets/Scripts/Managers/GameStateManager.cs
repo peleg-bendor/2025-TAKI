@@ -25,9 +25,19 @@ namespace TakiGame {
 		[Tooltip ("Direction of play (for ChangeDirection cards)")]
 		public TurnDirection turnDirection = TurnDirection.Clockwise;
 
+		[Header ("PlusTwo Chain State")]
+		[Tooltip ("Is a PlusTwo chain currently active")]
+		private bool isPlusTwoChainActive = false;
+
+		[Tooltip ("Number of PlusTwo cards played in current chain")]
+		private int numberOfChainedPlusTwos = 0;
+
+		[Tooltip ("Player who initiated the current chain")]
+		private PlayerType chainInitiator = PlayerType.Human;
+
 		[Header ("Game Rules")]
 		[Tooltip ("Maximum number of cards a player can hold")]
-		public int maxHandSize = 20;
+		public int maxHandSize = 30;
 
 		// Events for state changes
 		public System.Action<TurnState> OnTurnStateChanged;
@@ -104,9 +114,8 @@ namespace TakiGame {
 			OnTurnDirectionChanged?.Invoke (turnDirection);
 		}
 
-
 		/// <summary>
-		/// Check if a card can be legally played
+		/// Check if a card can be legally played - ENHANCED with PlusTwo chain awareness
 		/// </summary>
 		/// <param name="cardToPlay">Card player wants to play</param>
 		/// <param name="topDiscardCard">Current top card of discard pile</param>
@@ -117,11 +126,20 @@ namespace TakiGame {
 				return false;
 			}
 
-			// Use the CanPlayOn method from CardData
+			// CRITICAL RULE: During PlusTwo chain, only PlusTwo cards are valid
+			if (isPlusTwoChainActive && cardToPlay.cardType != CardType.PlusTwo) {
+				TakiLogger.LogRules ($"CHAIN RULE: Only PlusTwo cards allowed during chain, blocked {cardToPlay.GetDisplayText ()}");
+				return false;
+			}
+
+			// Use the normal CanPlayOn method for other validation
 			bool isValid = cardToPlay.CanPlayOn (topDiscardCard, activeColor);
 
-			TakiLogger.LogRules ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
+			if (isPlusTwoChainActive && isValid) {
+				TakiLogger.LogRules ($"CHAIN VALID: {cardToPlay.GetDisplayText ()} can continue chain");
+			}
 
+			TakiLogger.LogRules ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
 			return isValid;
 		}
 
@@ -137,6 +155,66 @@ namespace TakiGame {
 				ChangeActiveColor (playedCard.color);
 			}
 			// For wild cards (ChangeColor, SuperTaki), color will be set separately
+		}
+
+		/// <summary>
+		/// Start a new PlusTwo chain
+		/// </summary>
+		/// <param name="initiator">Player who started the chain</param>
+		public void StartPlusTwoChain (PlayerType initiator) {
+			isPlusTwoChainActive = true;
+			numberOfChainedPlusTwos = 1;
+			chainInitiator = initiator;
+
+			TakiLogger.LogGameState ($"PlusTwo chain started by {initiator}");
+			TakiLogger.LogRules ($"CHAIN START: {initiator} plays PlusTwo #1 - opponent must draw 2 or continue");
+		}
+
+		/// <summary>
+		/// Continue existing PlusTwo chain
+		/// </summary>
+		public void ContinuePlusTwoChain () {
+			numberOfChainedPlusTwos++;
+			int drawCount = ChainDrawCount;
+
+			TakiLogger.LogGameState ($"PlusTwo chain continued - now {numberOfChainedPlusTwos} cards, draw count: {drawCount}");
+			TakiLogger.LogRules ($"CHAIN CONTINUE: PlusTwo #{numberOfChainedPlusTwos} played - opponent must draw {drawCount} or continue");
+		}
+
+		/// <summary>
+		/// Break PlusTwo chain
+		/// </summary>
+		public void BreakPlusTwoChain () {
+			int finalDrawCount = ChainDrawCount;
+			int finalChainLength = numberOfChainedPlusTwos;
+
+			TakiLogger.LogGameState ($"PlusTwo chain broken - was {finalChainLength} cards ({finalDrawCount} total draw)");
+			TakiLogger.LogRules ($"CHAIN BREAK: Chain of {finalChainLength} PlusTwo cards broken by drawing {finalDrawCount} cards");
+
+			isPlusTwoChainActive = false;
+			numberOfChainedPlusTwos = 0;
+		}
+
+		/// <summary>
+		/// Reset chain state for new game
+		/// </summary>
+		public void ResetPlusTwoChainState () {
+			bool wasActive = isPlusTwoChainActive;
+			isPlusTwoChainActive = false;
+			numberOfChainedPlusTwos = 0;
+
+			if (wasActive) {
+				TakiLogger.LogGameState ("PlusTwo chain state reset for new game");
+			}
+		}
+
+		/// <summary>
+		/// Set chain count directly (for pause/resume restoration)
+		/// </summary>
+		/// <param name="count">Number of chained cards</param>
+		public void SetChainCount (int count) {
+			numberOfChainedPlusTwos = count;
+			TakiLogger.LogGameState ($"Chain count set to {count} (for pause restoration)");
 		}
 
 		/// <summary>
@@ -189,7 +267,9 @@ namespace TakiGame {
 			activeColor = CardColor.Wild; // No color set initially
 			turnDirection = TurnDirection.Clockwise;
 
-			TakiLogger.LogGameState ("Game state reset for new game");
+			ResetPlusTwoChainState ();
+
+			TakiLogger.LogGameState ("Game state reset for new game (including PlusTwo chain state)");
 		}
 
 		/// <summary>
@@ -301,7 +381,6 @@ namespace TakiGame {
 		public bool IsGameOver => gameStatus == GameStatus.GameOver;
 		public bool IsColorSelectionActive => interactionState == InteractionState.ColorSelection;
 		public bool IsTakiSequenceActive => interactionState == InteractionState.TakiSequence;
-		public bool IsPlusTwoChainActive => interactionState == InteractionState.PlusTwoChain;
 		public bool IsNormalGameplay => interactionState == InteractionState.Normal;
 
 		// Enhanced state properties
@@ -309,7 +388,7 @@ namespace TakiGame {
 		public bool CanPause => CanGameBePaused ();
 		public bool CanResume => CanGameBeResumed ();
 
-		// Combined state checks 
+		// Combined state checks
 		public bool IsPlayerTurnNormal => IsPlayerTurn && IsNormalGameplay;
 		public bool IsComputerTurnNormal => IsComputerTurn && IsNormalGameplay;
 
@@ -317,5 +396,22 @@ namespace TakiGame {
 		public bool IsActivePlayerTurn => gameStatus == GameStatus.Active && turnState == TurnState.PlayerTurn;
 		public bool IsActiveComputerTurn => gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
 		public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionState == InteractionState.Normal;
+
+		// FIXED: PlusTwo Chain Properties - using private field instead of interaction state
+		public bool IsPlusTwoChainActive => isPlusTwoChainActive;
+		public int ChainDrawCount => numberOfChainedPlusTwos * 2;
+		public int NumberOfChainedCards => numberOfChainedPlusTwos;
+		public PlayerType ChainInitiator => chainInitiator;
+
+		// Enhanced state check that includes chain awareness
+		public bool IsActivePlayerTurnNormal => gameStatus == GameStatus.Active &&
+												turnState == TurnState.PlayerTurn &&
+												interactionState == InteractionState.Normal &&
+												!isPlusTwoChainActive;
+
+		public bool IsActiveComputerTurnNormal => gameStatus == GameStatus.Active &&
+												  turnState == TurnState.ComputerTurn &&
+												  interactionState == InteractionState.Normal &&
+												  !isPlusTwoChainActive;
 	}
 }

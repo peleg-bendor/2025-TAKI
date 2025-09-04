@@ -32,6 +32,7 @@ namespace TakiGame {
 		private CardData pausedTopDiscardCard = null;
 		private bool wasThinkingWhenPaused = false;
 		private float pausedThinkingTimeRemaining = 0f;
+		private CardData currentChainPlusTwo = null;
 
 		// Events for AI decisions
 		public System.Action<CardData> OnAICardSelected;
@@ -56,14 +57,22 @@ namespace TakiGame {
 				return;
 			}
 
-			TakiLogger.LogAI ($"=== AI MAKING DECISION ===");
+			TakiLogger.LogAI ($"=== AI MAKING DECISION (PLUSTWO CHAIN AWARE) ===");
 			TakiLogger.LogAI ($"AI Hand size: {computerHand.Count}");
 			TakiLogger.LogAI ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
+			TakiLogger.LogAI ($"PlusTwo chain active: {gameState?.IsPlusTwoChainActive ?? false}");
 
 			if (topDiscardCard == null) {
 				TakiLogger.LogError ("AI cannot make decision: No top discard card provided", TakiLogger.LogCategory.AI);
 				OnAIDecisionMade?.Invoke ("Error: No discard card");
 				return;
+			}
+
+			// CRITICAL: Check for active PlusTwo chain FIRST
+			if (gameState != null && gameState.IsPlusTwoChainActive) {
+				TakiLogger.LogAI ("=== AI HANDLING PLSTWO CHAIN DECISION ===");
+				HandlePlusTwoChainDecision ();
+				return; // Skip normal decision making
 			}
 
 			TakiLogger.LogAI ($"AI thinking... (Hand size: {computerHand.Count})", TakiLogger.LogLevel.Debug);
@@ -74,6 +83,94 @@ namespace TakiGame {
 
 			// Add thinking delay - but check for pause during delay
 			StartThinkingProcess ();
+		}
+
+		/// <summary>
+		/// Handle AI decision when PlusTwo chain is active
+		/// AI Strategy: ALWAYS continue chain if possible, otherwise draw to break
+		/// </summary>
+		void HandlePlusTwoChainDecision () {
+			TakiLogger.LogAI ("=== AI PROCESSING PLSTWO CHAIN ===");
+
+			int chainLength = gameState.NumberOfChainedCards;
+			int drawCount = gameState.ChainDrawCount;
+
+			TakiLogger.LogAI ($"Chain status: {chainLength} PlusTwo cards, {drawCount} cards to draw");
+
+			// Check if AI has PlusTwo cards
+			var plusTwoCards = computerHand.Where (card => card.cardType == CardType.PlusTwo).ToList ();
+
+			TakiLogger.LogAI ($"AI has {plusTwoCards.Count} PlusTwo cards available");
+
+			if (plusTwoCards.Count > 0) {
+				// AI has PlusTwo cards - ALWAYS continue chain (aggressive strategy)
+				CardData selectedPlusTwo = plusTwoCards [Random.Range (0, plusTwoCards.Count)];
+				TakiLogger.LogAI ($"AI STRATEGY: Continue chain with {selectedPlusTwo.GetDisplayText ()}");
+				TakiLogger.LogAI ($"Chain will grow to {chainLength + 1} cards ({drawCount + 2} total draw)");
+
+				OnAIDecisionMade?.Invoke ($"AI continues chain with {selectedPlusTwo.GetDisplayText ()}!");
+
+				// Store for execution after thinking time
+				currentChainPlusTwo = selectedPlusTwo;
+				Invoke (nameof (ExecuteChainContinue), thinkingTime);
+			} else {
+				// AI has no PlusTwo cards - must break chain by drawing
+				TakiLogger.LogAI ($"AI STRATEGY: Break chain by drawing {drawCount} cards (no PlusTwo available)");
+
+				OnAIDecisionMade?.Invoke ($"AI draws {drawCount} cards to break chain");
+				Invoke (nameof (ExecuteChainBreak), thinkingTime);
+			}
+		}
+
+		/// <summary>
+		/// Execute AI decision to continue PlusTwo chain
+		/// </summary>
+		void ExecuteChainContinue () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI chain continue execution cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== AI EXECUTING CHAIN CONTINUE ===");
+
+			if (currentChainPlusTwo == null) {
+				TakiLogger.LogError ("AI trying to continue chain but no PlusTwo card stored!", TakiLogger.LogCategory.AI);
+				ExecuteChainBreak (); // Fallback to breaking chain
+				return;
+			}
+
+			// Verify card is still in hand and is still valid
+			if (!computerHand.Contains (currentChainPlusTwo)) {
+				TakiLogger.LogError ("AI trying to play PlusTwo not in hand!", TakiLogger.LogCategory.AI);
+				ExecuteChainBreak (); // Fallback to breaking chain
+				return;
+			}
+
+			TakiLogger.LogAI ($"AI playing PlusTwo to continue chain: {currentChainPlusTwo.GetDisplayText ()}");
+			PlayCard (currentChainPlusTwo);
+
+			// Clear stored card
+			currentChainPlusTwo = null;
+		}
+
+		/// <summary>
+		/// Execute AI decision to break PlusTwo chain by drawing
+		/// </summary>
+		void ExecuteChainBreak () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI chain break execution cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== AI EXECUTING CHAIN BREAK ===");
+
+			int cardsToDraw = gameState?.ChainDrawCount ?? 2;
+			TakiLogger.LogAI ($"AI breaking PlusTwo chain by drawing {cardsToDraw} cards");
+
+			// Trigger AI draw event - GameManager will handle the multi-card draw
+			OnAIDrawCard?.Invoke ();
 		}
 
 		/// <summary>
@@ -371,35 +468,47 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Select the best card from valid options using simple AI strategy
+		/// PHASE 7: Simplified AI decision making with 70% special card preference
 		/// </summary>
 		/// <param name="validCards">List of cards that can be played</param>
 		/// <returns>Selected card to play</returns>
 		CardData SelectBestCard (List<CardData> validCards) {
 			if (validCards.Count == 0) return null;
 
-			// Simple AI Strategy:
-			// 1. Prefer special cards over number cards (based on preference setting)
-			// 2. Within same type, prefer higher numbers
-			// 3. Add some randomness
+			TakiLogger.LogAI ($"=== AI SELECTING BEST CARD from {validCards.Count} options (CHAIN AWARE) ===");
 
+			// CHAIN AWARENESS: During PlusTwo chain, only PlusTwo cards should be in validCards
+			if (gameState != null && gameState.IsPlusTwoChainActive) {
+				var plusTwoCards = validCards.Where (c => c.cardType == CardType.PlusTwo).ToList ();
+				if (plusTwoCards.Count > 0) {
+					CardData selectedPlusTwo = plusTwoCards [Random.Range (0, plusTwoCards.Count)];
+					TakiLogger.LogAI ($"AI selected PlusTwo for chain: {selectedPlusTwo.GetDisplayText ()}");
+					return selectedPlusTwo;
+				} else {
+					TakiLogger.LogWarning ("AI in PlusTwo chain but no PlusTwo cards in valid list!", TakiLogger.LogCategory.AI);
+					return null; // This should trigger a draw instead
+				}
+			}
+
+			// Separate special cards and number cards
 			List<CardData> specialCards = validCards.Where (c => c.IsSpecialCard).ToList ();
 			List<CardData> numberCards = validCards.Where (c => !c.IsSpecialCard).ToList ();
 
-			// Decide whether to prioritize special cards
-			bool useSpecialCard = specialCards.Count > 0 &&
-								  Random.value < specialCardPreference;
+			TakiLogger.LogAI ($"Options: {specialCards.Count} special cards, {numberCards.Count} number cards");
+
+			// PHASE 7: Simplified special card preference logic
+			bool useSpecialCard = ShouldAIUseSpecialCard (specialCards, numberCards);
 
 			CardData selectedCard;
 
-			if (useSpecialCard) {
-				// Select from special cards
+			if (useSpecialCard && specialCards.Count > 0) {
+				// SIMPLIFIED: Random selection from ALL special cards
 				selectedCard = SelectFromSpecialCards (specialCards);
-				TakiLogger.LogAI ($"AI chose special card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				TakiLogger.LogAI ($"AI chose special card: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
 			} else if (numberCards.Count > 0) {
 				// Select from number cards
 				selectedCard = SelectFromNumberCards (numberCards);
-				TakiLogger.LogAI ($"AI chose number card strategy: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+				TakiLogger.LogAI ($"AI chose number card: {selectedCard.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
 			} else if (specialCards.Count > 0) {
 				// Fall back to special cards if no number cards available
 				selectedCard = SelectFromSpecialCards (specialCards);
@@ -413,27 +522,44 @@ namespace TakiGame {
 			return selectedCard;
 		}
 
+		/// <summary> 
+		/// PHASE 7: SIMPLIFIED - 70% chance to use special cards if available
+		/// </summary>
+		/// <param name="specialCards">Available special cards</param>
+		/// <param name="numberCards">Available number cards</param>
+		/// <returns>True if AI should use special cards</returns>
+		bool ShouldAIUseSpecialCard (List<CardData> specialCards, List<CardData> numberCards) {
+			// If no special cards available, use number cards
+			if (specialCards.Count == 0) {
+				TakiLogger.LogAI ("No special cards available - using number cards");
+				return false;
+			}
+
+			// SIMPLIFIED LOGIC: 70% chance to use special cards when available
+			float specialCardChance = 0.7f; // 70% chance
+			bool useSpecial = Random.value < specialCardChance;
+
+			TakiLogger.LogAI ($"Special card decision: {specialCards.Count} available, {specialCardChance * 100}% chance, Use={useSpecial}");
+
+			return useSpecial;
+		}
+
 		/// <summary>
-		/// Select best special card with simple priority
+		/// PHASE 7: SIMPLIFIED - Completely random selection from special cards
 		/// </summary>
 		/// <param name="specialCards">Available special cards</param>
 		/// <returns>Selected special card</returns>
 		CardData SelectFromSpecialCards (List<CardData> specialCards) {
-			// Simple priority: Taki > PlusTwo > Stop > Plus > ChangeDirection > ChangeColor
-			var priorityOrder = new CardType [] {
-				CardType.Taki, CardType.SuperTaki, CardType.PlusTwo,
-				CardType.Stop, CardType.Plus, CardType.ChangeDirection, CardType.ChangeColor
-			};
+			if (specialCards.Count == 0) return null;
 
-			foreach (CardType priority in priorityOrder) {
-				var cardsOfType = specialCards.Where (c => c.cardType == priority).ToList ();
-				if (cardsOfType.Count > 0) {
-					return cardsOfType [Random.Range (0, cardsOfType.Count)];
-				}
-			}
+			TakiLogger.LogAI ($"=== AI RANDOMLY SELECTING from {specialCards.Count} special cards ===");
 
-			// Fallback to random selection
-			return specialCards [Random.Range (0, specialCards.Count)];
+			// SIMPLIFIED: Completely random selection from ALL special cards
+			CardData selectedCard = specialCards [Random.Range (0, specialCards.Count)];
+
+			TakiLogger.LogAI ($"AI randomly selected: {selectedCard.GetDisplayText ()} ({selectedCard.cardType})");
+
+			return selectedCard;
 		}
 
 		/// <summary>
@@ -451,9 +577,9 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Play the selected card
+		/// PHASE 7: Enhanced AI card selected handler with special card handling
 		/// </summary>
-		/// <param name="card">Card to play</param>
+		/// <param name="card">Card selected by AI</param>
 		void PlayCard (CardData card) {
 			if (card == null) {
 				TakiLogger.LogError ("AI PlayCard called with null card", TakiLogger.LogCategory.AI);
@@ -470,11 +596,12 @@ namespace TakiGame {
 			bool removed = computerHand.Remove (card);
 			TakiLogger.LogCardPlay ($"AI plays: {card.GetDisplayText ()} (Removed: {removed}, Hand size now: {computerHand.Count})");
 
+			// Notify game manager about card selection
 			OnAIDecisionMade?.Invoke ($"AI played {card.GetDisplayText ()}");
 			OnAICardSelected?.Invoke (card);
 		}
 
-		/// <summary>
+		/// <summary> 
 		/// AI draws a card when no valid moves
 		/// </summary>
 		void DrawCard () {
@@ -484,15 +611,18 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// AI selects a color (for ChangeColor cards)
+		/// PHASE 7: Enhanced AI color selection for ChangeColor cards
 		/// </summary>
 		/// <returns>Selected color</returns>
 		public CardColor SelectColor () {
-			// Simple strategy: Select color that appears most in hand
+			TakiLogger.LogAI ("=== AI SELECTING COLOR (ENHANCED) ===");
+
+			// Strategy: Select color that appears most in hand (excluding wild cards)
 			var colorCounts = new Dictionary<CardColor, int> ();
 
+			// Count cards by color in AI hand
 			foreach (CardData card in computerHand) {
-				if (card.color != CardColor.Wild) {
+				if (card != null && card.color != CardColor.Wild) {
 					if (colorCounts.ContainsKey (card.color)) {
 						colorCounts [card.color]++;
 					} else {
@@ -501,17 +631,29 @@ namespace TakiGame {
 				}
 			}
 
+			TakiLogger.LogAI ($"AI color analysis: {colorCounts.Count} colors found in hand");
+			foreach (var kvp in colorCounts) {
+				TakiLogger.LogAI ($"  {kvp.Key}: {kvp.Value} cards", TakiLogger.LogLevel.Verbose);
+			}
+
 			// Select most common color, or random if tie/no cards
 			if (colorCounts.Count > 0) {
 				var bestColor = colorCounts.OrderByDescending (kvp => kvp.Value).First ().Key;
-				TakiLogger.LogAI ($"AI selected color: {bestColor} (appears {colorCounts [bestColor]} times in hand)", TakiLogger.LogLevel.Info);
+				int bestCount = colorCounts [bestColor];
+
+				TakiLogger.LogAI ($"AI selected color: {bestColor} (appears {bestCount} times in hand)", TakiLogger.LogLevel.Info);
+
+				// Notify external systems about color selection
 				OnAIColorSelected?.Invoke (bestColor);
 				return bestColor;
 			} else {
-				// Random color selection
+				// Random color selection if no colored cards in hand
 				CardColor [] colors = { CardColor.Red, CardColor.Blue, CardColor.Green, CardColor.Yellow };
 				CardColor randomColor = colors [Random.Range (0, colors.Length)];
-				TakiLogger.LogAI ($"AI selected random color: {randomColor}", TakiLogger.LogLevel.Info);
+
+				TakiLogger.LogAI ($"AI selected random color: {randomColor} (no colored cards in hand)", TakiLogger.LogLevel.Info);
+
+				// Notify external systems about color selection
 				OnAIColorSelected?.Invoke (randomColor);
 				return randomColor;
 			}
@@ -520,7 +662,7 @@ namespace TakiGame {
 		/// <summary>
 		/// Add cards to AI hand
 		/// </summary>
-		/// <param name="cards">Cards to add</param>
+		/// <param name="cards">Cards to add</param> 
 		public void AddCardsToHand (List<CardData> cards) {
 			computerHand.AddRange (cards);
 			TakiLogger.LogAI ($"AI received {cards.Count} cards. Hand size: {computerHand.Count}", TakiLogger.LogLevel.Debug);
@@ -544,13 +686,16 @@ namespace TakiGame {
 			computerHand.Clear ();
 
 			// COMPREHENSIVE RESET: Always reset pause state during clear hand
-			TakiLogger.LogAI ("Clearing hand and resetting pause state");
+			TakiLogger.LogAI ("Clearing hand and resetting all AI state (including chain state)");
 
 			// Force reset pause state regardless of current state
 			isPaused = false;
 			wasThinkingWhenPaused = false;
 			pausedTopDiscardCard = null;
 			pausedThinkingTimeRemaining = 0f;
+
+			// RESET CHAIN STATE
+			currentChainPlusTwo = null;
 
 			// Cancel any pending operations
 			CancelAllAIOperations ();
@@ -570,7 +715,7 @@ namespace TakiGame {
 		/// Reset AI to fresh state for new game
 		/// </summary>
 		public void ResetForNewGame () {
-			TakiLogger.LogAI ("=== RESETTING AI FOR NEW GAME ===");
+			TakiLogger.LogAI ("=== RESETTING AI FOR NEW GAME (INCLUDING CHAIN STATE) ===");
 
 			// Clear hand
 			computerHand.Clear ();
@@ -580,6 +725,9 @@ namespace TakiGame {
 			wasThinkingWhenPaused = false;
 			pausedTopDiscardCard = null;
 			pausedThinkingTimeRemaining = 0f;
+
+			// RESET CHAIN STATE
+			currentChainPlusTwo = null;
 
 			// Cancel all operations
 			CancelAllAIOperations ();
@@ -626,7 +774,7 @@ namespace TakiGame {
 			}
 		}
 
-		// Properties
+		// Properties 
 		public int HandSize => computerHand.Count;
 		public bool HasCards => computerHand.Count > 0;
 		public List<CardData> Hand => new List<CardData> (computerHand); // Safe copy

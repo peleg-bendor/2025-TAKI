@@ -65,6 +65,10 @@ namespace TakiGame {
 		public Color yellowColor = Color.yellow;
 		public Color wildColor = Color.white;
 
+		[Header ("PlusTwo Chain Display")]
+		[Tooltip ("Text element to show chain status")]
+		public TextMeshProUGUI chainStatusText;
+
 		// Events for external systems
 		public System.Action OnPlayCardClicked;
 		public System.Action OnDrawCardClicked;
@@ -480,25 +484,25 @@ namespace TakiGame {
 			// Disable all action buttons during color selection
 			if (show) {
 				TakiLogger.LogUI ("Color selection active - disabling all action buttons");
-				UpdateStrictButtonStates (false, false, false);
+				UpdateStrictButtonStates (false, false, true);
 			}
 		}
 
 		/// <summary>
-		/// Handle color selection
-		/// </summary>
+		/// Handle color selection - FIXED to keep panel visible
+		/// </summary> 
 		/// <param name="selectedColor">Selected color</param>
 		void SelectColor (CardColor selectedColor) {
-			// Hide color selection panel
-			ShowColorSelection (false);
-
 			// Update color indicator
 			UpdateActiveColorDisplay (selectedColor);
 
 			// Notify external systems
 			OnColorSelected?.Invoke (selectedColor);
 
-			TakiLogger.LogUI ($"Player selected color: {selectedColor}");
+			TakiLogger.LogUI ($"Player selected color: {selectedColor} (panel stays visible)");
+
+			// Show feedback that color was selected but player can choose again
+			ShowPlayerMessage ($"Color set to {selectedColor} - click END TURN when ready!");
 		}
 
 		/// <summary>
@@ -746,27 +750,6 @@ namespace TakiGame {
 			TakiLogger.LogUI ($"Game end message shown: {message}");
 		}
 
-
-		///// <summary>
-		///// Debug method to log complete UI state
-		///// </summary>
-		//[ContextMenu ("Log UI State")]
-		//public void LogUIState () {
-		//	TakiLogger.LogDiagnostics ("=== COMPLETE UI STATE DEBUG ===");
-		//	TakiLogger.LogDiagnostics ($"buttonsEnabled: {buttonsEnabled}");
-		//	TakiLogger.LogDiagnostics ($"Turn indicator text: '{(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}'");
-		//	TakiLogger.LogDiagnostics ($"Computer message text: '{(gameMessageText != null ? gameMessageText.text : "NULL")}'");
-		//	TakiLogger.LogDiagnostics ($"Color selection active: {(colorSelectionPanel != null ? colorSelectionPanel.activeSelf : false)}");
-
-		//	ValidateButtonStates ();
-
-		//	if (currentColorIndicator != null) {
-		//		TakiLogger.LogDiagnostics ($"Current color indicator: {currentColorIndicator.color}");
-		//	}
-
-		//	TakiLogger.LogDiagnostics ("=== UI STATE DEBUG COMPLETE ===");
-		//}
-
 		/// <summary>
 		/// Force button state refresh (for emergency fixing)
 		/// </summary>
@@ -774,6 +757,89 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ($"=== FORCE BUTTON REFRESH to {(enableState ? "ENABLED" : "DISABLED")} ===");
 			UpdateButtonStates (enableState);
 			ValidateButtonStates ();
+		}
+
+		/// <summary>
+		/// Show PlusTwo chain status with progressive messaging
+		/// </summary>
+		/// <param name="chainCount">Number of PlusTwo cards in chain</param>
+		/// <param name="accumulatedDraw">Total cards to draw</param>
+		/// <param name="isPlayerTurn">True if it's player's turn to respond</param>
+		public void ShowPlusTwoChainStatus (int chainCount, int accumulatedDraw, bool isPlayerTurn) {
+			if (chainStatusText != null) {
+				string statusMessage;
+
+				if (isPlayerTurn) {
+					statusMessage = $"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw} or play PlusTwo";
+				} else {
+					statusMessage = $"PlusTwo Chain: {chainCount} cards -> AI must respond";
+				}
+
+				chainStatusText.text = statusMessage;
+				chainStatusText.color = Color.yellow; // Highlight chain status 
+			}
+
+			TakiLogger.LogUI ($"Chain status displayed: {chainCount} cards, {accumulatedDraw} draw, PlayerTurn={isPlayerTurn}");
+		}
+
+		/// <summary>
+		/// Hide PlusTwo chain status
+		/// </summary>
+		public void HidePlusTwoChainStatus () {
+			if (chainStatusText != null) {
+				chainStatusText.text = "";
+			}
+
+			TakiLogger.LogUI ("Chain status hidden");
+		}
+
+		/// <summary>
+		/// Enhanced chain progress messaging with better routing
+		/// </summary>
+		/// <param name="chainCount">Number of cards in chain</param>
+		/// <param name="drawCount">Cards to draw if broken</param>
+		/// <param name="targetPlayer">Who needs to respond</param>
+		public void ShowChainProgressMessage (int chainCount, int drawCount, PlayerType targetPlayer) {
+			string message;
+
+			if (chainCount == 1) {
+				// First PlusTwo played
+				message = targetPlayer == PlayerType.Human ?
+					$"PlusTwo played! Draw {drawCount} cards or play PlusTwo" :
+					$"PlusTwo played! AI draws {drawCount} or continues chain";
+			} else {
+				// Chain continues  
+				message = targetPlayer == PlayerType.Human ?
+					$"Chain grows! Draw {drawCount} cards or play PlusTwo" :
+					$"Chain grows! AI draws {drawCount} or continues chain";
+			}
+
+			if (targetPlayer == PlayerType.Human) {
+				ShowPlayerMessageTimed (message, 0f); // Permanent until action taken
+			} else {
+				ShowComputerMessageTimed (message, 4.0f);
+			}
+		}
+
+		/// <summary>
+		/// Show chain broken message with enhanced feedback
+		/// </summary>
+		/// <param name="cardsDrawn">Number of cards drawn</param>
+		/// <param name="whoBreaks">Who broke the chain</param>
+		public void ShowChainBrokenMessage (int cardsDrawn, PlayerType whoBreaks) {
+			string playerMessage = whoBreaks == PlayerType.Human ?
+				$"Chain broken! You drew {cardsDrawn} cards" :
+				$"Chain broken! AI drew {cardsDrawn} cards";
+
+			string computerMessage = whoBreaks == PlayerType.Computer ?
+				$"I drew {cardsDrawn} cards - chain broken" :
+				$"Opponent drew {cardsDrawn} cards - chain broken";
+
+			ShowPlayerMessageTimed (playerMessage, 3.0f);
+			ShowComputerMessageTimed (computerMessage, 3.0f);
+
+			// Clear chain status
+			HidePlusTwoChainStatus ();
 		}
 
 		// Properties 
@@ -788,6 +854,109 @@ namespace TakiGame {
 		// ENHANCED: Get button state summary for debugging 
 		public string GetButtonStateSummary () {
 			return $"Play:{(playButtonEnabled ? "ON" : "OFF")}, Draw:{(drawButtonEnabled ? "ON" : "OFF")}, EndTurn:{(endTurnButtonEnabled ? "ON" : "OFF")}";
+		}
+
+		/// <summary>
+		/// ENHANCED: Show player message with duration to prevent overwrites
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
+		public void ShowPlayerMessageTimed (string message, float duration = 3.0f) {
+			if (playerMessageText != null) {
+				playerMessageText.text = message;
+				TakiLogger.LogUI ($"Player message: '{message}' (duration: {duration}s)");
+
+				if (duration > 0) {
+					// Cancel any existing clear operations
+					CancelInvoke (nameof (ClearPlayerMessage));
+					// Schedule clear
+					Invoke (nameof (ClearPlayerMessage), duration);
+				}
+			}
+		}
+
+		/// <summary>
+		/// ENHANCED: Show computer message with duration to prevent overwrites
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
+		public void ShowComputerMessageTimed (string message, float duration = 3.0f) {
+			if (computerMessageText != null) {
+				computerMessageText.text = message;
+				TakiLogger.LogUI ($"Computer message: '{message}' (duration: {duration}s)");
+
+				if (duration > 0) {
+					// Cancel any existing clear operations
+					CancelInvoke (nameof (ClearComputerMessage));
+					// Schedule clear
+					Invoke (nameof (ClearComputerMessage), duration);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Clear player message
+		/// </summary>
+		void ClearPlayerMessage () {
+			if (playerMessageText != null) {
+				playerMessageText.text = "";
+				TakiLogger.LogUI ("Player message cleared");
+			}
+		}
+
+		/// <summary>
+		/// Clear computer message
+		/// </summary>
+		void ClearComputerMessage () {
+			if (computerMessageText != null) {
+				computerMessageText.text = "";
+				TakiLogger.LogUI ("Computer message cleared");
+			}
+		}
+
+		/// <summary>
+		/// ENHANCED: Show special card effect message with appropriate routing
+		/// </summary>
+		/// <param name="cardType">Type of special card</param>
+		/// <param name="playedBy">Who played the card</param>
+		/// <param name="effectDescription">Description of the effect</param>
+		public void ShowSpecialCardEffect (CardType cardType, PlayerType playedBy, string effectDescription) {
+			TakiLogger.LogUI ($"=== SPECIAL CARD EFFECT MESSAGE ===");
+			TakiLogger.LogUI ($"Card: {cardType}, Player: {playedBy}, Effect: {effectDescription}");
+
+			// Route message to appropriate UI element based on who played
+			if (playedBy == PlayerType.Human) {
+				// Human played - show in computer message area what happened to computer
+				ShowComputerMessageTimed ($"You played {cardType}: {effectDescription}", 4.0f);
+				// Also show in player area what human should do next
+				if (cardType == CardType.Plus) {
+					ShowPlayerMessageTimed ("PLUS effect: Take 1 more action (PLAY or DRAW)!", 0f); // Permanent until action taken
+				}
+			} else {
+				// Computer played - show in player message area what happened to player
+				ShowPlayerMessageTimed ($"AI played {cardType}: {effectDescription}", 4.0f);
+				// Also show in computer area what AI is doing
+				if (cardType == CardType.Plus) {
+					ShowComputerMessageTimed ("PLUS: I get one more action!", 2.0f);
+				} else if (cardType == CardType.Stop) {
+					ShowComputerMessageTimed ("STOP: Your turn is skipped!", 3.0f);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Show immediate action feedback (short duration, high priority)
+		/// </summary>
+		/// <param name="message">Urgent message to show</param>
+		/// <param name="toPlayer">If true, show to player; if false, show to computer area</param>
+		public void ShowImmediateFeedback (string message, bool toPlayer = true) {
+			if (toPlayer) {
+				ShowPlayerMessageTimed (message, 2.0f);
+			} else {
+				ShowComputerMessageTimed (message, 2.0f);
+			}
+
+			TakiLogger.LogUI ($"Immediate feedback: '{message}' -> {(toPlayer ? "Player" : "Computer")}");
 		}
 	}
 }
