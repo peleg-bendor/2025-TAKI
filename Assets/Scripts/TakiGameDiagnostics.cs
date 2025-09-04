@@ -106,7 +106,7 @@ namespace TakiGame {
 		}
 
 		void CheckGameState () {
-			Debug.Log ("--- GAME STATE CHECK ---");
+			Debug.Log ("--- GAME STATE CHECK (WITH TAKI SEQUENCES) ---");
 
 			if (gameState == null) gameState = gameManager?.gameState;
 
@@ -117,6 +117,14 @@ namespace TakiGame {
 				Debug.Log ("OK: Active Color: " + gameState.activeColor);
 				Debug.Log ("OK: Can Player Act: " + gameState.CanPlayerAct ());
 				Debug.Log ("OK: Can Computer Act: " + gameState.CanComputerAct ());
+
+				// PHASE 8B: TAKI sequence diagnostics 
+				Debug.Log ("OK: TAKI Sequence Active: " + gameState.IsInTakiSequence);
+				if (gameState.IsInTakiSequence) {
+					Debug.Log ("OK: Sequence Color: " + gameState.TakiSequenceColor);
+					Debug.Log ("OK: Sequence Cards: " + gameState.NumberOfSequenceCards);
+					Debug.Log ("OK: Sequence Initiator: " + gameState.TakiSequenceInitiator);
+				}
 			} else {
 				Debug.LogError ("ERROR: GameState is NULL - CRITICAL ISSUE");
 			}

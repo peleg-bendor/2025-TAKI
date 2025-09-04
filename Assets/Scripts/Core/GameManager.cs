@@ -58,6 +58,10 @@ namespace TakiGame {
 		[Tooltip ("Track which special card effect is active")]
 		private CardType activeSpecialCardEffect = CardType.Number; // Number = no special effect
 
+		[Header ("PHASE 8B: TAKI Sequence State")]
+		[Tooltip ("Flag to track if current card is last in TAKI sequence")]
+		private bool isCurrentCardLastInSequence = false;
+
 		[Header ("Logging Configuration")]
 		[Tooltip ("Log level for console output")]
 		public TakiLogger.LogLevel logLevel = TakiLogger.LogLevel.Info;
@@ -225,6 +229,7 @@ namespace TakiGame {
 
 		/// <summary> 
 		/// Connect events between all systems (happens during game mode initialization)
+		/// PHASE 8B: Enhanced with TAKI sequence event connection
 		/// </summary>
 		void ConnectEvents () {
 			// Deck Manager events
@@ -240,6 +245,11 @@ namespace TakiGame {
 				gameState.OnGameStatusChanged += OnGameStatusChanged;
 				gameState.OnActiveColorChanged += OnActiveColorChanged;
 				gameState.OnGameWon += OnGameWon;
+
+				// PHASE 8B: TAKI sequence events
+				gameState.OnTakiSequenceStarted += OnTakiSequenceStarted;
+				gameState.OnTakiSequenceCardAdded += OnTakiSequenceCardAdded;
+				gameState.OnTakiSequenceEnded += OnTakiSequenceEnded;
 			}
 
 			// Turn Manager events
@@ -249,12 +259,13 @@ namespace TakiGame {
 				turnManager.OnTurnTimeOut += OnPlayerTurnTimeOut;
 			}
 
-			// Computer AI events
+			// Computer AI events 
 			if (computerAI != null) {
 				computerAI.OnAICardSelected += OnAICardSelected;
 				computerAI.OnAIDrawCard += OnAIDrawCard;
 				computerAI.OnAIColorSelected += OnAIColorSelected;
 				computerAI.OnAIDecisionMade += OnAIDecisionMade;
+				computerAI.OnAISequenceComplete += OnAISequenceComplete;
 			}
 
 			// GameplayUI events
@@ -263,6 +274,9 @@ namespace TakiGame {
 				gameplayUI.OnDrawCardClicked += OnDrawCardButtonClicked;
 				gameplayUI.OnEndTurnClicked += OnEndTurnButtonClicked;
 				gameplayUI.OnColorSelected += OnColorSelectedByPlayer;
+
+				// PHASE 8B: TAKI sequence event
+				gameplayUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
 			}
 
 			// Pause Manager events
@@ -573,10 +587,11 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// PHASE 7: Play card with comprehensive special card handling - ENHANCED DEBUG VERSION
+		/// PHASE 8B: FIXED Play card with sequence-first architecture and comprehensive special card handling
+		/// CRITICAL FIX: Cards are added to sequence BEFORE special effects are processed
 		/// </summary>
 		void PlayCardWithStrictFlow (CardData card) {
-			TakiLogger.LogCardPlay ($"PLAYING CARD WITH STRICT FLOW (PHASE 7): {card.GetDisplayText ()}");
+			TakiLogger.LogCardPlay ($"PLAYING CARD WITH STRICT FLOW (PHASE 8B): {card.GetDisplayText ()}");
 
 			// Validate the move
 			CardData topCard = GetTopDiscardCard ();
@@ -584,6 +599,16 @@ namespace TakiGame {
 				TakiLogger.LogError ("Cannot play card: No top discard card available", TakiLogger.LogCategory.CardPlay);
 				gameplayUI?.ShowPlayerMessage ("Game error - no discard pile!");
 				return;
+			}
+
+			// PHASE 8B: Add sequence validation before standard validation
+			if (gameState.IsInTakiSequence) {
+				if (!gameState.CanPlayInSequence (card)) {
+					TakiLogger.LogWarning ($"Invalid sequence move: Cannot play {card.GetDisplayText ()} in {gameState.TakiSequenceColor} sequence", TakiLogger.LogCategory.Rules);
+					gameplayUI?.ShowPlayerMessage ($"Can only play {gameState.TakiSequenceColor} or wild cards in TAKI sequence!");
+					return;
+				}
+				TakiLogger.LogRules ($"SEQUENCE VALIDATION PASSED: {card.GetDisplayText ()} can be played in {gameState.TakiSequenceColor} sequence");
 			}
 
 			bool isValidMove = gameState.IsValidMove (card, topCard);
@@ -609,15 +634,26 @@ namespace TakiGame {
 			// Update active color
 			gameState.UpdateActiveColorFromCard (card);
 
-			// DEBUG: Add explicit logging before calling HandleSpecialCardEffects
-			TakiLogger.LogRules ("=== ABOUT TO CALL HandleSpecialCardEffects ===");
-			TakiLogger.LogRules ($"Card type: {card.cardType}");
-			TakiLogger.LogRules ($"Card display: {card.GetDisplayText ()}");
-			TakiLogger.LogRules ($"Is special card: {card.IsSpecialCard}");
+			// CRITICAL FIX: SEQUENCE-FIRST ARCHITECTURE
+			// Add card to sequence BEFORE processing special effects
+			if (gameState.IsInTakiSequence) {
+				TakiLogger.LogRules ("=== SEQUENCE-FIRST: Adding card to sequence before special effects ===");
+				gameState.AddCardToSequence (card);
 
+				// Update sequence UI immediately
+				if (gameplayUI != null) {
+					int cardCount = gameState.NumberOfSequenceCards;
+					CardColor sequenceColor = gameState.TakiSequenceColor;
+					gameplayUI.ShowTakiSequenceStatus (sequenceColor, cardCount, true);
+					gameplayUI.ShowSequenceProgressMessage (sequenceColor, cardCount, PlayerType.Human);
+				}
+
+				TakiLogger.LogRules ($"Card added to sequence: {card.GetDisplayText ()} (sequence now has {gameState.NumberOfSequenceCards} cards)");
+			}
+
+			// Process special card effects with sequence awareness
+			TakiLogger.LogRules ("=== CALLING HandleSpecialCardEffects WITH SEQUENCE AWARENESS ===");
 			try {
-				// PHASE 7: Handle special card effects BEFORE determining turn flow
-				TakiLogger.LogRules ("=== CALLING HandleSpecialCardEffects NOW ===");
 				HandleSpecialCardEffects (card);
 				TakiLogger.LogRules ("=== HandleSpecialCardEffects COMPLETED ===");
 			} catch (System.Exception ex) {
@@ -634,12 +670,19 @@ namespace TakiGame {
 			UpdateAllUI ();
 			RefreshPlayerHandStates ();
 
-			// PHASE 7: Handle turn flow based on card type and special effects
+			// PHASE 8B: Handle turn flow based on card type and special effects
 			HandlePostCardPlayTurnFlow (card);
 
-			// Check for win condition
+			// PHASE 8B: Enhanced win condition checking with sequence awareness
 			if (playerHand.Count == 0) {
-				TakiLogger.LogGameState ("Player wins - hand is empty!");
+				if (gameState.IsInTakiSequence) {
+					// Player wins but sequence needs to be ended first
+					TakiLogger.LogGameState ("Player wins - hand is empty during TAKI sequence!");
+					gameState.EndTakiSequence ();
+					gameplayUI?.EnableEndTakiSequenceButton (false);
+				} else {
+					TakiLogger.LogGameState ("Player wins - hand is empty!");
+				}
 				gameState.DeclareWinner (PlayerType.Human);
 				return;
 			}
@@ -648,15 +691,76 @@ namespace TakiGame {
 			TakiLogger.LogTurnFlow ("CARD PLAY COMPLETE - Turn flow handled based on card type");
 		}
 
-		/// <summary>
-		/// ENHANCED: HandlePostCardPlayTurnFlow with ChangeColor UI handling for HUMANS
+		/// <summary> 
+		/// PHASE 8B: FIXED HandlePostCardPlayTurnFlow with proper TAKI sequence handling
+		/// CRITICAL FIX: Proper sequence continuation and End Sequence button management
 		/// </summary>
 		/// <param name="card">Card that was just played</param>
 		void HandlePostCardPlayTurnFlow (CardData card) {
 			TakiLogger.LogTurnFlow ($"=== HANDLING POST-CARD-PLAY TURN FLOW for {card.GetDisplayText ()} ===");
 
+			// PHASE 8B: Check if TAKI sequence was started and we should continue turn
+			if (gameState.IsInTakiSequence && (card.cardType == CardType.Taki || card.cardType == CardType.SuperTaki) && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ($"{card.cardType} card started sequence - turn continues for sequence play");
+
+				// For TAKI/SuperTAKI cards that start sequences, keep turn active
+				hasPlayerTakenAction = false;  // Reset to allow sequence cards
+				canPlayerPlay = true;          // Re-enable play for sequence
+				canPlayerDraw = false;         // Cannot draw during sequence
+				canPlayerEndTurn = false;      // Cannot end turn during sequence (must use End Sequence button)
+
+				gameplayUI?.UpdateStrictButtonStates (true, false, false);
+				gameplayUI?.EnableEndTakiSequenceButton (true);
+
+				if (card.cardType == CardType.Taki) {
+					gameplayUI?.ShowPlayerMessage ($"TAKI Sequence active - play {card.color} cards or End Sequence!");
+				} else {
+					gameplayUI?.ShowPlayerMessage ($"SuperTAKI Sequence active - play {gameState.TakiSequenceColor} cards or End Sequence!");
+				}
+
+				TakiLogger.LogTurnFlow ($"{card.cardType} sequence turn flow: PLAY enabled, DRAW/END TURN disabled, END SEQUENCE enabled");
+				return;
+			}
+
+			// PHASE 8B: Check if card was played during existing sequence (not last card)
+			if (gameState.IsInTakiSequence && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Card played in existing sequence - turn continues");
+
+				// Continue sequence - same button states as sequence start 
+				hasPlayerTakenAction = false;  // Allow more sequence cards
+				canPlayerPlay = true;          // Keep play enabled
+				canPlayerDraw = false;         // Still no draw during sequence
+				canPlayerEndTurn = false;      // Still no end turn during sequence
+
+				gameplayUI?.UpdateStrictButtonStates (true, false, false);
+				gameplayUI?.ShowPlayerMessage ("Sequence continues - play more cards or End Sequence!");
+
+				TakiLogger.LogTurnFlow ("Sequence continuation: PLAY enabled, DRAW/END TURN disabled");
+				return;
+			}
+
+			// PHASE 8B: Check if sequence just ended (last card processed)
+			if (isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Last card in sequence processed - ending turn normally");
+
+				// Reset flag
+				isCurrentCardLastInSequence = false;
+
+				// Force end turn after sequence completion
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				gameplayUI?.ForceEnableEndTurn ();
+				gameplayUI?.ShowPlayerMessage ("Sequence completed - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Sequence completion: Must END TURN");
+				return;
+			}
+
 			// ENHANCED: Plus card handling with better messaging
-			if (card.cardType == CardType.Plus) {
+			if (card.cardType == CardType.Plus && !gameState.IsInTakiSequence) {
 				TakiLogger.LogTurnFlow ("PLUS CARD PLAYED - Player gets additional action");
 
 				// Set special card state
@@ -680,7 +784,7 @@ namespace TakiGame {
 			}
 
 			// FIXED: ChangeColor card handling for HUMAN players - ADD UI LOGIC HERE
-			if (card.cardType == CardType.ChangeColor) {
+			if (card.cardType == CardType.ChangeColor && !gameState.IsInTakiSequence) {
 				TakiLogger.LogTurnFlow ("CHANGE COLOR CARD PLAYED BY HUMAN - Player must select color");
 
 				if (gameState == null || gameplayUI == null) {
@@ -1150,7 +1254,8 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// PHASE 7: ENHANCED DEBUG HandleSpecialCardEffects - Find why it's not working
+		/// PHASE 8B: FIXED HandleSpecialCardEffects with proper sequence context awareness
+		/// CRITICAL RULE: Special effects only activate when NOT in sequence OR when last card in sequence
 		/// </summary>
 		/// <param name="card">Card that was played</param>
 		void HandleSpecialCardEffects (CardData card) {
@@ -1161,89 +1266,185 @@ namespace TakiGame {
 				return;
 			}
 
-			TakiLogger.LogRules ($"=== HANDLING SPECIAL CARD EFFECTS for {card.GetDisplayText ()} ===");
 			TakiLogger.LogRules ($"Card type: {card.cardType}");
 			TakiLogger.LogRules ($"Card name: {card.cardName}");
 
+			// PHASE 8B: CRITICAL RULE - Special effects only activate when:
+			// 1. NOT in TAKI sequence, OR
+			// 2. In TAKI sequence AND this is the last card (player clicked End Sequence)
+			bool shouldActivateSpecialEffect = !gameState.IsInTakiSequence || isCurrentCardLastInSequence;
+
+			TakiLogger.LogRules ($"SEQUENCE CONTEXT: In sequence={gameState.IsInTakiSequence}, Last card={isCurrentCardLastInSequence}");
+			TakiLogger.LogRules ($"SPECIAL EFFECT ACTIVATION: {shouldActivateSpecialEffect}");
+
 			switch (card.cardType) {
 				case CardType.Plus:
-					// PHASE 7: Plus card effect - player gets additional action
-					TakiLogger.LogRules ("PLUS card effect - Player must take 1 additional action");
-					// Note: Turn flow handling is done in HandlePostCardPlayTurnFlow
-					// This method just handles game state changes, not turn flow
+					if (shouldActivateSpecialEffect) {
+						TakiLogger.LogRules ("PLUS card effect - Player must take 1 additional action");
+						// Note: Turn flow handling is done in HandlePostCardPlayTurnFlow
+					} else {
+						TakiLogger.LogRules ("PLUS card effect DEFERRED - card played during TAKI sequence");
+					}
 					break;
 
 				case CardType.Stop:
-					TakiLogger.LogRules ("=== STOP CARD DETECTED IN SWITCH STATEMENT ===");
-					// FIXED: STOP card effect - set flag instead of immediate skip
-					TakiLogger.LogRules ("STOP card effect - Next opponent turn will be skipped");
-
-					try {
-						TakiLogger.LogRules ("=== CALLING HandleStopCardEffect ===");
-						HandleStopCardEffect ();
-						TakiLogger.LogRules ("=== HandleStopCardEffect COMPLETED ===");
-					} catch (System.Exception ex) {
-						TakiLogger.LogError ($"EXCEPTION in HandleStopCardEffect: {ex.Message}", TakiLogger.LogCategory.Rules);
+					if (shouldActivateSpecialEffect) {
+						TakiLogger.LogRules ("=== STOP CARD DETECTED IN SWITCH STATEMENT ===");
+						TakiLogger.LogRules ("STOP card effect - Next opponent turn will be skipped");
+						try {
+							TakiLogger.LogRules ("=== CALLING HandleStopCardEffect ===");
+							HandleStopCardEffect ();
+							TakiLogger.LogRules ("=== HandleStopCardEffect COMPLETED ===");
+						} catch (System.Exception ex) {
+							TakiLogger.LogError ($"EXCEPTION in HandleStopCardEffect: {ex.Message}", TakiLogger.LogCategory.Rules);
+						}
+					} else {
+						TakiLogger.LogRules ("STOP card effect DEFERRED - card played during TAKI sequence");
 					}
 					break;
 
 				case CardType.ChangeDirection:
-					// PHASE 7: ChangeDirection card effect - reverse turn direction
-					TakiLogger.LogRules ("CHANGE DIRECTION card effect - Turn direction changes");
-					HandleChangeDirectionCardEffect ();
+					if (shouldActivateSpecialEffect) {
+						TakiLogger.LogRules ("CHANGE DIRECTION card effect - Turn direction changes");
+						HandleChangeDirectionCardEffect ();
+					} else {
+						TakiLogger.LogRules ("CHANGE DIRECTION card effect DEFERRED - card played during TAKI sequence");
+					}
 					break;
 
 				case CardType.ChangeColor:
-					// PHASE 7: ChangeColor card effect - player must choose new color
-					TakiLogger.LogRules ("CHANGE COLOR card effect - Player must choose new color");
-					HandleChangeColorCardEffect ();
+					if (shouldActivateSpecialEffect) {
+						TakiLogger.LogRules ("CHANGE COLOR card effect - Player must choose new color");
+						HandleChangeColorCardEffect ();
+					} else {
+						TakiLogger.LogRules ("CHANGE COLOR card effect DEFERRED - card played during TAKI sequence");
+					}
 					break;
 
 				case CardType.PlusTwo:
-					TakiLogger.LogRules ("=== PLUS TWO CARD: ENHANCED CHAIN SYSTEM ===");
+					TakiLogger.LogRules ("=== PLUS TWO CARD: ENHANCED CHAIN SYSTEM WITH SEQUENCE AWARENESS ===");
 
-					PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
-					PlayerType targetPlayer = currentPlayer == PlayerType.Human ? PlayerType.Computer : PlayerType.Human;
+					if (shouldActivateSpecialEffect) {
+						PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
+						PlayerType targetPlayer = currentPlayer == PlayerType.Human ? PlayerType.Computer : PlayerType.Human;
 
-					if (!gameState.IsPlusTwoChainActive) {
-						// Start new chain
-						gameState.StartPlusTwoChain (currentPlayer);
-						gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+						if (!gameState.IsPlusTwoChainActive) {
+							// Start new chain
+							gameState.StartPlusTwoChain (currentPlayer);
 
-						TakiLogger.LogRules ("CHAIN STARTED: First PlusTwo played - opponent must draw 2 or continue chain");
+							// CRITICAL FIX: Only change interaction state if NOT in TAKI sequence
+							if (!gameState.IsInTakiSequence) {
+								gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+							}
 
-						// Enhanced UI integration
-						gameplayUI?.ShowChainProgressMessage (1, 2, targetPlayer);
-						gameplayUI?.ShowPlusTwoChainStatus (1, 2, targetPlayer == PlayerType.Human);
+							TakiLogger.LogRules ("CHAIN STARTED: First PlusTwo played - opponent must draw 2 or continue chain");
 
+							// Enhanced UI integration
+							gameplayUI?.ShowChainProgressMessage (1, 2, targetPlayer);
+							gameplayUI?.ShowPlusTwoChainStatus (1, 2, targetPlayer == PlayerType.Human);
+
+						} else {
+							// Continue existing chain
+							gameState.ContinuePlusTwoChain ();
+
+							int chainCount = gameState.NumberOfChainedCards;
+							int drawCount = gameState.ChainDrawCount;
+							TakiLogger.LogRules ($"CHAIN CONTINUED: Now {chainCount} PlusTwo cards, opponent must draw {drawCount} or continue");
+
+							// Enhanced UI integration
+							gameplayUI?.ShowChainProgressMessage (chainCount, drawCount, targetPlayer);
+							gameplayUI?.ShowPlusTwoChainStatus (chainCount, drawCount, targetPlayer == PlayerType.Human);
+						}
+
+						TakiLogger.LogRules ($"PlusTwo chain status: {gameState.NumberOfChainedCards} cards, {gameState.ChainDrawCount} total draw");
 					} else {
-						// Continue existing chain
-						gameState.ContinuePlusTwoChain ();
-
-						int chainCount = gameState.NumberOfChainedCards;
-						int drawCount = gameState.ChainDrawCount;
-						TakiLogger.LogRules ($"CHAIN CONTINUED: Now {chainCount} PlusTwo cards, opponent must draw {drawCount} or continue");
-
-						// Enhanced UI integration
-						gameplayUI?.ShowChainProgressMessage (chainCount, drawCount, targetPlayer);
-						gameplayUI?.ShowPlusTwoChainStatus (chainCount, drawCount, targetPlayer == PlayerType.Human);
+						TakiLogger.LogRules ("PLUS TWO card effect DEFERRED - card played during TAKI sequence");
 					}
-
-					TakiLogger.LogRules ($"PlusTwo chain status: {gameState.NumberOfChainedCards} cards, {gameState.ChainDrawCount} total draw");
 					break;
 
 				case CardType.Taki:
-					// TODO Phase 8: Implement Taki sequence
-					TakiLogger.LogRules ("TAKI card - Multi-card sequence (Phase 8)");
+					// PHASE 8B: TAKI card implementation - same-color sequence
+					TakiLogger.LogRules ("=== TAKI CARD: SAME-COLOR SEQUENCE ===");
+
+					if (!gameState.IsInTakiSequence) {
+						// Start new TAKI sequence using the TAKI card's color
+						TakiLogger.LogRules ($"TAKI SEQUENCE START: Starting sequence for color {card.color}");
+						gameState.StartTakiSequence (card.color, turnManager?.CurrentPlayer ?? PlayerType.Human);
+
+						// Add the TAKI card itself to the sequence
+						gameState.AddCardToSequence (card);
+
+						// CRITICAL FIX: Enable End Sequence button immediately
+						if (gameplayUI != null) {
+							gameplayUI.EnableEndTakiSequenceButton (true);
+							gameplayUI.ShowTakiSequenceStatus (card.color, 1, true);
+							gameplayUI.ShowPlayerMessage ($"TAKI Sequence Started! Play {card.color} cards or click End Sequence");
+						}
+
+						TakiLogger.LogRules ($"TAKI sequence initiated - only {card.color} or wild cards allowed");
+						// Do NOT end turn - continue sequence
+						return; // Important: skip normal turn end flow
+					} else {
+						// TAKI card played within existing sequence
+						if (isCurrentCardLastInSequence) {
+							// TAKI as last card - end current sequence but could start new one
+							TakiLogger.LogRules ("TAKI card played as last in sequence - sequence will end");
+							gameState.AddCardToSequence (card);
+							// Note: Sequence ending will be handled by End Sequence button logic
+						} else {
+							// TAKI in middle of sequence - no special effect, just add to sequence
+							TakiLogger.LogRules ("TAKI card played in middle of sequence - added to sequence");
+							gameState.AddCardToSequence (card);
+						}
+					}
 					break;
 
 				case CardType.SuperTaki:
-					// TODO Phase 8: Implement SuperTaki sequence
-					TakiLogger.LogRules ("SUPER TAKI card - Multi-card sequence any color (Phase 8)");
+					// PHASE 8B: SuperTAKI card implementation
+					TakiLogger.LogRules ("=== SUPER TAKI CARD: WILD SEQUENCE INITIATOR ===");
+
+					if (!gameState.IsInTakiSequence) {
+						// SuperTAKI uses current active color
+						CardColor sequenceColor = gameState.activeColor;
+
+						TakiLogger.LogRules ($"SUPER TAKI SEQUENCE START: Starting sequence for current active color {sequenceColor}");
+						gameState.StartTakiSequence (sequenceColor, turnManager?.CurrentPlayer ?? PlayerType.Human);
+
+						// Add the SuperTAKI card itself to the sequence
+						gameState.AddCardToSequence (card);
+
+						// CRITICAL FIX: Enable End Sequence button immediately
+						if (gameplayUI != null) {
+							gameplayUI.EnableEndTakiSequenceButton (true);
+							gameplayUI.ShowTakiSequenceStatus (sequenceColor, 1, true);
+							gameplayUI.ShowPlayerMessage ($"SuperTAKI Sequence Started! Play {sequenceColor} cards or click End Sequence");
+						}
+
+						TakiLogger.LogRules ($"SUPER TAKI sequence initiated - only {sequenceColor} or wild cards allowed");
+						// Do NOT end turn - continue sequence
+						return; // Important: skip normal turn end flow
+					} else {
+						// SuperTAKI card played within existing sequence
+						if (isCurrentCardLastInSequence) {
+							// SuperTAKI as last card - end current sequence
+							TakiLogger.LogRules ("SUPER TAKI card played as last in sequence - sequence will end");
+							gameState.AddCardToSequence (card);
+						} else {
+							// SuperTAKI in middle of sequence - no special effect, just add to sequence
+							TakiLogger.LogRules ("SUPER TAKI card played in middle of sequence - added to sequence");
+							gameState.AddCardToSequence (card);
+						}
+					}
 					break;
 
 				case CardType.Number:
-					// No special effects for number cards
+					// PHASE 8B: Number cards can be part of sequences but have no special effects
+					if (gameState.IsInTakiSequence) {
+						TakiLogger.LogRules ("NUMBER card played in sequence - added to sequence");
+						gameState.AddCardToSequence (card);
+					} else {
+						TakiLogger.LogRules ("NUMBER card - no special effects");
+					}
 					break;
 
 				default:
@@ -1251,6 +1452,7 @@ namespace TakiGame {
 					break;
 			}
 		}
+
 
 		/// <summary>
 		/// PHASE 7: Handle ChangeDirection card effect - reverse turn direction
@@ -1305,22 +1507,6 @@ namespace TakiGame {
 				TakiLogger.LogError ("Cannot show color selection: GameplayUIManager is null!", TakiLogger.LogCategory.Rules);
 				return;
 			}
-
-			//// Set interaction state to color selection
-			//gameState.ChangeInteractionState (InteractionState.ColorSelection);
-			//TakiLogger.LogGameState ("Interaction state changed to ColorSelection");
-
-			//// Show color selection panel (this will disable PLAY/DRAW buttons)
-			//gameplayUI.ShowColorSelection (true);
-			//TakiLogger.LogUI ("Color selection panel displayed");
-
-			//// ENHANCED: Better feedback about the selection process 
-			//gameplayUI.ShowPlayerMessage ("CHANGE COLOR: Choose colors freely, then click END TURN!");
-			//gameplayUI.ShowComputerMessage ("Player is selecting new color...");
-
-			//TakiLogger.LogRules ("CHANGE COLOR effect activated - panel stays visible until END TURN");
-
-
 
 			// CORE LOGIC: This applies to ALL players (human and AI)
 			// Just log that a ChangeColor card was played - actual color selection handled separately
@@ -1489,6 +1675,137 @@ namespace TakiGame {
 			// Handle turn flow - player has taken action by drawing
 			TakiLogger.LogTurnFlow ("Chain break completed - handling post-draw turn flow");
 			HandlePostDrawTurnFlow (drawnCards.LastOrDefault ());
+		}
+
+		/// <summary>
+		/// CRITICAL FIX: Handle End TAKI Sequence with validation and no restart loops
+		/// </summary>
+		void OnEndTakiSequenceButtonClicked () {
+			TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED ===");
+
+			if (!gameState.IsInTakiSequence) {
+				gameplayUI?.ShowPlayerMessage ("No TAKI sequence is active!");
+				TakiLogger.LogWarning ("End sequence button clicked but no sequence active", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// CRITICAL VALIDATION: Only human can end human-initiated sequences
+			if (gameState.TakiSequenceInitiator != PlayerType.Human) {
+				gameplayUI?.ShowPlayerMessage ("Cannot end AI sequence!");
+				TakiLogger.LogWarning ("Human tried to end AI sequence - BLOCKED", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// CRITICAL VALIDATION: Only end sequence on human's turn
+			if (!gameState.IsPlayerTurn) {
+				gameplayUI?.ShowPlayerMessage ("Cannot end sequence - not your turn!");
+				TakiLogger.LogWarning ("Tried to end sequence on wrong turn - BLOCKED", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// Get sequence info before ending
+			int finalCardCount = gameState.NumberOfSequenceCards;
+			CardColor sequenceColor = gameState.TakiSequenceColor;
+			CardData lastCard = gameState.LastCardPlayedInSequence;
+
+			TakiLogger.LogGameState ($"Human ending TAKI sequence: {finalCardCount} cards of {sequenceColor}");
+
+			// STEP 1: End the sequence FIRST (TakiSequence -> Normal)
+			gameState.EndTakiSequence ();
+			gameplayUI?.EnableEndTakiSequenceButton (false);
+			gameplayUI?.HideTakiSequenceStatus ();
+
+			TakiLogger.LogGameState ("Sequence ended - now in Normal state");
+
+			// STEP 2: CRITICAL FIX - Process final card effects WITHOUT restarting sequences
+			if (lastCard != null && lastCard.IsSpecialCard) {
+				TakiLogger.LogRules ($"Processing final card effects: {lastCard.GetDisplayText ()}");
+
+				// CRITICAL FIX: Mark as last card to prevent sequence restart
+				isCurrentCardLastInSequence = true;
+
+				// CRITICAL FIX: Only process non-TAKI special effects
+				if (lastCard.cardType != CardType.Taki && lastCard.cardType != CardType.SuperTaki) {
+					TakiLogger.LogRules ($"Processing {lastCard.cardType} effect from sequence end");
+					HandleSpecialCardEffects (lastCard);
+				} else {
+					TakiLogger.LogRules ($"Skipping {lastCard.cardType} effect - sequence already ended");
+				}
+
+				isCurrentCardLastInSequence = false;
+			}
+
+			// STEP 3: Handle turn flow based on current state
+			if (gameState.interactionState == InteractionState.ColorSelection) {
+				// ChangeColor effect activated - allow color selection
+				TakiLogger.LogTurnFlow ("Final card was ChangeColor - color selection required");
+				hasPlayerTakenAction = true;
+				canPlayerEndTurn = true;
+				gameplayUI?.UpdateStrictButtonStates (false, false, true);
+
+			} else if (gameState.IsPlusTwoChainActive) {
+				// PlusTwo effect activated - end turn for chain response
+				TakiLogger.LogTurnFlow ("Final card started PlusTwo chain - ending turn");
+				hasPlayerTakenAction = true;
+				canPlayerEndTurn = true;
+				gameplayUI?.ForceEnableEndTurn ();
+
+			} else {
+				// Normal sequence end
+				TakiLogger.LogTurnFlow ("Normal sequence end - forcing END TURN");
+				hasPlayerTakenAction = true;
+				canPlayerEndTurn = true;
+				gameplayUI?.ForceEnableEndTurn ();
+			}
+
+			// Show completion message
+			gameplayUI?.ShowSequenceEndedMessage (finalCardCount, sequenceColor, PlayerType.Human);
+
+			TakiLogger.LogTurnFlow ("Sequence ending complete - no restart loops");
+		}
+
+
+		/// <summary>
+		/// PHASE 8B: Handle TAKI sequence started event
+		/// </summary>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="initiator">Who started the sequence</param>
+		void OnTakiSequenceStarted (CardColor sequenceColor, PlayerType initiator) {
+			TakiLogger.LogGameState ($"TAKI sequence started: {sequenceColor} by {initiator}");
+
+			// Update UI to show sequence status
+			if (gameplayUI != null) {
+				gameplayUI.ShowTakiSequenceStatus (sequenceColor, 1, initiator == PlayerType.Human);
+				gameplayUI.ShowSequenceProgressMessage (sequenceColor, 1, initiator);
+			}
+		}
+
+		/// <summary>
+		/// PHASE 8B: Handle card added to TAKI sequence event
+		/// </summary>
+		/// <param name="cardCount">New card count in sequence</param>
+		void OnTakiSequenceCardAdded (int cardCount) {
+			TakiLogger.LogGameState ($"Card added to TAKI sequence: now {cardCount} cards");
+
+			// Update UI to show updated sequence status
+			if (gameplayUI != null && gameState != null) {
+				bool isPlayerTurn = gameState.IsPlayerTurn;
+				CardColor sequenceColor = gameState.TakiSequenceColor;
+				gameplayUI.ShowTakiSequenceStatus (sequenceColor, cardCount, isPlayerTurn);
+			}
+		}
+
+		/// <summary> 
+		/// PHASE 8B: Handle TAKI sequence ended event
+		/// </summary> 
+		void OnTakiSequenceEnded () {
+			TakiLogger.LogGameState ("TAKI sequence ended");
+
+			// Update UI to hide sequence status
+			if (gameplayUI != null) {
+				gameplayUI.HideTakiSequenceStatus ();
+				gameplayUI.EnableEndTakiSequenceButton (false);
+			}
 		}
 
 		/// <summary>
@@ -1673,10 +1990,10 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// AI card selection handler with validation
+		/// FIXED: AI card selection handler with TAKI sequence awareness
 		/// </summary> 
 		void OnAICardSelected (CardData card) {
-			TakiLogger.LogAI ("=== AI SELECTED CARD (CHAIN AWARE): " + (card != null ? card.GetDisplayText () : "NULL") + " ===");
+			TakiLogger.LogAI ("=== AI SELECTED CARD (CHAIN AWARE + SEQUENCE AWARE): " + (card != null ? card.GetDisplayText () : "NULL") + " ===");
 
 			if (card == null || computerAI == null) {
 				TakiLogger.LogError ("AI selected null card or computerAI is null!", TakiLogger.LogCategory.AI);
@@ -1718,142 +2035,294 @@ namespace TakiGame {
 					gameplayUI?.ShowComputerMessage ("I win if you don't continue the chain!");
 					// Don't declare winner yet - chain must be resolved first
 					// Game will end after player responds to chain
+				} else if (gameState != null && gameState.IsInTakiSequence) {
+					TakiLogger.LogGameState ("AI wins - hand is empty during TAKI sequence!");
+					gameState.EndTakiSequence ();
+					gameplayUI?.EnableEndTakiSequenceButton (false);
+					gameplayUI?.ShowSequenceEndedMessage (gameState.NumberOfSequenceCards, gameState.TakiSequenceColor, PlayerType.Computer);
 				} else {
 					TakiLogger.LogGameState ("Computer wins - hand is empty!");
-					if (gameState != null) {
-						gameState.DeclareWinner (PlayerType.Computer);
-					}
-					return;
 				}
+
+				if (gameState != null) {
+					gameState.DeclareWinner (PlayerType.Computer);
+				}
+				return;
 			}
 
-			// Handle special card effects for AI - this will process the PlusTwo chain logic
-			if (card.IsSpecialCard) {
-				TakiLogger.LogAI ($"AI played special card - handling {card.cardType} effect");
+			// CRITICAL FIX: Handle turn flow based on sequence state
+			if (gameState != null && gameState.IsInTakiSequence) {
+				TakiLogger.LogAI ("AI played card during TAKI sequence - handling sequence turn flow");
 
-				// Call main special card effects method to set flags and handle core logic
-				TakiLogger.LogAI ("=== CALLING MAIN HandleSpecialCardEffects for AI card ===");
-				HandleSpecialCardEffects (card);
+				// During TAKI sequence, handle special card effects but don't end turn normally
+				if (card.IsSpecialCard) {
+					TakiLogger.LogAI ($"AI played special card in sequence - handling {card.cardType} effect");
 
-				// Then handle AI-specific turn flow
-				TakiLogger.LogAI ("=== CALLING AI-specific turn flow handling ===");
-				HandleAISpecialCardEffects (card);
+					// Call main special card effects method
+					HandleSpecialCardEffects (card);
+
+					// Handle AI-specific turn flow for special cards in sequence
+					HandleAISpecialCardEffects (card);
+				} else {
+					// FIXED: Number card during sequence - continue sequence, don't end turn
+					TakiLogger.LogAI ("AI played number card in sequence - continuing sequence");
+
+					// The sequence continuation is handled by the existing AI sequence logic
+					// Don't call EndTurn() here - let the sequence logic handle it
+				}
 			} else {
-				// Normal card - end turn normally
-				TakiLogger.LogAI ("AI played normal card - ending turn normally");
-				if (turnManager != null) {
-					turnManager.EndTurn ();
+				// NORMAL FLOW: Not in TAKI sequence, handle normally
+				if (card.IsSpecialCard) {
+					TakiLogger.LogAI ($"AI played special card - handling {card.cardType} effect");
+
+					// Call main special card effects method to set flags and handle core logic
+					TakiLogger.LogAI ("=== CALLING MAIN HandleSpecialCardEffects for AI card ===");
+					HandleSpecialCardEffects (card);
+
+					// Then handle AI-specific turn flow
+					TakiLogger.LogAI ("=== CALLING AI-specific turn flow handling ===");
+					HandleAISpecialCardEffects (card);
+				} else {
+					// Normal card outside sequence - end turn normally
+					TakiLogger.LogAI ("AI played normal card (not in sequence) - ending turn normally");
+					if (turnManager != null) {
+						turnManager.EndTurn ();
+					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// FIXED: Handle AI-specific turn flow for special cards - ChangeColor case properly separated
+		/// FIXED: Handle AI-specific turn flow for special cards - Enhanced TAKI sequence & PlusTwo integration
+		/// CRITICAL FIX: Proper sequence state awareness and last card effect processing
 		/// </summary>
 		/// <param name="card">Card played by AI</param>
 		void HandleAISpecialCardEffects (CardData card) {
 			TakiLogger.LogAI ($"=== AI HANDLING TURN FLOW for {card.GetDisplayText ()} ===");
 			TakiLogger.LogAI ("Note: Core special card effects already handled by main HandleSpecialCardEffects method");
 
+			// CRITICAL FIX: Check if we're in a TAKI sequence
+			bool inTakiSequence = gameState.IsInTakiSequence;
+			bool isLastCardInSequence = isCurrentCardLastInSequence;
+
+			TakiLogger.LogAI ($"Sequence context: InSequence={inTakiSequence}, IsLastCard={isLastCardInSequence}");
+
 			switch (card.cardType) {
 				case CardType.Plus:
-					// AI gets additional action just like human
-					TakiLogger.LogAI ("AI played PLUS card - AI gets additional action");
+					if (inTakiSequence && !isLastCardInSequence) {
+						// Plus card played during sequence - effect deferred
+						TakiLogger.LogAI ("AI played PLUS during TAKI sequence - effect DEFERRED, continuing sequence");
 
-					// ENHANCED: Use proper message routing
-					if (gameplayUI != null) {
-						gameplayUI.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
-					}
+						// Continue sequence - don't end turn
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							TakiLogger.LogError ("Cannot continue AI sequence after Plus - missing components", TakiLogger.LogCategory.AI);
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal Plus card handling (not in sequence or last card)
+						TakiLogger.LogAI ("AI played PLUS card - AI gets additional action");
 
-					// AI needs to make another decision
-					CardData topCard = GetTopDiscardCard ();
-					if (topCard != null && computerAI != null) {
-						TakiLogger.LogAI ("Triggering AI additional action for PLUS card");
-						// Give AI another decision with slight delay
-						Invoke (nameof (TriggerAIAdditionalAction), 1.0f);
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
+						}
+
+						// AI needs to make another decision
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							TakiLogger.LogAI ("Triggering AI additional action for PLUS card");
+							Invoke (nameof (TriggerAIAdditionalAction), 1.0f);
+						}
 					}
 					break;
 
 				case CardType.Stop:
-					// FIXED: Core STOP logic (flag setting) handled by main method
-					TakiLogger.LogAI ("AI played STOP card - flag already set by main method");
+					if (inTakiSequence && !isLastCardInSequence) {
+						// Stop card played during sequence - effect deferred
+						TakiLogger.LogAI ("AI played STOP during TAKI sequence - effect DEFERRED, continuing sequence");
 
-					if (gameplayUI != null) {
-						gameplayUI.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
+						// Continue sequence
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal Stop card handling
+						TakiLogger.LogAI ("AI played STOP card - flag already set by main method");
+
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
+						}
+
+						EndAITurnWithStrictFlow ();
 					}
-
-					// FIXED: Use new AI turn end method that checks STOP flag
-					TakiLogger.LogAI ("Ending AI turn with STOP flag check");
-					EndAITurnWithStrictFlow ();
 					break;
 
 				case CardType.ChangeDirection:
-					// AI played ChangeDirection - core logic already handled
-					TakiLogger.LogAI ("AI played CHANGE DIRECTION card - direction already changed");
+					if (inTakiSequence && !isLastCardInSequence) {
+						// ChangeDirection during sequence - effect deferred
+						TakiLogger.LogAI ("AI played CHANGE DIRECTION during TAKI sequence - effect DEFERRED, continuing sequence");
 
-					// ENHANCED: Use proper message routing
-					if (gameplayUI != null) {
-						string directionMessage = $"Direction changed by AI: {gameState?.turnDirection}";
-						gameplayUI.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
-					}
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal ChangeDirection handling
+						TakiLogger.LogAI ("AI played CHANGE DIRECTION card - direction already changed");
 
-					// Normal turn end for AI
-					if (turnManager != null) {
-						turnManager.EndTurn ();
+						if (gameplayUI != null) {
+							string directionMessage = $"Direction changed by AI: {gameState?.turnDirection}";
+							gameplayUI.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
+						}
+
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
 					}
 					break;
 
 				case CardType.ChangeColor:
-					// FIXED: AI played ChangeColor - handles color selection completely
-					TakiLogger.LogAI ("AI played CHANGE COLOR card - handling AI color selection");
+					if (inTakiSequence && !isLastCardInSequence) {
+						// ChangeColor during sequence - effect deferred
+						TakiLogger.LogAI ("AI played CHANGE COLOR during TAKI sequence - effect DEFERRED, continuing sequence");
 
-					// ENHANCED: Use proper message routing
-					if (gameplayUI != null) {
-						gameplayUI.ShowImmediateFeedback ("AI is selecting new color...", true);
-					}
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal ChangeColor handling
+						TakiLogger.LogAI ("AI played CHANGE COLOR card - handling AI color selection");
 
-					// AI selects color automatically - NO UI STATE CHANGES NEEDED
-					if (computerAI != null) {
-						CardColor selectedColor = computerAI.SelectColor ();
-						gameState?.ChangeActiveColor (selectedColor);
-
-						// Show color selection result with enhanced messaging
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
-								$"New active color: {selectedColor}");
+							gameplayUI.ShowImmediateFeedback ("AI is selecting new color...", true);
 						}
 
-						TakiLogger.LogAI ($"AI selected color: {selectedColor}");
-					}
+						if (computerAI != null) {
+							CardColor selectedColor = computerAI.SelectColor ();
+							gameState?.ChangeActiveColor (selectedColor);
 
-					// Normal turn end for AI
-					if (turnManager != null) {
-						turnManager.EndTurn ();
+							if (gameplayUI != null) {
+								gameplayUI.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
+									$"New active color: {selectedColor}");
+							}
+
+							TakiLogger.LogAI ($"AI selected color: {selectedColor}");
+						}
+
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
 					}
 					break;
 
 				case CardType.PlusTwo:
-					// ENHANCED: PlusTwo chain handling
-					TakiLogger.LogAI ("AI played PLUS TWO card - chain logic already handled by main method");
+					// CRITICAL FIX: PlusTwo handling with proper sequence awareness
+					if (inTakiSequence && !isLastCardInSequence) {
+						// PlusTwo played during sequence - effect DEFERRED
+						TakiLogger.LogAI ("AI played PLUS TWO during TAKI sequence - effect DEFERRED, continuing sequence");
 
-					if (gameState.IsPlusTwoChainActive) {
-						// Chain is now active - opponent must respond
-						int chainCount = gameState.NumberOfChainedCards;
-						int drawCount = gameState.ChainDrawCount;
-
-						gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer,
-							$"Chain continues! Draw {drawCount} or play PlusTwo");
-
-						TakiLogger.LogAI ($"PlusTwo chain continues: {chainCount} cards, opponent draws {drawCount} or continues");
+						// Continue sequence - the PlusTwo effect will be processed when sequence ends
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							TakiLogger.LogError ("Cannot continue AI sequence after PlusTwo - ending sequence", TakiLogger.LogCategory.AI);
+							EndAITurnWithStrictFlow ();
+						}
 					} else {
-						// This shouldn't happen as PlusTwo should always create/continue a chain
-						TakiLogger.LogWarning ("AI played PlusTwo but no chain is active!", TakiLogger.LogCategory.AI);
-						gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer, "You draw 2 cards!");
+						// Normal PlusTwo handling (not in sequence or last card in sequence)
+						TakiLogger.LogAI ("AI played PLUS TWO card - chain logic already handled by main method");
+
+						if (gameState.IsPlusTwoChainActive) {
+							// Chain is now active - opponent must respond
+							int chainCount = gameState.NumberOfChainedCards;
+							int drawCount = gameState.ChainDrawCount;
+
+							gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer,
+								$"Chain continues! Draw {drawCount} or play PlusTwo");
+
+							TakiLogger.LogAI ($"PlusTwo chain continues: {chainCount} cards, opponent draws {drawCount} or continues");
+						} else {
+							// This shouldn't happen if chain logic worked correctly
+							TakiLogger.LogError ("AI played PlusTwo but no chain is active - this indicates a sequence processing issue!", TakiLogger.LogCategory.AI);
+							gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer, "You draw 2 cards!");
+						}
+
+						// Normal turn end for AI after playing PlusTwo
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
+					}
+					break;
+
+				case CardType.Taki:
+					// TAKI card during sequence - continue sequence
+					TakiLogger.LogAI ("AI played TAKI card - handling sequence continuation");
+
+					if (!gameState.IsInTakiSequence) {
+						TakiLogger.LogWarning ("AI played TAKI but no sequence started - this indicates a problem", TakiLogger.LogCategory.AI);
+
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+								$"AI starts TAKI sequence for {card.color}");
+						}
+					} else {
+						TakiLogger.LogAI ($"AI played TAKI card within {gameState.TakiSequenceColor} sequence");
+
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+								"AI continues TAKI sequence");
+						}
 					}
 
-					// Normal turn end for AI after playing PlusTwo
-					if (turnManager != null) {
-						turnManager.EndTurn ();
+					// Continue sequence
+					CardData currentTopCard = GetTopDiscardCard ();
+					if (currentTopCard != null && computerAI != null) {
+						Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+					} else {
+						TakiLogger.LogError ("Cannot continue AI sequence - missing components", TakiLogger.LogCategory.AI);
+						EndAITurnWithStrictFlow ();
+					}
+					break;
+
+				case CardType.SuperTaki:
+					// SuperTAKI card during sequence - continue sequence
+					TakiLogger.LogAI ("AI played SUPER TAKI card - handling sequence continuation");
+
+					if (!gameState.IsInTakiSequence) {
+						TakiLogger.LogWarning ("AI played SuperTAKI but no sequence started - this indicates a problem", TakiLogger.LogCategory.AI);
+
+						CardColor sequenceColor = gameState.activeColor;
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+								$"AI starts SuperTAKI sequence for {sequenceColor}");
+						}
+					} else {
+						TakiLogger.LogAI ($"AI played SuperTAKI card within {gameState.TakiSequenceColor} sequence");
+
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+								"AI continues SuperTAKI sequence");
+						}
+					}
+
+					// Continue sequence
+					CardData currentTopCard2 = GetTopDiscardCard ();
+					if (currentTopCard2 != null && computerAI != null) {
+						Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+					} else {
+						TakiLogger.LogError ("Cannot continue AI sequence - missing components", TakiLogger.LogCategory.AI);
+						EndAITurnWithStrictFlow ();
 					}
 					break;
 
@@ -1887,6 +2356,24 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// Helper method to trigger AI sequence decision - uses public AI interface
+		/// </summary> 
+		void TriggerAISequenceDecision () {
+			TakiLogger.LogAI ("=== TRIGGERING AI SEQUENCE DECISION AFTER TAKI/SUPERTAKI ===");
+
+			CardData sequenceTopCard = GetTopDiscardCard ();
+
+			if (computerAI != null && computerAI.CanMakeDecisions () && sequenceTopCard != null) {
+				// Use public MakeDecision() - it handles sequences internally
+				computerAI.MakeDecision (sequenceTopCard);
+				TakiLogger.LogAI ("AI sequence decision triggered via MakeDecision()");
+			} else {
+				TakiLogger.LogError ("Cannot trigger AI sequence decision", TakiLogger.LogCategory.AI);
+				EndAITurnWithStrictFlow ();
+			}
+		}
+
+		/// <summary>
 		/// AI draw card handler
 		/// </summary>
 		void OnAIDrawCard () {
@@ -1906,7 +2393,7 @@ namespace TakiGame {
 
 				TakiLogger.LogAI ($"AI breaking chain: {chainLength} PlusTwo cards, drawing {cardsToDraw} cards");
 
-				// Draw the accumulated cards
+				// Draw the accumulated cards 
 				List<CardData> drawnCards = new List<CardData> ();
 
 				for (int i = 0; i < cardsToDraw; i++) {
@@ -1977,9 +2464,25 @@ namespace TakiGame {
 		}
 
 		void OnAIDecisionMade (string decision) {
-			// AI made a decision - show in UI
+			// AI made a decision - show in UI 
 			if (gameplayUI != null) {
 				gameplayUI.ShowComputerMessage (decision);
+			}
+		}
+
+		/// <summary> 
+		/// UPDATED: GameManager handler for AI sequence complete - prevent double turn switching
+		/// </summary>
+		void OnAISequenceComplete () {
+			TakiLogger.LogAI ("AI sequence complete - ending AI turn");
+
+			// CRITICAL FIX: Check if we're already in the middle of a turn switch
+			// Don't call EndAITurnWithStrictFlow if turn is already switching
+			if (gameState != null && gameState.turnState == TurnState.ComputerTurn) {
+				TakiLogger.LogAI ("Ending AI turn after sequence completion");
+				EndAITurnWithStrictFlow (); // This method exists in GameManager.cs
+			} else {
+				TakiLogger.LogAI ("Turn already switched - not calling EndAITurnWithStrictFlow again");
 			}
 		}
 
@@ -2335,6 +2838,36 @@ namespace TakiGame {
 
 		// ===== DEBUG METHODS =====
 
+		[ContextMenu ("Debug TAKI Sequence State")]
+		public void DebugTakiSequenceState () {
+			TakiLogger.LogDiagnostics ("=== TAKI SEQUENCE STATE DEBUG ===");
+
+			if (gameState != null) {
+				TakiLogger.LogDiagnostics ($"In Sequence: {gameState.IsInTakiSequence}");
+				TakiLogger.LogDiagnostics ($"Sequence Color: {gameState.TakiSequenceColor}");
+				TakiLogger.LogDiagnostics ($"Sequence Cards: {gameState.NumberOfSequenceCards}");
+				TakiLogger.LogDiagnostics ($"Sequence Initiator: {gameState.TakiSequenceInitiator}");
+				TakiLogger.LogDiagnostics ($"Current Turn: {gameState.turnState}");
+				TakiLogger.LogDiagnostics ($"Interaction State: {gameState.interactionState}");
+
+				if (gameState.LastCardPlayedInSequence != null) {
+					TakiLogger.LogDiagnostics ($"Last Sequence Card: {gameState.LastCardPlayedInSequence.GetDisplayText ()}");
+				} else {
+					TakiLogger.LogDiagnostics ("Last Sequence Card: NULL");
+				}
+			} else {
+				TakiLogger.LogDiagnostics ("GameState is NULL!");
+			}
+
+			// Check button state 
+			if (gameplayUI != null) {
+				bool buttonEnabled = gameplayUI.EndTakiSequenceButtonEnabled;
+				TakiLogger.LogDiagnostics ($"End Sequence Button Enabled: {buttonEnabled}");
+			}
+
+			TakiLogger.LogDiagnostics ("=== END SEQUENCE DEBUG ===");
+		}
+
 		/// <summary>
 		/// DEBUGGING: Force a new game start for testing
 		/// </summary>
@@ -2483,7 +3016,7 @@ namespace TakiGame {
 		public bool AreComponentsValidated => areComponentsValidated;
 		public bool AreSystemsInitialized => areSystemsInitialized;
 
-		// Turn flow properties - enhanced with special card state
+		// Turn flow properties - enhanced with special card state 
 		public bool HasPlayerTakenAction => hasPlayerTakenAction;
 		public bool CanPlayerDrawCard => canPlayerDraw;
 		public bool CanPlayerPlayCard => canPlayerPlay;

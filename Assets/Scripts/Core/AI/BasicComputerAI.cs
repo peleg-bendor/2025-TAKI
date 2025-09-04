@@ -39,6 +39,8 @@ namespace TakiGame {
 		public System.Action OnAIDrawCard;
 		public System.Action<CardColor> OnAIColorSelected;
 		public System.Action<string> OnAIDecisionMade;
+		public System.Action OnAISequenceComplete;
+
 
 		// Events for AI pause system
 		public System.Action OnAIPaused;
@@ -46,7 +48,7 @@ namespace TakiGame {
 
 
 		/// <summary>
-		/// Make AI decision for current turn
+		/// Make AI decision for current turn - ENHANCED with TAKI sequence support
 		/// </summary>
 		/// <param name="topDiscardCard">Current top card of discard pile</param>
 		public void MakeDecision (CardData topDiscardCard) {
@@ -57,10 +59,11 @@ namespace TakiGame {
 				return;
 			}
 
-			TakiLogger.LogAI ($"=== AI MAKING DECISION (PLUSTWO CHAIN AWARE) ===");
+			TakiLogger.LogAI ($"=== AI MAKING DECISION (ENHANCED WITH TAKI SEQUENCES) ===");
 			TakiLogger.LogAI ($"AI Hand size: {computerHand.Count}");
 			TakiLogger.LogAI ($"Top discard card: {topDiscardCard?.GetDisplayText () ?? "NULL"}");
 			TakiLogger.LogAI ($"PlusTwo chain active: {gameState?.IsPlusTwoChainActive ?? false}");
+			TakiLogger.LogAI ($"TAKI sequence active: {gameState?.IsInTakiSequence ?? false}");
 
 			if (topDiscardCard == null) {
 				TakiLogger.LogError ("AI cannot make decision: No top discard card provided", TakiLogger.LogCategory.AI);
@@ -75,6 +78,13 @@ namespace TakiGame {
 				return; // Skip normal decision making
 			}
 
+			// PHASE 8B: Check for active TAKI sequence SECOND
+			if (gameState != null && gameState.IsInTakiSequence) {
+				TakiLogger.LogAI ("=== AI HANDLING TAKI SEQUENCE DECISION ===");
+				HandleTakiSequenceDecision ();
+				return; // Skip normal decision making
+			}
+
 			TakiLogger.LogAI ($"AI thinking... (Hand size: {computerHand.Count})", TakiLogger.LogLevel.Debug);
 			OnAIDecisionMade?.Invoke ("AI is thinking...");
 
@@ -83,6 +93,264 @@ namespace TakiGame {
 
 			// Add thinking delay - but check for pause during delay
 			StartThinkingProcess ();
+		}
+
+
+		/// <summary>
+		/// PHASE 8B: Handle AI decision when TAKI sequence is active
+		/// AI Strategy: Continue with available cards, end when optimal
+		/// </summary>
+		void HandleTakiSequenceDecision () {
+			TakiLogger.LogAI ("=== AI PROCESSING TAKI SEQUENCE ===");
+
+			CardColor sequenceColor = gameState.TakiSequenceColor;
+			int currentCardCount = gameState.NumberOfSequenceCards;
+
+			TakiLogger.LogAI ($"Sequence status: {currentCardCount} cards of {sequenceColor}");
+
+			// Get valid sequence cards (same color or wild)
+			List<CardData> sequenceCards = GetValidSequenceCards ();
+
+			TakiLogger.LogAI ($"AI has {sequenceCards.Count} valid sequence cards available");
+
+			if (sequenceCards.Count == 0) {
+				// No valid cards - must end sequence
+				TakiLogger.LogAI ("AI STRATEGY: No valid sequence cards - ending sequence");
+				OnAIDecisionMade?.Invoke ("AI has no valid sequence cards - ending sequence");
+				Invoke (nameof (EndAITakiSequence), thinkingTime);
+				return;
+			}
+
+			// AI has valid cards - decide whether to continue or end - SHOULD RETURN TRUE
+			bool shouldContinue = DecideSequenceContinuation (sequenceCards);
+
+			if (shouldContinue) {
+				// Play a card from the sequence
+				CardData selectedCard = SelectSequenceCard (sequenceCards);
+				TakiLogger.LogAI ($"AI STRATEGY: Continue sequence with {selectedCard.GetDisplayText ()}");
+				OnAIDecisionMade?.Invoke ($"AI continues sequence with {selectedCard.GetDisplayText ()}");
+
+				// Execute card play after thinking time
+				currentSequenceCard = selectedCard;
+				Invoke (nameof (ExecuteSequenceCardPlay), thinkingTime);
+			} else {
+				// End sequence
+				TakiLogger.LogError ("ERROR! THIS SHOULD NOT HAPPEN - AI STRATEGY: Ending sequence by choice");
+				OnAIDecisionMade?.Invoke ("AI chooses to end sequence");
+				Invoke (nameof (EndAITakiSequence), thinkingTime);
+			}
+		}
+
+		/// <summary>
+		/// PHASE 8B: Get valid cards for current TAKI sequence
+		/// </summary>
+		/// <returns>List of cards that can be played in sequence</returns>
+		List<CardData> GetValidSequenceCards () {
+			if (gameState == null || !gameState.IsInTakiSequence) {
+				return new List<CardData> ();
+			}
+
+			CardColor sequenceColor = gameState.TakiSequenceColor;
+			return computerHand.Where (card =>
+				card != null && (card.color == sequenceColor || card.IsWildCard)
+			).ToList ();
+		}
+
+		/// <summary>
+		/// PHASE 8B: Decide whether AI should continue sequence or end it
+		/// Simple strategy: Always choose to continue if possible 
+		/// DecideSequenceContinuation is called after we already know that we have playable cards, (sequenceCards.Count != 0)
+		/// Meaning we need to return true
+		/// This function exists, so we can change the logic in the future if we want to
+		/// </summary>
+		/// <param name="availableCards">Cards available for sequence</param>
+		/// <returns>True if should continue sequence</returns>
+		bool DecideSequenceContinuation (List<CardData> availableCards) {
+			// Simple strategy factors:
+			// If AI has any playable cards, continue
+
+			int totalHandSize = computerHand.Count;
+			int sequenceCardsAvailable = availableCards.Count;
+			int currentSequenceLength = gameState.NumberOfSequenceCards;
+
+			TakiLogger.LogAI ($"AI decision factors: Hand={totalHandSize}, Sequence cards={sequenceCardsAvailable}, Current length={currentSequenceLength}");
+
+			// Strategy: If AI has any sequence cards, continue 
+			if (sequenceCardsAvailable != 0) {
+				TakiLogger.LogAI ("AI STRATEGY: Has sequence cards available - continue");
+				return true;
+			} else {
+				TakiLogger.LogError ("ERROR! THIS SHOULD NOT HAPPEN - AI Has no sequence cards available and got to DecideSequenceContinuation");
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// PHASE 8B: Select best card from available sequence cards
+		/// Simple strategy: Random selection with slight preference for non-special cards
+		/// </summary>
+		/// <param name="sequenceCards">Available cards for sequence</param>
+		/// <returns>Selected card to play</returns>
+		CardData SelectSequenceCard (List<CardData> sequenceCards) {
+			if (sequenceCards.Count == 0) return null;
+
+			// Simple strategy: Prefer number cards over special cards in sequence
+			// This saves special cards for when their effects are needed
+
+			List<CardData> numberCards = sequenceCards.Where (c => !c.IsSpecialCard).ToList ();
+			List<CardData> specialCards = sequenceCards.Where (c => c.IsSpecialCard).ToList ();
+
+			TakiLogger.LogAI ($"Sequence card options: {numberCards.Count} number, {specialCards.Count} special");
+
+			// 70% preference for number cards if available
+			if (numberCards.Count > 0 && Random.value < 0.7f) {
+				CardData selectedNumber = numberCards [Random.Range (0, numberCards.Count)];
+				TakiLogger.LogAI ($"AI selected number card for sequence: {selectedNumber.GetDisplayText ()}");
+				return selectedNumber;
+			}
+
+			// Use special cards or fallback to any available card
+			if (specialCards.Count > 0) {
+				CardData selectedSpecial = specialCards [Random.Range (0, specialCards.Count)];
+				TakiLogger.LogAI ($"AI selected special card for sequence: {selectedSpecial.GetDisplayText ()}");
+				return selectedSpecial;
+			}
+
+			// Fallback to any card
+			CardData fallbackCard = sequenceCards [Random.Range (0, sequenceCards.Count)];
+			TakiLogger.LogAI ($"AI selected fallback card for sequence: {fallbackCard.GetDisplayText ()}");
+			return fallbackCard;
+		}
+
+		// PHASE 8B: Storage for sequence card execution
+		private CardData currentSequenceCard = null;
+
+		/// <summary>
+		/// PHASE 8B: Execute playing a card in sequence
+		/// </summary>
+		void ExecuteSequenceCardPlay () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI sequence card play execution cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== AI EXECUTING SEQUENCE CARD PLAY ===");
+
+			if (currentSequenceCard == null) {
+				TakiLogger.LogError ("AI trying to play sequence card but no card stored!", TakiLogger.LogCategory.AI);
+				EndAITakiSequence (); // Fallback to ending sequence
+				return;
+			}
+
+			// Verify card is still in hand and still valid for sequence
+			if (!computerHand.Contains (currentSequenceCard)) {
+				TakiLogger.LogError ("AI trying to play sequence card not in hand!", TakiLogger.LogCategory.AI);
+				EndAITakiSequence (); // Fallback to ending sequence
+				return;
+			}
+
+			// Verify card is still valid for current sequence
+			List<CardData> stillValidCards = GetValidSequenceCards ();
+			if (!stillValidCards.Contains (currentSequenceCard)) {
+				TakiLogger.LogError ("AI trying to play card no longer valid for sequence!", TakiLogger.LogCategory.AI);
+				EndAITakiSequence (); // Fallback to ending sequence
+				return;
+			}
+
+			TakiLogger.LogAI ($"AI playing sequence card: {currentSequenceCard.GetDisplayText ()}");
+			PlayCard (currentSequenceCard);
+
+			// Clear stored card
+			currentSequenceCard = null;
+
+			// Schedule next decision - either continue or end sequence
+			Invoke (nameof (ContinueAISequenceDecision), thinkingTime * 0.5f);
+		}
+
+		/// <summary>
+		/// PHASE 8B: Continue AI sequence decision making
+		/// </summary>
+		void ContinueAISequenceDecision () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI sequence decision continuation cancelled - AI is paused");
+				return;
+			}
+
+			// Make another sequence decision
+			TakiLogger.LogAI ("AI making next sequence decision...");
+			HandleTakiSequenceDecision ();
+		}
+
+		/// <summary>
+		/// CRITICAL FIX: Enhanced AI TAKI sequence ending with proper event-driven communication
+		/// This goes in BasicComputerAI.cs and uses events to communicate with GameManager
+		/// </summary>
+		void EndAITakiSequence () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI sequence ending cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("=== AI ENDING TAKI SEQUENCE ===");
+
+			if (!gameState.IsInTakiSequence) {
+				TakiLogger.LogWarning ("AI trying to end sequence but no sequence is active!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Get sequence info before ending
+			int finalCardCount = gameState.NumberOfSequenceCards;
+			CardColor sequenceColor = gameState.TakiSequenceColor;
+			CardData lastCard = gameState.LastCardPlayedInSequence;
+
+			TakiLogger.LogAI ($"AI ending sequence: {finalCardCount} cards of {sequenceColor}");
+			TakiLogger.LogAI ($"Last card in sequence: {lastCard?.GetDisplayText () ?? "NULL"}");
+
+			// End the sequence (this triggers the event and changes state)
+			gameState.EndTakiSequence ();
+
+			// Show completion message
+			OnAIDecisionMade?.Invoke ($"AI ends TAKI sequence ({finalCardCount} cards)");
+
+			// CRITICAL FIX: Use event to signal sequence completion instead of calling GameManager methods directly
+			TakiLogger.LogAI ("AI sequence ended - signaling completion via event");
+
+			// Use a small delay to ensure sequence state is fully processed, then signal completion
+			Invoke (nameof (SignalAISequenceComplete), 0.1f);
+		}
+
+		/// <summary>
+		/// CRITICAL FIX: Signal AI sequence completion using event system
+		/// This is the proper way for AI to communicate with GameManager
+		/// </summary>
+		void SignalAISequenceComplete () {
+			if (isPaused) {
+				TakiLogger.LogAI ("AI sequence completion cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("AI signaling sequence completion via OnAISequenceComplete event");
+			OnAISequenceComplete?.Invoke ();
+		}
+
+		/// <summary>
+		/// UPDATED: This method in BasicComputerAI.cs - simplified to just signal completion
+		/// </summary>  
+		void EndAITurnAfterSequence () {
+			// Double-check pause state
+			if (isPaused) {
+				TakiLogger.LogAI ("AI turn end after sequence cancelled - AI is paused");
+				return;
+			}
+
+			TakiLogger.LogAI ("AI ending turn after TAKI sequence completion");
+			OnAIDecisionMade?.Invoke ("AI turn complete after sequence");
+
+			// CRITICAL FIX: Just signal completion - let GameManager handle the turn ending
+			OnAISequenceComplete?.Invoke ();
 		}
 
 		/// <summary>
@@ -357,7 +625,35 @@ namespace TakiGame {
 			return IsInvoking (methodName);
 		}
 
-		/// <summary>
+		[ContextMenu ("Debug AI Sequence State")]
+		public void DebugAISequenceState () {
+			TakiLogger.LogDiagnostics ("=== AI TAKI SEQUENCE STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ($"AI Hand Size: {HandSize}");
+			TakiLogger.LogDiagnostics ($"AI State: {GetAIStateDescription ()}");
+			TakiLogger.LogDiagnostics ($"Can Make Decisions: {CanMakeDecisions ()}");
+
+			if (gameState != null) {
+				TakiLogger.LogDiagnostics ($"In TakiSequence: {gameState.IsInTakiSequence}");
+				TakiLogger.LogDiagnostics ($"Current Turn: {gameState.turnState}");
+
+				if (gameState.IsInTakiSequence) {
+					TakiLogger.LogDiagnostics ($"Taki Sequence Initiator: {gameState.TakiSequenceInitiator}");
+					TakiLogger.LogDiagnostics ($"Taki Sequence Color: {gameState.TakiSequenceColor}");
+
+					// Check how many valid taki sequence cards AI has
+					List<CardData> takiSequenceCards = GetValidSequenceCards ();
+					TakiLogger.LogDiagnostics ($"AI Valid Taki Sequence Cards: {takiSequenceCards.Count}");
+
+					foreach (var card in takiSequenceCards.Take (3)) { // Show first 3
+						TakiLogger.LogDiagnostics ($"  - {card.GetDisplayText ()}");
+					}
+				}
+			}
+
+			TakiLogger.LogDiagnostics ("=== END AI TAKI SEQUENCE DEBUG ===");
+		}
+
+		/// <summary> 
 		/// Debug method to log AI pause state
 		/// </summary>
 		[ContextMenu ("Log AI Pause State")]
@@ -522,7 +818,7 @@ namespace TakiGame {
 			return selectedCard;
 		}
 
-		/// <summary> 
+		/// <summary>
 		/// PHASE 7: SIMPLIFIED - 70% chance to use special cards if available
 		/// </summary>
 		/// <param name="specialCards">Available special cards</param>

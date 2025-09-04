@@ -137,7 +137,13 @@ namespace TakiGame {
 				turnDirection = gameState.turnDirection,
 				isComputerTurnActive = (turnManager != null && turnManager.IsComputerTurn),
 				isComputerTurnPending = (turnManager != null && turnManager.IsComputerTurnPending),
-				currentPlayer = (turnManager != null ? turnManager.CurrentPlayer : PlayerType.Human)
+				currentPlayer = (turnManager != null ? turnManager.CurrentPlayer : PlayerType.Human),
+
+				// PHASE 8B: Capture TAKI sequence state
+				isInTakiSequence = gameState.IsInTakiSequence,
+				takiSequenceColor = gameState.TakiSequenceColor,
+				numberOfSequenceCards = gameState.NumberOfSequenceCards,
+				takiSequenceInitiator = gameState.TakiSequenceInitiator
 			};
 
 			// Capture GameManager turn flow state
@@ -214,6 +220,18 @@ namespace TakiGame {
 				gameState.ChangeTurnState (pausedState.turnState);
 				gameState.ChangeInteractionState (pausedState.interactionState);
 				gameState.ChangeActiveColor (pausedState.activeColor);
+
+				// PHASE 8B: Restore TAKI sequence state
+				if (pausedState.isInTakiSequence) {
+					// Manually restore sequence state (bypass events during restoration)
+					gameState.StartTakiSequence (pausedState.takiSequenceColor, pausedState.takiSequenceInitiator);
+					// Set the card count directly
+					for (int i = 1; i < pausedState.numberOfSequenceCards; i++) {
+						gameState.AddCardToSequence (null); // Add null cards to maintain count
+					}
+					TakiLogger.LogSystem ($"TAKI sequence state restored: {pausedState.numberOfSequenceCards} cards of {pausedState.takiSequenceColor}");
+				}
+
 				// Note: gameStatus already set to Active in RestoreAllSystems()
 			}
 
@@ -223,7 +241,7 @@ namespace TakiGame {
 				TakiLogger.LogSystem ("GameManager turn flow state restored");
 			}
 
-			// Update UI to reflect restored state
+			// Update UI to reflect restored state 
 			if (gameplayUI != null) {
 				gameplayUI.UpdateAllDisplays (
 					gameState.turnState,
@@ -316,6 +334,12 @@ namespace TakiGame {
 			public bool isComputerTurnActive;
 			public bool isComputerTurnPending;
 			public PlayerType currentPlayer;
+
+			// PHASE 8B: TAKI sequence state preservation
+			public bool isInTakiSequence;
+			public CardColor takiSequenceColor;
+			public int numberOfSequenceCards;
+			public PlayerType takiSequenceInitiator;
 		}
 
 		/// <summary>

@@ -69,11 +69,19 @@ namespace TakiGame {
 		[Tooltip ("Text element to show chain status")]
 		public TextMeshProUGUI chainStatusText;
 
+		[Header ("TAKI Sequence UI - Phase 8B")]
+		[Tooltip ("Btn_Player1EndTakiSequence - end TAKI sequence manually")]
+		public Button Btn_Player1EndTakiSequence;
+
+		[Tooltip ("Text element to show TAKI sequence status")]
+		public TextMeshProUGUI takiSequenceStatusText;
+
 		// Events for external systems
 		public System.Action OnPlayCardClicked;
 		public System.Action OnDrawCardClicked;
 		public System.Action OnEndTurnClicked;
 		public System.Action<CardColor> OnColorSelected;
+		public System.Action OnEndTakiSequenceClicked; // PHASE 8B: New event
 
 		// ENHANCED: Strict button state tracking
 		private bool playButtonEnabled = false;
@@ -89,7 +97,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Connect button events to internal handlers - with validation
+		/// Connect button events to internal handlers - with validation and TAKI sequence support
 		/// </summary>
 		void ConnectButtonEvents () {
 			TakiLogger.LogUI ("Connecting button events with STRICT FLOW validation...");
@@ -153,6 +161,25 @@ namespace TakiGame {
 				TakiLogger.LogSystem ("End Turn button event connected");
 			} else {
 				TakiLogger.LogError ("End Turn button is NULL!", TakiLogger.LogCategory.UI);
+			}
+
+			// PHASE 8B: Connect End TAKI Sequence button
+			if (Btn_Player1EndTakiSequence != null) {
+				Btn_Player1EndTakiSequence.onClick.AddListener (() => {
+					TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED ===");
+					TakiLogger.LogTurnFlow ($"Button interactable: {Btn_Player1EndTakiSequence.interactable}", TakiLogger.LogLevel.Verbose);
+
+					if (!Btn_Player1EndTakiSequence.interactable) {
+						TakiLogger.LogWarning ("END TAKI SEQUENCE clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
+						ShowComputerMessage ("Cannot end sequence right now!");
+						return;
+					}
+
+					OnEndTakiSequenceClicked?.Invoke ();
+				});
+				TakiLogger.LogSystem ("End TAKI Sequence button event connected");
+			} else {
+				TakiLogger.LogWarning ("Btn_Player1EndTakiSequence is NULL - TAKI sequence ending will not work!", TakiLogger.LogCategory.UI);
 			}
 
 			// Color selection buttons
@@ -291,9 +318,41 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ("Pause button state: " + (pauseButton != null ? pauseButton.interactable.ToString () : "NULL"));
 		}
 
+		[ContextMenu ("Validate End Taki Sequence Button")]
+		public void ValidateEndSequenceButton () {
+			TakiLogger.LogDiagnostics ("=== END TAKI SEQUENCE BUTTON VALIDATION ===");
 
-		/// <summary>
-		/// Validate current button states for debugging
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+			if (gameState == null) {
+				TakiLogger.LogDiagnostics ("GameState is NULL - cannot validate");
+				return;
+			}
+
+			bool inTakiSequence = gameState.IsInTakiSequence;
+			PlayerType initiator = gameState.TakiSequenceInitiator;
+			bool isPlayerTurn = gameState.IsPlayerTurn;
+			bool buttonEnabled = EndTakiSequenceButtonEnabled;
+
+			TakiLogger.LogDiagnostics ($"In Taki Sequence: {inTakiSequence}");
+			TakiLogger.LogDiagnostics ($"Initiator: {initiator}");
+			TakiLogger.LogDiagnostics ($"Player Turn: {isPlayerTurn}");
+			TakiLogger.LogDiagnostics ($"Button Enabled: {buttonEnabled}");
+
+			// Validation logic
+			bool shouldBeEnabled = inTakiSequence &&
+								  (initiator == PlayerType.Human) &&
+								  isPlayerTurn;
+
+			TakiLogger.LogDiagnostics ($"Should Be Enabled: {shouldBeEnabled}");
+			TakiLogger.LogDiagnostics ($"State Matches: {buttonEnabled == shouldBeEnabled}");
+
+			if (buttonEnabled != shouldBeEnabled) {
+				TakiLogger.LogWarning ("BUTTON STATE MISMATCH!", TakiLogger.LogCategory.UI);
+			}
+		}
+
+		/// <summary> 
+		/// Validate current button states for debugging - ENHANCED with TAKI sequence button
 		/// </summary>
 		public void ValidateButtonStates () {
 			TakiLogger.LogDiagnostics ("=== VALIDATING STRICT BUTTON STATES ===");
@@ -323,10 +382,22 @@ namespace TakiGame {
 				}
 			}
 
-			TakiLogger.LogDiagnostics ("Button state validation complete");
+			// PHASE 8B: Validate End TAKI Sequence button
+			if (Btn_Player1EndTakiSequence != null) {
+				bool actualEndSequence = Btn_Player1EndTakiSequence.interactable;
+				bool expectedEndSequence = EndTakiSequenceButtonEnabled;
+				TakiLogger.LogDiagnostics ($"End TAKI Sequence - Expected: {expectedEndSequence}, Actual: {actualEndSequence}, Match: {expectedEndSequence == actualEndSequence}");
+				if (expectedEndSequence != actualEndSequence) {
+					TakiLogger.LogWarning ("MISMATCH in End TAKI Sequence button state!", TakiLogger.LogCategory.UI);
+				}
+			} else {
+				TakiLogger.LogWarning ("End TAKI Sequence button is NULL!", TakiLogger.LogCategory.UI);
+			}
+
+			TakiLogger.LogDiagnostics ("Button state validation complete (with TAKI sequence support)");
 		}
 
-		/// <summary>
+		/// <summary> 
 		/// Force enable END TURN button after successful action
 		/// Used when action was successful and player must end turn
 		/// </summary>
@@ -578,15 +649,14 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Update all displays using new multi-enum architecture
+		/// CRITICAL FIX: Enhanced UpdateAllDisplays with proper sequence button control
 		/// </summary>
 		/// <param name="turnState">Current turn state</param>
 		/// <param name="gameStatus">Current game status</param>
 		/// <param name="interactionState">Current interaction state</param>
 		/// <param name="activeColor">Current active color</param>
 		public void UpdateAllDisplays (TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor) {
-			TakiLogger.LogUI ("=== UPDATING ALL DISPLAYS ===", TakiLogger.LogLevel.Debug);
-			TakiLogger.LogUI ($"Turn: {turnState}, Status: {gameStatus}, Interaction: {interactionState}, Color: {activeColor}", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogUI ("=== UPDATING ALL DISPLAYS (FIXED SEQUENCE CONTROL) ===", TakiLogger.LogLevel.Debug);
 
 			UpdateTurnDisplay (turnState);
 			UpdateActiveColorDisplay (activeColor);
@@ -596,6 +666,34 @@ namespace TakiGame {
 				ShowColorSelection (true);
 			} else {
 				ShowColorSelection (false);
+			}
+
+			// CRITICAL FIX: Enhanced TAKI sequence state handling with proper validation
+			if (interactionState == InteractionState.TakiSequence) {
+				// CRITICAL FIX: Only enable End Sequence button for HUMAN sequences
+				GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+				bool shouldEnableButton = false;
+
+				if (gameState != null && gameState.IsInTakiSequence) {
+					// Only enable for human-initiated sequences on human's turn
+					shouldEnableButton = (gameState.TakiSequenceInitiator == PlayerType.Human) &&
+										(gameState.IsPlayerTurn);
+				}
+
+				EnableEndTakiSequenceButton (shouldEnableButton);
+				TakiLogger.LogUI ($"TAKI sequence active - End Sequence button control: {shouldEnableButton}");
+
+				// Show sequence status (handles who initiated the sequence)
+				if (gameState != null && takiSequenceStatusText != null) {
+					bool isPlayerTurn = gameState.IsPlayerTurn;
+					int cardCount = gameState.NumberOfSequenceCards;
+					CardColor sequenceColor = gameState.TakiSequenceColor;
+					ShowTakiSequenceStatus (sequenceColor, cardCount, isPlayerTurn);
+				}
+			} else {
+				// Disable End TAKI Sequence button when not in sequence 
+				EnableEndTakiSequenceButton (false);
+				HideTakiSequenceStatus ();
 			}
 
 			// Handle game status states
@@ -611,17 +709,46 @@ namespace TakiGame {
 					break;
 			}
 
-			TakiLogger.LogUI ("All displays updated", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogUI ("All displays updated (with enhanced TAKI sequence support)", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary> 
+		/// DEBUGGING: Method to verify UI component assignments
+		/// </summary>
+		[ContextMenu ("Debug TAKI UI Components")]
+		public void DebugTakiUIComponents () {
+			TakiLogger.LogDiagnostics ("=== TAKI UI COMPONENTS DEBUG ===");
+
+			if (Btn_Player1EndTakiSequence != null) {
+				TakiLogger.LogDiagnostics ($"Btn_Player1EndTakiSequence: ASSIGNED");
+				TakiLogger.LogDiagnostics ($"  - Interactable: {Btn_Player1EndTakiSequence.interactable}");
+				TakiLogger.LogDiagnostics ($"  - Active: {Btn_Player1EndTakiSequence.gameObject.activeSelf}");
+				TakiLogger.LogDiagnostics ($"  - Name: {Btn_Player1EndTakiSequence.name}");
+			} else {
+				TakiLogger.LogDiagnostics ("Btn_Player1EndTakiSequence: NULL - NOT ASSIGNED!");
+			}
+
+			if (takiSequenceStatusText != null) {
+				TakiLogger.LogDiagnostics ($"takiSequenceStatusText: ASSIGNED");
+				TakiLogger.LogDiagnostics ($"  - Text: '{takiSequenceStatusText.text}'");
+				TakiLogger.LogDiagnostics ($"  - Active: {takiSequenceStatusText.gameObject.activeSelf}");
+				TakiLogger.LogDiagnostics ($"  - Name: {takiSequenceStatusText.name}");
+			} else {
+				TakiLogger.LogDiagnostics ("takiSequenceStatusText: NULL - NOT ASSIGNED!");
+			}
+
+			TakiLogger.LogDiagnostics ("=== END TAKI UI DEBUG ===");
 		}
 
 		/// <summary>
-		/// Handle UI state when game is paused
+		/// Handle UI state when game is paused - ENHANCED with TAKI sequence button handling
 		/// </summary>
 		void HandlePausedState () {
 			TakiLogger.LogUI ("Handling paused game state");
 
-			// Disable all gameplay buttons
+			// Disable all gameplay buttons including TAKI sequence button
 			UpdateStrictButtonStates (false, false, false);
+			EnableEndTakiSequenceButton (false);
 
 			// Show pause message to user
 			ShowPlayerMessage ("Game Paused");
@@ -639,8 +766,9 @@ namespace TakiGame {
 		void HandleGameOverState () {
 			TakiLogger.LogUI ("Handling game over state");
 
-			// Disable all gameplay buttons
+			// Disable all gameplay buttons including TAKI sequence button
 			UpdateStrictButtonStates (false, false, false);
+			EnableEndTakiSequenceButton (false);
 
 			// Pause button should be disabled
 			if (pauseButton != null) {
@@ -760,7 +888,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Show PlusTwo chain status with progressive messaging
+		/// Show PlusTwo chain status with progressive messaging 
 		/// </summary>
 		/// <param name="chainCount">Number of PlusTwo cards in chain</param>
 		/// <param name="accumulatedDraw">Total cards to draw</param>
@@ -776,7 +904,6 @@ namespace TakiGame {
 				}
 
 				chainStatusText.text = statusMessage;
-				chainStatusText.color = Color.yellow; // Highlight chain status 
 			}
 
 			TakiLogger.LogUI ($"Chain status displayed: {chainCount} cards, {accumulatedDraw} draw, PlayerTurn={isPlayerTurn}");
@@ -842,21 +969,154 @@ namespace TakiGame {
 			HidePlusTwoChainStatus ();
 		}
 
-		// Properties 
-		public bool PlayButtonEnabled => playButtonEnabled;
-		public bool DrawButtonEnabled => drawButtonEnabled;
-		public bool EndTurnButtonEnabled => endTurnButtonEnabled;
-		public bool IsColorSelectionActive => colorSelectionPanel != null && colorSelectionPanel.activeSelf;
+		/// <summary>
+		/// CRITICAL FIX: Ensure End TAKI Sequence button works properly
+		/// </summary>
+		/// <param name="enable">Whether to enable the button</param>
+		public void EnableEndTakiSequenceButton (bool enable) {
+			if (Btn_Player1EndTakiSequence != null) {
+				// CRITICAL FIX: Only enable for human sequences
+				bool shouldEnable = enable;
 
-		public bool IsUIInPauseState => turnIndicatorText != null && turnIndicatorText.text == "Game Paused";
-		public bool AreAllButtonsDisabled => !PlayButtonEnabled && !DrawButtonEnabled && !EndTurnButtonEnabled;
+				// Additional validation: only enable if human initiated the sequence
+				if (enable) {
+					GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+					if (gameState != null && gameState.IsInTakiSequence) {
+						// Only enable if human is the sequence initiator
+						shouldEnable = (gameState.TakiSequenceInitiator == PlayerType.Human);
 
-		// ENHANCED: Get button state summary for debugging 
-		public string GetButtonStateSummary () {
-			return $"Play:{(playButtonEnabled ? "ON" : "OFF")}, Draw:{(drawButtonEnabled ? "ON" : "OFF")}, EndTurn:{(endTurnButtonEnabled ? "ON" : "OFF")}";
+						if (!shouldEnable) {
+							TakiLogger.LogUI ("BLOCKED: End Sequence button - computer initiated sequence, human cannot end it");
+						}
+					}
+				}
+
+				Btn_Player1EndTakiSequence.interactable = shouldEnable;
+				Btn_Player1EndTakiSequence.gameObject.SetActive (shouldEnable);
+
+				TakiLogger.LogUI ($"End TAKI Sequence button {(shouldEnable ? "ENABLED & VISIBLE" : "DISABLED & HIDDEN")} (Human sequences only)");
+			} else {
+				TakiLogger.LogError ("CRITICAL: Btn_Player1EndTakiSequence is NULL! Button not assigned in Inspector!", TakiLogger.LogCategory.UI);
+			}
 		}
 
 		/// <summary>
+		/// CRITICAL FIX: Enhanced TAKI sequence status - show who controls the sequence
+		/// </summary>
+		/// <param name="sequenceColor">Color required for sequence</param>
+		/// <param name="cardCount">Number of cards in sequence</param>
+		/// <param name="isPlayerTurn">True if it's player's turn</param>
+		public void ShowTakiSequenceStatus (CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
+			if (takiSequenceStatusText != null) {
+				string statusMessage;
+
+				// CRITICAL FIX: Show who initiated the sequence
+				GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+				if (gameState != null && gameState.IsInTakiSequence) {
+					PlayerType initiator = gameState.TakiSequenceInitiator;
+
+					if (initiator == PlayerType.Human) {
+						statusMessage = $"Your TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence";
+					} else {
+						statusMessage = $"AI TAKI Sequence: {cardCount} cards -> AI playing {sequenceColor} cards";
+					}
+				} else {
+					// Fallback to original logic 
+					if (isPlayerTurn) {
+						statusMessage = $"TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence";
+					} else {
+						statusMessage = $"TAKI Sequence: {cardCount} cards -> AI playing {sequenceColor} cards";
+					}
+				}
+
+				takiSequenceStatusText.text = statusMessage;
+				takiSequenceStatusText.gameObject.SetActive (true);
+
+				TakiLogger.LogUI ($"TAKI sequence status displayed: '{statusMessage}'");
+			} else {
+				TakiLogger.LogError ("CRITICAL: takiSequenceStatusText is NULL! Text element not assigned in Inspector!", TakiLogger.LogCategory.UI);
+			}
+		}
+		/// <summary>
+		/// CRITICAL FIX: Ensure sequence status is properly hidden
+		/// </summary>
+		public void HideTakiSequenceStatus () {
+			if (takiSequenceStatusText != null) {
+				takiSequenceStatusText.text = "";
+				takiSequenceStatusText.gameObject.SetActive (false);
+				TakiLogger.LogUI ("TAKI sequence status hidden");
+			} else {
+				TakiLogger.LogError ("CRITICAL: takiSequenceStatusText is NULL when trying to hide!", TakiLogger.LogCategory.UI);
+			}
+		}
+
+		/// <summary>
+		/// PHASE 8B: Enhanced sequence progress messaging
+		/// </summary>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="cardCount">Number of cards played</param>
+		/// <param name="initiator">Who started the sequence</param>
+		public void ShowSequenceProgressMessage (CardColor sequenceColor, int cardCount, PlayerType initiator) {
+			string message;
+
+			if (cardCount == 1) {
+				// First card in sequence
+				message = initiator == PlayerType.Human ?
+					$"TAKI Sequence started! Play {sequenceColor} cards or End Sequence" :
+					$"AI started TAKI sequence for {sequenceColor} cards";
+			} else {
+				// Sequence continues
+				message = initiator == PlayerType.Human ?
+					$"Sequence continues! {cardCount} cards played, keep playing {sequenceColor} or End Sequence" :
+					$"AI sequence continues: {cardCount} cards of {sequenceColor}";
+			}
+
+			if (initiator == PlayerType.Human) {
+				ShowPlayerMessageTimed (message, 0f); // Permanent until sequence ends
+			} else {
+				ShowComputerMessageTimed (message, 4.0f);
+			}
+		}
+
+		/// <summary>
+		/// PHASE 8B: Show sequence ended message
+		/// </summary>
+		/// <param name="finalCardCount">Number of cards in final sequence</param>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="who">Who ended the sequence</param>
+		public void ShowSequenceEndedMessage (int finalCardCount, CardColor sequenceColor, PlayerType who) {
+			string playerMessage = who == PlayerType.Human ?
+				$"Sequence ended! You played {finalCardCount} {sequenceColor} cards" :
+				$"AI sequence ended! AI played {finalCardCount} {sequenceColor} cards";
+
+			string computerMessage = who == PlayerType.Computer ?
+				$"I ended sequence: {finalCardCount} {sequenceColor} cards" :
+				$"Opponent ended sequence: {finalCardCount} {sequenceColor} cards";
+
+			ShowPlayerMessageTimed (playerMessage, 3.0f);
+			ShowComputerMessageTimed (computerMessage, 3.0f);
+
+			// Clear sequence status
+			HideTakiSequenceStatus ();
+		}
+
+		// Properties 
+		// PHASE 8B: Enhanced properties including TAKI sequence button
+		public bool PlayButtonEnabled => playButtonEnabled;
+		public bool DrawButtonEnabled => drawButtonEnabled;
+		public bool EndTurnButtonEnabled => endTurnButtonEnabled;
+		public bool EndTakiSequenceButtonEnabled => Btn_Player1EndTakiSequence != null && Btn_Player1EndTakiSequence.interactable;
+		public bool IsColorSelectionActive => colorSelectionPanel != null && colorSelectionPanel.activeSelf;
+
+		public bool IsUIInPauseState => turnIndicatorText != null && turnIndicatorText.text == "Game Paused";
+		public bool AreAllButtonsDisabled => !PlayButtonEnabled && !DrawButtonEnabled && !EndTurnButtonEnabled && !EndTakiSequenceButtonEnabled;
+
+		// ENHANCED: Get button state summary for debugging including TAKI sequence button
+		public string GetButtonStateSummary () {
+			return $"Play:{(playButtonEnabled ? "ON" : "OFF")}, Draw:{(drawButtonEnabled ? "ON" : "OFF")}, EndTurn:{(endTurnButtonEnabled ? "ON" : "OFF")}, EndSequence:{(EndTakiSequenceButtonEnabled ? "ON" : "OFF")}";
+		}
+
+		/// <summary> 
 		/// ENHANCED: Show player message with duration to prevent overwrites
 		/// </summary>
 		/// <param name="message">Message to show</param>

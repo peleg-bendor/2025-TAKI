@@ -3,7 +3,7 @@
 ## 📋 **Document Overview**
 **Purpose**: Master reference for all scripts in the TAKI game project  
 **Total Scripts**: 27 core scripts + utilities  
-**Last Updated**: Based on Phase 7 (Basic Special Cards Implementation) completion  
+**Last Updated**: Based on Phase 8A (PlusTwo Card Chaining Implementation) completion  
 **Architecture**: Single Responsibility Pattern with Event-Driven Communication
 
 ---

@@ -1,419 +1,245 @@
-using UnityEngine;
-
-namespace TakiGame {
-	/// <summary>
-	/// Manages the current game state using multi-enum architecture
-	/// Handles turn state, interaction state, game status, active color, and rules
-	/// NO turn management, NO AI logic, NO UI updates
-	/// </summary>
-	public class GameStateManager : MonoBehaviour {
-
-		[Header ("Game State")]
-		[Tooltip ("Whose turn is it currently?")]
-		public TurnState turnState = TurnState.Neutral;
-
-		[Tooltip ("What special interaction is happening?")]
-		public InteractionState interactionState = InteractionState.Normal;
-
-		[Tooltip ("Overall game status")]
-		public GameStatus gameStatus = GameStatus.Active;
-
-		[Header ("Game Properties")]
-		[Tooltip ("Active color that must be matched (Wild = no color set yet)")]
-		public CardColor activeColor = CardColor.Wild; // Wild = neutral/white initially
-
-		[Tooltip ("Direction of play (for ChangeDirection cards)")]
-		public TurnDirection turnDirection = TurnDirection.Clockwise;
-
-		[Header("PlusTwo Chain State")]
-		[Tooltip("Is a PlusTwo chain currently active")]
-		private bool isPlusTwoChainActive = false;
-
-		[Tooltip("Number of PlusTwo cards played in current chain")]
-		private int numberOfChainedPlusTwos = 0;
-
-		[Tooltip("Player who initiated the current chain")]
-		private PlayerType chainInitiator = PlayerType.Human;
-
-		[Header ("Game Rules")]
-		[Tooltip ("Maximum number of cards a player can hold")]
-		public int maxHandSize = 30;
-
-		// Events for state changes
-		public System.Action<TurnState> OnTurnStateChanged;
-		public System.Action<InteractionState> OnInteractionStateChanged;
-		public System.Action<GameStatus> OnGameStatusChanged;
-		public System.Action<CardColor> OnActiveColorChanged;
-		public System.Action<TurnDirection> OnTurnDirectionChanged;
-		public System.Action<PlayerType> OnGameWon;
-
 		/// <summary>
-		/// Change whose turn it is
+		/// FIXED: Handle AI-specific turn flow for special cards - Enhanced TAKI sequence & PlusTwo integration
+		/// CRITICAL FIX: Proper sequence state awareness and last card effect processing
 		/// </summary>
-		/// <param name="newTurnState">New turn state</param>
-		public void ChangeTurnState (TurnState newTurnState) {
-			if (turnState == newTurnState) return;
+		/// <param name="card">Card played by AI</param>
+		void HandleAISpecialCardEffects (CardData card) {
+			TakiLogger.LogAI ($"=== AI HANDLING TURN FLOW for {card.GetDisplayText ()} ===");
+			TakiLogger.LogAI ("Note: Core special card effects already handled by main HandleSpecialCardEffects method");
 
-			TurnState previousState = turnState;
-			turnState = newTurnState;
+			// CRITICAL FIX: Check if we're in a TAKI sequence
+			bool inTakiSequence = gameState.IsInTakiSequence;
+			bool isLastCardInSequence = isCurrentCardLastInSequence;
 
-			TakiLogger.LogGameState ($"Turn state changed: {previousState} -> {newTurnState}");
-			OnTurnStateChanged?.Invoke (newTurnState);
-		}
+			TakiLogger.LogAI ($"Sequence context: InSequence={inTakiSequence}, IsLastCard={isLastCardInSequence}");
 
-		/// <summary>
-		/// Change what special interaction is happening
-		/// </summary>
-		/// <param name="newInteractionState">New interaction state</param>
-		public void ChangeInteractionState (InteractionState newInteractionState) {
-			if (interactionState == newInteractionState) return;
+			switch (card.cardType) {
+				case CardType.Plus:
+					if (inTakiSequence && !isLastCardInSequence) {
+						// Plus card played during sequence - effect deferred
+						TakiLogger.LogAI ("AI played PLUS during TAKI sequence - effect DEFERRED, continuing sequence");
 
-			InteractionState previousState = interactionState;
-			interactionState = newInteractionState;
+						// Continue sequence - don't end turn
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							TakiLogger.LogError ("Cannot continue AI sequence after Plus - missing components", TakiLogger.LogCategory.AI);
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal Plus card handling (not in sequence or last card)
+						TakiLogger.LogAI ("AI played PLUS card - AI gets additional action");
 
-			TakiLogger.LogGameState ($"Interaction state changed: {previousState} -> {newInteractionState}");
-			OnInteractionStateChanged?.Invoke (newInteractionState);
-		}
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
+						}
 
-		/// <summary>
-		/// Change overall game status
-		/// </summary>
-		/// <param name="newGameStatus">New game status</param>
-		public void ChangeGameStatus (GameStatus newGameStatus) {
-			if (gameStatus == newGameStatus) return;
+						// AI needs to make another decision
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							TakiLogger.LogAI ("Triggering AI additional action for PLUS card");
+							Invoke (nameof (TriggerAIAdditionalAction), 1.0f);
+						}
+					}
+					break;
 
-			GameStatus previousStatus = gameStatus;
-			gameStatus = newGameStatus;
+				case CardType.Stop:
+					if (inTakiSequence && !isLastCardInSequence) {
+						// Stop card played during sequence - effect deferred
+						TakiLogger.LogAI ("AI played STOP during TAKI sequence - effect DEFERRED, continuing sequence");
 
-			TakiLogger.LogGameState ($"Game status changed: {previousStatus} -> {newGameStatus}");
-			OnGameStatusChanged?.Invoke (newGameStatus);
-		}
+						// Continue sequence
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal Stop card handling
+						TakiLogger.LogAI ("AI played STOP card - flag already set by main method");
 
-		/// <summary>
-		/// Change the active color (when ChangeColor card is played)
-		/// </summary>
-		/// <param name="newColor">New active color</param>
-		public void ChangeActiveColor (CardColor newColor) {
-			if (activeColor == newColor) return;
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
+						}
 
-			CardColor previousColor = activeColor;
-			activeColor = newColor;
+						EndAITurnWithStrictFlow ();
+					}
+					break;
 
-			TakiLogger.LogGameState ($"Active color changed: {previousColor} -> {newColor}");
-			OnActiveColorChanged?.Invoke (newColor);
-		}
+				case CardType.ChangeDirection:
+					if (inTakiSequence && !isLastCardInSequence) {
+						// ChangeDirection during sequence - effect deferred
+						TakiLogger.LogAI ("AI played CHANGE DIRECTION during TAKI sequence - effect DEFERRED, continuing sequence");
 
-		/// <summary>
-		/// Change turn direction (when ChangeDirection card is played)
-		/// </summary>
-		public void ChangeTurnDirection () {
-			turnDirection = turnDirection == TurnDirection.Clockwise ?
-							TurnDirection.CounterClockwise : TurnDirection.Clockwise;
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal ChangeDirection handling
+						TakiLogger.LogAI ("AI played CHANGE DIRECTION card - direction already changed");
 
-			TakiLogger.LogGameState ($"Turn direction changed to: {turnDirection}");
-			OnTurnDirectionChanged?.Invoke (turnDirection);
-		}
+						if (gameplayUI != null) {
+							string directionMessage = $"Direction changed by AI: {gameState?.turnDirection}";
+							gameplayUI.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
+						}
 
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
+					}
+					break;
 
-		/// <summary>
-		/// Check if a card can be legally played
-		/// </summary>
-		/// <param name="cardToPlay">Card player wants to play</param>
-		/// <param name="topDiscardCard">Current top card of discard pile</param>
-		/// <returns>True if the move is legal</returns>
-		public bool IsValidMove (CardData cardToPlay, CardData topDiscardCard) {
-			if (cardToPlay == null || topDiscardCard == null) {
-				TakiLogger.LogWarning ("Cannot validate move: Null card provided", TakiLogger.LogCategory.Rules);
-				return false;
-			}
+				case CardType.ChangeColor:
+					if (inTakiSequence && !isLastCardInSequence) {
+						// ChangeColor during sequence - effect deferred
+						TakiLogger.LogAI ("AI played CHANGE COLOR during TAKI sequence - effect DEFERRED, continuing sequence");
 
-			// CRITICAL RULE: During PlusTwo chain, only PlusTwo cards are valid
-			if (isPlusTwoChainActive && cardToPlay.cardType != CardType.PlusTwo) {
-				TakiLogger.LogRules ($"CHAIN RULE: Only PlusTwo cards allowed during chain, blocked {cardToPlay.GetDisplayText ()}");
-				return false;
-			}
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal ChangeColor handling
+						TakiLogger.LogAI ("AI played CHANGE COLOR card - handling AI color selection");
 
-			// Use the normal CanPlayOn method for other validation
-			bool isValid = cardToPlay.CanPlayOn (topDiscardCard, activeColor);
+						if (gameplayUI != null) {
+							gameplayUI.ShowImmediateFeedback ("AI is selecting new color...", true);
+						}
 
-			if (isPlusTwoChainActive && isValid) {
-				TakiLogger.LogRules ($"CHAIN VALID: {cardToPlay.GetDisplayText ()} can continue chain");
-			}
+						if (computerAI != null) {
+							CardColor selectedColor = computerAI.SelectColor ();
+							gameState?.ChangeActiveColor (selectedColor);
 
-			TakiLogger.LogRules ($"Move validation: {cardToPlay.GetDisplayText ()} on {topDiscardCard.GetDisplayText ()} with active color {activeColor} = {isValid}");
-			return isValid;
-		}
+							if (gameplayUI != null) {
+								gameplayUI.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
+									$"New active color: {selectedColor}");
+							}
 
-		/// <summary>
-		/// Update active color based on played card
-		/// </summary>
-		/// <param name="playedCard">Card that was just played</param>
-		public void UpdateActiveColorFromCard (CardData playedCard) {
-			if (playedCard == null) return;
+							TakiLogger.LogAI ($"AI selected color: {selectedColor}");
+						}
 
-			// For non-wild cards, update active color to match the card
-			if (!playedCard.IsWildCard) {
-				ChangeActiveColor (playedCard.color);
-			}
-			// For wild cards (ChangeColor, SuperTaki), color will be set separately
-		}
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
+					}
+					break;
 
-		/// <summary>
-		/// Start a new PlusTwo chain
-		/// </summary>
-		/// <param name="initiator">Player who started the chain</param>
-		public void StartPlusTwoChain (PlayerType initiator) {
-			isPlusTwoChainActive = true;
-			numberOfChainedPlusTwos = 1;
-			chainInitiator = initiator;
+				case CardType.PlusTwo:
+					// CRITICAL FIX: PlusTwo handling with proper sequence awareness
+					if (inTakiSequence && !isLastCardInSequence) {
+						// PlusTwo played during sequence - effect DEFERRED
+						TakiLogger.LogAI ("AI played PLUS TWO during TAKI sequence - effect DEFERRED, continuing sequence");
 
-			TakiLogger.LogGameState ($"PlusTwo chain started by {initiator}");
-			TakiLogger.LogRules ($"CHAIN START: {initiator} plays PlusTwo #1 - opponent must draw 2 or continue");
-		}
+						// Continue sequence - the PlusTwo effect will be processed when sequence ends
+						CardData topCard = GetTopDiscardCard ();
+						if (topCard != null && computerAI != null) {
+							Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+						} else {
+							TakiLogger.LogError ("Cannot continue AI sequence after PlusTwo - ending sequence", TakiLogger.LogCategory.AI);
+							EndAITurnWithStrictFlow ();
+						}
+					} else {
+						// Normal PlusTwo handling (not in sequence or last card in sequence)
+						TakiLogger.LogAI ("AI played PLUS TWO card - chain logic already handled by main method");
 
-		/// <summary>
-		/// Continue existing PlusTwo chain
-		/// </summary>
-		public void ContinuePlusTwoChain () {
-			numberOfChainedPlusTwos++;
-			int drawCount = ChainDrawCount;
+						if (gameState.IsPlusTwoChainActive) {
+							// Chain is now active - opponent must respond
+							int chainCount = gameState.NumberOfChainedCards;
+							int drawCount = gameState.ChainDrawCount;
 
-			TakiLogger.LogGameState ($"PlusTwo chain continued - now {numberOfChainedPlusTwos} cards, draw count: {drawCount}");
-			TakiLogger.LogRules ($"CHAIN CONTINUE: PlusTwo #{numberOfChainedPlusTwos} played - opponent must draw {drawCount} or continue");
-		}
+							gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer,
+								$"Chain continues! Draw {drawCount} or play PlusTwo");
 
-		/// <summary>
-		/// Break PlusTwo chain
-		/// </summary>
-		public void BreakPlusTwoChain () {
-			int finalDrawCount = ChainDrawCount;
-			int finalChainLength = numberOfChainedPlusTwos;
+							TakiLogger.LogAI ($"PlusTwo chain continues: {chainCount} cards, opponent draws {drawCount} or continues");
+						} else {
+							// This shouldn't happen if chain logic worked correctly
+							TakiLogger.LogError ("AI played PlusTwo but no chain is active - this indicates a sequence processing issue!", TakiLogger.LogCategory.AI);
+							gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer, "You draw 2 cards!");
+						}
 
-			TakiLogger.LogGameState ($"PlusTwo chain broken - was {finalChainLength} cards ({finalDrawCount} total draw)");
-			TakiLogger.LogRules ($"CHAIN BREAK: Chain of {finalChainLength} PlusTwo cards broken by drawing {finalDrawCount} cards");
+						// Normal turn end for AI after playing PlusTwo
+						if (turnManager != null) {
+							turnManager.EndTurn ();
+						}
+					}
+					break;
 
-			isPlusTwoChainActive = false;
-			numberOfChainedPlusTwos = 0;
-		}
+				case CardType.Taki:
+					// TAKI card during sequence - continue sequence
+					TakiLogger.LogAI ("AI played TAKI card - handling sequence continuation");
 
-		/// <summary>
-		/// Reset chain state for new game
-		/// </summary>
-		public void ResetPlusTwoChainState () {
-			bool wasActive = isPlusTwoChainActive;
-			isPlusTwoChainActive = false;
-			numberOfChainedPlusTwos = 0;
+					if (!gameState.IsInTakiSequence) {
+						TakiLogger.LogWarning ("AI played TAKI but no sequence started - this indicates a problem", TakiLogger.LogCategory.AI);
 
-			if (wasActive) {
-				TakiLogger.LogGameState ("PlusTwo chain state reset for new game");
-			}
-		}
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+								$"AI starts TAKI sequence for {card.color}");
+						}
+					} else {
+						TakiLogger.LogAI ($"AI played TAKI card within {gameState.TakiSequenceColor} sequence");
 
-		/// <summary>
-		/// Set chain count directly (for pause/resume restoration)
-		/// </summary>
-		/// <param name="count">Number of chained cards</param>
-		public void SetChainCount (int count) {
-			numberOfChainedPlusTwos = count;
-			TakiLogger.LogGameState ($"Chain count set to {count} (for pause restoration)");
-		}
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+								"AI continues TAKI sequence");
+						}
+					}
 
-		/// <summary>
-		/// Check if current state allows player actions
-		/// </summary>
-		/// <returns>True if player can take actions</returns>
-		public bool CanPlayerAct () {
-			// Player can't act if game is paused or game over
-			if (gameStatus != GameStatus.Active) {
-				return false;
-			}
+					// Continue sequence
+					CardData currentTopCard = GetTopDiscardCard ();
+					if (currentTopCard != null && computerAI != null) {
+						Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+					} else {
+						TakiLogger.LogError ("Cannot continue AI sequence - missing components", TakiLogger.LogCategory.AI);
+						EndAITurnWithStrictFlow ();
+					}
+					break;
 
-			return turnState == TurnState.PlayerTurn ||
-				   interactionState == InteractionState.ColorSelection;
-		}
+				case CardType.SuperTaki:
+					// SuperTAKI card during sequence - continue sequence
+					TakiLogger.LogAI ("AI played SUPER TAKI card - handling sequence continuation");
 
-		/// <summary>
-		/// Check if current state allows computer actions
-		/// </summary>
-		/// <returns>True if computer can take actions</returns>
-		public bool CanComputerAct () {
-			// Computer can't act if game is paused or game over
-			if (gameStatus != GameStatus.Active) {
-				return false;
-			}
+					if (!gameState.IsInTakiSequence) {
+						TakiLogger.LogWarning ("AI played SuperTAKI but no sequence started - this indicates a problem", TakiLogger.LogCategory.AI);
 
-			return turnState == TurnState.ComputerTurn;
-		}
+						CardColor sequenceColor = gameState.activeColor;
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+								$"AI starts SuperTAKI sequence for {sequenceColor}");
+						}
+					} else {
+						TakiLogger.LogAI ($"AI played SuperTAKI card within {gameState.TakiSequenceColor} sequence");
 
-		/// <summary>
-		/// Declare a winner and end the game
-		/// </summary>
-		/// <param name="winner">The winning player type</param>
-		public void DeclareWinner (PlayerType winner) {
-			ChangeGameStatus (GameStatus.GameOver);
-			ChangeTurnState (TurnState.Neutral);
-			ChangeInteractionState (InteractionState.Normal);
+						if (gameplayUI != null) {
+							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+								"AI continues SuperTAKI sequence");
+						}
+					}
 
-			TakiLogger.LogGameState ($"Game Over! Winner: {winner}");
-			OnGameWon?.Invoke (winner);
-		}
+					// Continue sequence
+					CardData currentTopCard2 = GetTopDiscardCard ();
+					if (currentTopCard2 != null && computerAI != null) {
+						Invoke (nameof (TriggerAISequenceDecision), 1.0f);
+					} else {
+						TakiLogger.LogError ("Cannot continue AI sequence - missing components", TakiLogger.LogCategory.AI);
+						EndAITurnWithStrictFlow ();
+					}
+					break;
 
-		/// <summary>
-		/// Reset game state for a new game
-		/// </summary>
-		public void ResetGameState () {
-			turnState = TurnState.Neutral;
-			interactionState = InteractionState.Normal;
-			gameStatus = GameStatus.Active;
-			activeColor = CardColor.Wild; // No color set initially
-			turnDirection = TurnDirection.Clockwise;
-
-			ResetPlusTwoChainState ();
-
-			TakiLogger.LogGameState ("Game state reset for new game (including PlusTwo chain state)");
-		}
-
-		/// <summary>
-		/// Get user-friendly description of current combined state
-		/// </summary>
-		/// <returns>Description of current game state</returns>
-		public string GetStateDescription () {
-			// Check game status first
-			switch (gameStatus) {
-				case GameStatus.Paused:
-					return "Game Paused";
-				case GameStatus.GameOver:
-					return "Game Over";
-				case GameStatus.Active:
-					// Continue to check other states
+				default:
+					// No special effects - normal turn end
+					TakiLogger.LogAI ("AI played normal card - ending turn normally");
+					if (turnManager != null) {
+						turnManager.EndTurn ();
+					}
 					break;
 			}
 
-			// Handle special interactions
-			switch (interactionState) {
-				case InteractionState.ColorSelection:
-					return "Choose a color";
-				case InteractionState.TakiSequence:
-					return "TAKI sequence - play more cards or close";
-				case InteractionState.PlusTwoChain:
-					return "Plus Two chain - play +2 or draw cards";
-			}
-
-			// Normal gameplay - show whose turn
-			switch (turnState) {
-				case TurnState.PlayerTurn:
-					return "Your turn - play a card or draw";
-				case TurnState.ComputerTurn:
-					return "Computer's turn";
-				case TurnState.Neutral:
-					return "Setting up...";
-				default:
-					return "Unknown state";
-			}
+			TakiLogger.LogAI ("=== AI TURN FLOW HANDLING COMPLETE ===");
 		}
-
-		/// <summary>
-		/// Get simple turn description for UI
-		/// </summary>
-		/// <returns>Simple turn description</returns>
-		public string GetTurnDescription () {
-			switch (turnState) {
-				case TurnState.PlayerTurn:
-					return "Your Turn";
-				case TurnState.ComputerTurn:
-					return "Computer's Turn";
-				case TurnState.Neutral:
-					return "Game Setup";
-				default:
-					return turnState.ToString ();
-			}
-		}
-
-		/// <summary>
-		/// Pause the game - preserves all state for resumption
-		/// </summary>
-		public void PauseGame () {
-			if (gameStatus == GameStatus.Paused) {
-				TakiLogger.LogWarning ("Game is already paused", TakiLogger.LogCategory.GameState);
-				return;
-			}
-
-			GameStatus previousStatus = gameStatus;
-			ChangeGameStatus (GameStatus.Paused);
-
-			TakiLogger.LogGameState ($"Game paused from status: {previousStatus}");
-		}
-
-		/// <summary>
-		/// Resume the game - restore to active state
-		/// </summary>
-		public void ResumeGame () {
-			if (gameStatus != GameStatus.Paused) {
-				TakiLogger.LogWarning ($"Cannot resume game - current status: {gameStatus}", TakiLogger.LogCategory.GameState);
-				return;
-			}
-
-			ChangeGameStatus (GameStatus.Active);
-			TakiLogger.LogGameState ("Game resumed to active state");
-		}
-
-		/// <summary>
-		/// Check if game can be paused in current state
-		/// </summary>
-		/// <returns>True if game can be paused</returns>
-		public bool CanGameBePaused () {
-			// Can pause if game is active and not during critical interactions
-			return gameStatus == GameStatus.Active &&
-				   interactionState != InteractionState.ColorSelection;
-		}
-
-		/// <summary>
-		/// Check if game can be resumed from current state
-		/// </summary>
-		/// <returns>True if game can be resumed</returns>
-		public bool CanGameBeResumed () {
-			return gameStatus == GameStatus.Paused;
-		}
-
-		// Properties for external access using new architecture
-		public bool IsGameActive => gameStatus == GameStatus.Active;
-		public bool IsPlayerTurn => turnState == TurnState.PlayerTurn;
-		public bool IsComputerTurn => turnState == TurnState.ComputerTurn;
-		public bool IsGameOver => gameStatus == GameStatus.GameOver;
-		public bool IsColorSelectionActive => interactionState == InteractionState.ColorSelection;
-		public bool IsTakiSequenceActive => interactionState == InteractionState.TakiSequence;
-		public bool IsPlusTwoChainActive => interactionState == InteractionState.PlusTwoChain;
-		public bool IsNormalGameplay => interactionState == InteractionState.Normal;
-
-		// Enhanced state properties
-		public bool IsGamePaused => gameStatus == GameStatus.Paused;
-		public bool CanPause => CanGameBePaused ();
-		public bool CanResume => CanGameBeResumed ();
-
-		// Combined state checks
-		public bool IsPlayerTurnNormal => IsPlayerTurn && IsNormalGameplay;
-		public bool IsComputerTurnNormal => IsComputerTurn && IsNormalGameplay;
-
-		// Enhanced combined state checks
-		public bool IsActivePlayerTurn => gameStatus == GameStatus.Active && turnState == TurnState.PlayerTurn;
-		public bool IsActiveComputerTurn => gameStatus == GameStatus.Active && turnState == TurnState.ComputerTurn;
-		public bool IsGamePlayable => gameStatus == GameStatus.Active && interactionState == InteractionState.Normal;
-
-		// PlusTwo Chain Properties
-		public bool IsPlusTwoChainActive => isPlusTwoChainActive;
-		public int ChainDrawCount => numberOfChainedPlusTwos * 2;
-		public int NumberOfChainedCards => numberOfChainedPlusTwos;
-		public PlayerType ChainInitiator => chainInitiator;
-
-		// Enhanced state check that includes chain awareness
-		public bool IsActivePlayerTurnNormal => gameStatus == GameStatus.Active &&
-												turnState == TurnState.PlayerTurn &&
-												interactionState == InteractionState.Normal &&
-												!isPlusTwoChainActive;
-
-		public bool IsActiveComputerTurnNormal => gameStatus == GameStatus.Active &&
-												  turnState == TurnState.ComputerTurn &&
-												  interactionState == InteractionState.Normal &&
-												  !isPlusTwoChainActive;
-	}
-}

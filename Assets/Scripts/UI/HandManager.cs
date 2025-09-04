@@ -319,7 +319,7 @@ namespace TakiGame {
 
 			// Only log summary if no playable cards (potential issue)
 			if (playableCount == 0 && showFaceUpCards) {
-				TakiLogger.LogWarning ($"HandManager {gameObject.name}: No playable cards found (0/{cardControllers.Count})", TakiLogger.LogCategory.Rules);
+				TakiLogger.LogInfo ($"HandManager {gameObject.name}: No playable cards found (0/{cardControllers.Count})", TakiLogger.LogCategory.Rules);
 			}
 		}
 
