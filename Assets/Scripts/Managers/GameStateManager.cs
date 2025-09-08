@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace TakiGame {
 	/// <summary>
@@ -41,6 +42,9 @@ namespace TakiGame {
 
 		[Tooltip ("Color required for TAKI sequence cards")]
 		private CardColor takiSequenceColor = CardColor.Wild;
+
+		[Tooltip ("CRITICAL FIX: Actual list of cards played in sequence")]
+		private List<CardData> takiSequenceCards = new List<CardData> ();
 
 		[Tooltip ("Last card played in current sequence")]
 		private CardData lastCardPlayedInSequence = null;
@@ -188,16 +192,17 @@ namespace TakiGame {
 				return;
 			}
 
-			int finalCardCount = numberOfSequenceCards;
+			int finalCardCount = takiSequenceCards.Count;
 			CardColor finalColor = takiSequenceColor;
 			PlayerType finalInitiator = takiSequenceInitiator;
 
-			// CRITICAL FIX: Clear all sequence state before state transition
+			TakiLogger.LogGameState ($"Ending TAKI sequence: {finalCardCount} cards of {finalColor} by {finalInitiator}");
+
+			// CRITICAL: Clear all sequence state BEFORE state transitions
 			isInTakiSequence = false;
 			takiSequenceColor = CardColor.Wild;
 			lastCardPlayedInSequence = null;
-			numberOfSequenceCards = 0;
-			// DON'T clear takiSequenceInitiator until after logging for debugging
+			takiSequenceCards.Clear (); // CRITICAL: Clear the actual list
 
 			// Return to normal interaction state
 			ChangeInteractionState (InteractionState.Normal);
@@ -205,9 +210,59 @@ namespace TakiGame {
 			TakiLogger.LogGameState ($"TAKI sequence ended - was {finalCardCount} cards of {finalColor} by {finalInitiator}");
 			TakiLogger.LogRules ($"SEQUENCE END: {finalInitiator} sequence of {finalCardCount} cards completed");
 
-			// NOW clear initiator for clean state
+			// Reset initiator after logging
 			takiSequenceInitiator = PlayerType.Human; // Reset to default
 
+			OnTakiSequenceEnded?.Invoke ();
+		}
+
+		// CRITICAL FIX: Add sequence state validation method
+		public bool ValidateSequenceState () {
+			if (!isInTakiSequence) {
+				return true; // No sequence, state is valid
+			}
+
+			// Check for invalid sequence state
+			bool hasValidCardCount = takiSequenceCards != null && takiSequenceCards.Count > 0;
+			bool hasValidColor = takiSequenceColor != CardColor.Wild;
+			bool hasValidInitiator = takiSequenceInitiator == PlayerType.Human || takiSequenceInitiator == PlayerType.Computer;
+
+			if (!hasValidCardCount) {
+				TakiLogger.LogError ("Invalid sequence: No cards in sequence list", TakiLogger.LogCategory.GameState);
+				ForceEndInvalidSequence ();
+				return false;
+			}
+
+			if (!hasValidColor) {
+				TakiLogger.LogError ("Invalid sequence: Invalid sequence color", TakiLogger.LogCategory.GameState);
+				ForceEndInvalidSequence ();
+				return false;
+			}
+
+			if (!hasValidInitiator) {
+				TakiLogger.LogError ("Invalid sequence: Invalid initiator", TakiLogger.LogCategory.GameState);
+				ForceEndInvalidSequence ();
+				return false;
+			}
+
+			return true;
+		}
+
+		// CRITICAL FIX: Force end invalid sequence
+		private void ForceEndInvalidSequence () {
+			TakiLogger.LogWarning ("Force ending invalid TAKI sequence", TakiLogger.LogCategory.GameState);
+
+			// Force clean state
+			isInTakiSequence = false;
+			takiSequenceColor = CardColor.Wild;
+			lastCardPlayedInSequence = null;
+			takiSequenceCards.Clear ();
+			takiSequenceInitiator = PlayerType.Human;
+
+			// Return to normal state
+			ChangeInteractionState (InteractionState.Normal);
+
+			// Notify systems
 			OnTakiSequenceEnded?.Invoke ();
 		}
 
@@ -217,24 +272,32 @@ namespace TakiGame {
 		/// <param name="card">Card being added to sequence</param>
 		public void AddCardToSequence (CardData card) {
 			if (!isInTakiSequence) {
-				TakiLogger.LogWarning ("Attempting to add card to sequence when no sequence active", TakiLogger.LogCategory.GameState);
+				TakiLogger.LogError ("Cannot add card to sequence: No sequence active", TakiLogger.LogCategory.GameState);
 				return;
 			}
 
-			// CRITICAL VALIDATION: Ensure card can be played in sequence
-			if (card != null && !CanPlayInSequence (card)) {
-				TakiLogger.LogWarning ($"Cannot add {card.GetDisplayText ()} to sequence - invalid for {takiSequenceColor} sequence", TakiLogger.LogCategory.GameState);
+			if (card == null) {
+				TakiLogger.LogError ("Cannot add null card to sequence", TakiLogger.LogCategory.GameState);
 				return;
 			}
 
+			// CRITICAL: Validate card can be played in sequence BEFORE adding
+			if (!CanPlayInSequence (card)) {
+				TakiLogger.LogError ($"Card {card.GetDisplayText ()} invalid for {takiSequenceColor} sequence", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
+			// CRITICAL FIX: Add to actual list and update count synchronously
+			takiSequenceCards.Add (card);
 			lastCardPlayedInSequence = card;
-			numberOfSequenceCards++;
 
-			string cardDisplay = card?.GetDisplayText () ?? "NULL";
-			TakiLogger.LogGameState ($"Card added to TAKI sequence: {cardDisplay} (card #{numberOfSequenceCards})");
-			TakiLogger.LogRules ($"SEQUENCE CARD: {cardDisplay} added - sequence now {numberOfSequenceCards} cards by {takiSequenceInitiator}");
+			int currentCount = takiSequenceCards.Count;
 
-			OnTakiSequenceCardAdded?.Invoke (numberOfSequenceCards);
+			TakiLogger.LogGameState ($"Card added to TAKI sequence: {card.GetDisplayText ()} (card #{currentCount})");
+			TakiLogger.LogRules ($"SEQUENCE CARD: {card.GetDisplayText ()} added - sequence now {currentCount} cards by {takiSequenceInitiator}");
+
+			// Fire event AFTER count is updated
+			OnTakiSequenceCardAdded?.Invoke (currentCount);
 		}
 
 		/// <summary>
@@ -249,15 +312,21 @@ namespace TakiGame {
 			}
 
 			if (!isInTakiSequence) {
-				// No sequence active - any valid card can be played
+				// No sequence active - use normal validation
+				TakiLogger.LogRules ("No sequence active - using normal card validation");
 				return true;
 			}
 
-			// In sequence - only same color or wild cards allowed
-			bool canPlay = card.color == takiSequenceColor || card.IsWildCard;
+			// CRITICAL: Wild cards can always be played in sequences
+			if (card.IsWildCard) {
+				TakiLogger.LogRules ($"SEQUENCE VALIDATION: {card.GetDisplayText ()} is wild card - ALLOWED");
+				return true;
+			}
 
-			TakiLogger.LogRules ($"SEQUENCE VALIDATION: {card.GetDisplayText ()} vs sequence color {takiSequenceColor} (initiated by {takiSequenceInitiator}) = {canPlay}");
+			// Check color match for sequence
+			bool canPlay = card.color == takiSequenceColor;
 
+			TakiLogger.LogRules ($"SEQUENCE VALIDATION: {card.GetDisplayText ()} vs sequence color {takiSequenceColor} = {canPlay}");
 			return canPlay;
 		}
 
@@ -271,7 +340,7 @@ namespace TakiGame {
 			isInTakiSequence = false;
 			takiSequenceColor = CardColor.Wild;
 			lastCardPlayedInSequence = null;
-			numberOfSequenceCards = 0;
+			takiSequenceCards.Clear (); // CRITICAL: Clear the actual list
 			takiSequenceInitiator = PlayerType.Human; // Reset to default
 
 			if (wasActive) {
@@ -608,6 +677,27 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ("=== END INTEGRITY CHECK ===");
 		}
 
+		// CRITICAL FIX: Add debugging method 
+		[ContextMenu ("Debug Sequence State")]
+		public void DebugSequenceState () {
+			TakiLogger.LogDiagnostics ("=== SEQUENCE STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ($"Is In Sequence: {isInTakiSequence}");
+			TakiLogger.LogDiagnostics ($"Sequence Color: {takiSequenceColor}");
+			TakiLogger.LogDiagnostics ($"Sequence Cards Count: {NumberOfSequenceCards}");
+			TakiLogger.LogDiagnostics ($"Sequence Initiator: {takiSequenceInitiator}");
+			TakiLogger.LogDiagnostics ($"Interaction State: {interactionState}");
+
+			if (takiSequenceCards != null) {
+				TakiLogger.LogDiagnostics ($"Actual cards in sequence:");
+				for (int i = 0; i < takiSequenceCards.Count; i++) {
+					TakiLogger.LogDiagnostics ($"  [{i}] {takiSequenceCards [i]?.GetDisplayText () ?? "NULL"}");
+				}
+			}
+
+			TakiLogger.LogDiagnostics ($"Last Card: {lastCardPlayedInSequence?.GetDisplayText () ?? "NULL"}");
+			TakiLogger.LogDiagnostics ($"State Valid: {ValidateSequenceState ()}");
+		}
+
 		// Properties for external access using new architecture
 		public bool IsGameActive => gameStatus == GameStatus.Active;
 		public bool IsPlayerTurn => turnState == TurnState.PlayerTurn;
@@ -640,7 +730,8 @@ namespace TakiGame {
 		// PHASE 8B: TAKI Sequence Properties
 		public bool IsInTakiSequence => isInTakiSequence;
 		public CardColor TakiSequenceColor => takiSequenceColor;
-		public int NumberOfSequenceCards => numberOfSequenceCards;
+		// CRITICAL FIX: Property uses actual list count instead of separate counter
+		public int NumberOfSequenceCards => takiSequenceCards?.Count ?? 0;
 		public PlayerType TakiSequenceInitiator => takiSequenceInitiator;
 		public CardData LastCardPlayedInSequence => lastCardPlayedInSequence;
 

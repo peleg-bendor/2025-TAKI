@@ -9,6 +9,7 @@ namespace TakiGame {
 	/// Integrates with GameManager to start games at proper time
 	/// Now calls proper GameManager initialization methods
 	/// Separates single player vs multiplayer system initialization
+	/// ENHANCED: Multiplayer integration with Photon PUN2 connection handling
 	/// </summary>
 	public class MenuNavigation : MonoBehaviour {
 		[Header ("Menu Screens")]
@@ -30,6 +31,10 @@ namespace TakiGame {
 		[Header ("Game Integration")]
 		[Tooltip ("Reference to GameManager for starting single player games")]
 		[SerializeField] private GameManager gameManager;
+
+		[Header ("Multiplayer Integration")]
+		[Tooltip ("Reference to MultiplayerMenuLogic for Photon connection and matchmaking")]
+		[SerializeField] private MultiplayerMenuLogic multiplayerMenuLogic;
 
 		[Header ("Pause and Game End Screens")]
 		[SerializeField] private GameObject Screen_Paused;
@@ -54,8 +59,54 @@ namespace TakiGame {
 				}
 			}
 
+			// Find MultiplayerMenuLogic if not assigned
+			if (multiplayerMenuLogic == null) {
+				multiplayerMenuLogic = FindObjectOfType<MultiplayerMenuLogic> ();
+				if (multiplayerMenuLogic == null) {
+					Debug.LogWarning ("MenuNavigation: MultiplayerMenuLogic not found! Creating one...");
+					// Create MultiplayerMenuLogic GameObject if not found
+					GameObject multiplayerLogicGO = new GameObject ("MultiplayerMenuLogic");
+					multiplayerMenuLogic = multiplayerLogicGO.AddComponent<MultiplayerMenuLogic> ();
+				}
+			}
+
 			// Find screen references if not assigned
 			FindScreenReferencesIfMissing ();
+
+			// Subscribe to multiplayer events
+			SubscribeToMultiplayerEvents ();
+		}
+
+		void OnDestroy () {
+			// Unsubscribe from multiplayer events
+			UnsubscribeFromMultiplayerEvents ();
+		}
+
+		/// <summary>
+		/// Subscribe to multiplayer events
+		/// </summary>
+		void SubscribeToMultiplayerEvents () {
+			MultiplayerMenuLogic.OnMultiplayerGameReady += OnMultiplayerGameReady;
+		}
+
+		/// <summary>
+		/// Unsubscribe from multiplayer events
+		/// </summary>
+		void UnsubscribeFromMultiplayerEvents () {
+			MultiplayerMenuLogic.OnMultiplayerGameReady -= OnMultiplayerGameReady;
+		}
+
+		/// <summary>
+		/// Handle multiplayer game ready event (following instructor's pattern)
+		/// </summary>
+		void OnMultiplayerGameReady () {
+			Debug.Log ("MenuNavigation: Multiplayer game ready - transitioning to game screen");
+
+			// Go directly to multiplayer game screen
+			SetScreenAndClearStack (MultiPlayerGameScreen);
+
+			// Start multiplayer game
+			StartMultiPlayerGame ();
 		}
 
 		/// <summary>
@@ -176,11 +227,12 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Start multiplayer game (placeholder for future implementation)
+		/// ENHANCED: Will integrate with NetworkGameManager when created
 		/// </summary>
 		private void StartMultiPlayerGame () {
 			if (gameManager != null) {
 				Debug.Log ("MenuNavigation: Initializing multiplayer systems...");
-				// FUTURE: This will call gameManager.InitializeMultiPlayerSystems()
+				// FUTURE: This will call proper multiplayer initialization
 				gameManager.InitializeMultiPlayerSystems ();
 			} else {
 				Debug.LogError ("MenuNavigation: Cannot start multiplayer - GameManager not assigned!");
@@ -225,8 +277,21 @@ namespace TakiGame {
 			SetScreen (SinglePlayerScreen);
 		}
 
+		/// <summary>
+		/// ENHANCED: Multiplayer button now starts Photon connection process
+		/// Following instructor's pattern: immediate connection attempt on menu selection
+		/// DEBUGGING: Added detailed logging to track button click flow
+		/// </summary>
 		public void Btn_MultiPlayerLogic () {
+			if (MultiPlayerScreen == null) {
+				Debug.LogError ("MenuNavigation: MultiPlayerScreen is NULL! Cannot navigate.");
+				return;
+			}
+
+			// ALWAYS navigate to the multiplayer screen first
 			SetScreen (MultiPlayerScreen);
+
+			// Connection will start automatically via MultiplayerMenuLogic
 		}
 
 		#endregion
@@ -241,10 +306,57 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Multiplayer game start - will initialize multiplayer systems (future)
+		/// ENHANCED: Multiplayer game start - now handles Photon matchmaking
+		/// Following instructor's pattern: button click starts matchmaking process
 		/// </summary>
 		public void Btn_PlayMultiPlayerLogic () {
-			StartCoroutine (ShowScreenTemporarily (LoadingScreen, MultiPlayerGameScreen, clearStack: true));
+			if (multiplayerMenuLogic != null) {
+				if (multiplayerMenuLogic.IsConnectedToPhoton) {
+					Debug.Log ("MenuNavigation: Starting matchmaking...");
+					// Start matchmaking process
+					multiplayerMenuLogic.StartMatchmaking ();
+
+					// Show loading screen while matchmaking happens
+					// Game will start automatically when room is ready via OnMultiplayerGameReady event
+					StartCoroutine (ShowLoadingScreenForMatchmaking ());
+				} else {
+					Debug.LogWarning ("MenuNavigation: Not connected to Photon - cannot start matchmaking");
+				}
+			} else {
+				Debug.LogError ("MenuNavigation: MultiplayerMenuLogic not found - cannot start multiplayer matchmaking");
+
+				// Fallback to old behavior for now
+				StartCoroutine (ShowScreenTemporarily (LoadingScreen, MultiPlayerGameScreen, clearStack: true));
+			}
+		}
+
+		/// <summary>
+		/// Show loading screen during matchmaking process
+		/// Will be interrupted by OnMultiplayerGameReady event when room is found
+		/// </summary>
+		private IEnumerator ShowLoadingScreenForMatchmaking () {
+			Debug.Log ("MenuNavigation: Showing loading screen for matchmaking...");
+
+			SetScreen (LoadingScreen);
+
+			// Wait for either matchmaking success or timeout
+			float timeout = 30f; // 30 second timeout
+			float elapsed = 0f;
+
+			while (elapsed < timeout) {
+				// Check if we've successfully entered a game
+				if (MultiPlayerGameScreen.activeSelf) {
+					Debug.Log ("MenuNavigation: Matchmaking successful - game screen active");
+					yield break;
+				}
+
+				elapsed += Time.deltaTime;
+				yield return null;
+			}
+
+			// Timeout - go back to multiplayer menu
+			Debug.LogWarning ("MenuNavigation: Matchmaking timeout - returning to multiplayer menu");
+			SetScreen (MultiPlayerScreen);
 		}
 
 		#endregion
@@ -406,6 +518,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Handle Btn_GoHome click from pause screen - return to main menu
+		/// ENHANCED: Disconnect from Photon if in multiplayer
 		/// </summary>
 		public void Btn_GoHomeFromPauseLogic () {
 			Debug.Log ("MenuNavigation: Go Home button clicked FROM PAUSE");
@@ -413,12 +526,19 @@ namespace TakiGame {
 			// Hide pause screen first
 			HidePauseScreenOverlay ();
 
+			// Disconnect from Photon if connected
+			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
+				Debug.Log ("MenuNavigation: Disconnecting from Photon...");
+				multiplayerMenuLogic.DisconnectFromPhoton ();
+			}
+
 			// Use loading screen transition to main menu
 			StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
 		}
 
 		/// <summary>
 		/// Enhanced Btn_GoHome logic that works from both pause and game end
+		/// ENHANCED: Disconnect from Photon if in multiplayer
 		/// </summary>
 		public void Btn_GoHomeLogic () {
 			Debug.Log ("MenuNavigation: Go Home button clicked");
@@ -427,7 +547,14 @@ namespace TakiGame {
 			if (Screen_Paused != null && Screen_Paused.activeSelf) {
 				Btn_GoHomeFromPauseLogic ();
 			} else {
-				// This is from game end screen - use existing logic
+				// This is from game end screen - use existing logic with Photon disconnect
+
+				// Disconnect from Photon if connected
+				if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
+					Debug.Log ("MenuNavigation: Disconnecting from Photon...");
+					multiplayerMenuLogic.DisconnectFromPhoton ();
+				}
+
 				StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
 			}
 		}
@@ -454,9 +581,16 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Handle Btn_Exit click - show exit validation instead of direct exit
+		/// ENHANCED: Disconnect from Photon before exit
 		/// </summary>
 		public void Btn_ExitLogic () {
 			Debug.Log ("MenuNavigation: Exit button clicked - showing validation");
+
+			// Disconnect from Photon if connected
+			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
+				Debug.Log ("MenuNavigation: Disconnecting from Photon before exit...");
+				multiplayerMenuLogic.DisconnectFromPhoton ();
+			}
 
 			// Request exit confirmation through GameManager
 			if (gameManager != null) {
@@ -525,7 +659,7 @@ namespace TakiGame {
 		public void StartExitSequence () {
 			Debug.Log ("MenuNavigation: Starting exit sequence");
 			StartCoroutine (ShowExitingScreenAndQuit ());
-		} 
+		}
 
 		#endregion
 
@@ -580,6 +714,33 @@ namespace TakiGame {
 			}
 		}
 
+		/// <summary>
+		/// Debug method to log multiplayer status
+		/// </summary>
+		[System.Diagnostics.Conditional ("UNITY_EDITOR")]
+		public void LogMultiplayerStatus () {
+			if (multiplayerMenuLogic != null) {
+				Debug.Log ($"MenuNavigation: Photon Connected: {multiplayerMenuLogic.IsConnectedToPhoton}");
+				Debug.Log ($"MenuNavigation: Room Status: {multiplayerMenuLogic.GetRoomStatus ()}");
+			} else {
+				Debug.Log ("MenuNavigation: MultiplayerMenuLogic not found");
+			}
+		}
+
 		#endregion
+
+		// Also add this debug method to check screen references
+		[ContextMenu ("Debug Screen References")]
+		public void DebugScreenReferences () {
+			Debug.Log ("=== MenuNavigation Screen References ===");
+			Debug.Log ($"MainMenuScreen: {(MainMenuScreen != null ? MainMenuScreen.name : "NULL")}");
+			Debug.Log ($"SinglePlayerScreen: {(SinglePlayerScreen != null ? SinglePlayerScreen.name : "NULL")}");
+			Debug.Log ($"MultiPlayerScreen: {(MultiPlayerScreen != null ? MultiPlayerScreen.name : "NULL")}");
+			Debug.Log ($"SinglePlayerGameScreen: {(SinglePlayerGameScreen != null ? SinglePlayerGameScreen.name : "NULL")}");
+			Debug.Log ($"MultiPlayerGameScreen: {(MultiPlayerGameScreen != null ? MultiPlayerGameScreen.name : "NULL")}");
+			Debug.Log ($"LoadingScreen: {(LoadingScreen != null ? LoadingScreen.name : "NULL")}");
+			Debug.Log ($"multiplayerMenuLogic: {(multiplayerMenuLogic != null ? "FOUND" : "NULL")}");
+			Debug.Log ("========================================");
+		}
 	}
 }

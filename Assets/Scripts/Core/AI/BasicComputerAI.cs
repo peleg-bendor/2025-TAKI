@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.XR;
 
 namespace TakiGame {
 	/// <summary>
@@ -97,46 +95,90 @@ namespace TakiGame {
 
 
 		/// <summary>
-		/// PHASE 8B: Handle AI decision when TAKI sequence is active
-		/// AI Strategy: Continue with available cards, end when optimal
+		/// CRITICAL FIX: Enhanced HandleTakiSequenceDecision with proper state validation
 		/// </summary>
 		void HandleTakiSequenceDecision () {
 			TakiLogger.LogAI ("=== AI PROCESSING TAKI SEQUENCE ===");
+
+			// CRITICAL: Prevent overlapping sequence processing
+			if (isProcessingSequence) {
+				TakiLogger.LogAI ("AI sequence decision already in progress - skipping");
+				return;
+			}
+
+			// CRITICAL: Validate sequence state before processing
+			if (gameState == null) {
+				TakiLogger.LogError ("AI sequence decision: GameState is null!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			if (!gameState.IsInTakiSequence) {
+				TakiLogger.LogAI ("AI sequence decision: No sequence active - ending AI sequence processing");
+				return;
+			}
+
+			// CRITICAL: Validate sequence state integrity
+			if (!gameState.ValidateSequenceState ()) {
+				TakiLogger.LogAI ("AI sequence decision: Invalid sequence state detected - aborting");
+				return;
+			}
+
+			isProcessingSequence = true; // Set processing flag
 
 			CardColor sequenceColor = gameState.TakiSequenceColor;
 			int currentCardCount = gameState.NumberOfSequenceCards;
 
 			TakiLogger.LogAI ($"Sequence status: {currentCardCount} cards of {sequenceColor}");
 
-			// Get valid sequence cards (same color or wild)
+			// Get valid sequence cards with validation
 			List<CardData> sequenceCards = GetValidSequenceCards ();
-
 			TakiLogger.LogAI ($"AI has {sequenceCards.Count} valid sequence cards available");
 
 			if (sequenceCards.Count == 0) {
 				// No valid cards - must end sequence
 				TakiLogger.LogAI ("AI STRATEGY: No valid sequence cards - ending sequence");
 				OnAIDecisionMade?.Invoke ("AI has no valid sequence cards - ending sequence");
+
+				isProcessingSequence = false; // Clear processing flag
 				Invoke (nameof (EndAITakiSequence), thinkingTime);
 				return;
 			}
 
-			// AI has valid cards - decide whether to continue or end - SHOULD RETURN TRUE
+			// AI has valid cards - decide whether to continue
 			bool shouldContinue = DecideSequenceContinuation (sequenceCards);
 
 			if (shouldContinue) {
-				// Play a card from the sequence
+				// CRITICAL: Select and validate card BEFORE scheduling execution
 				CardData selectedCard = SelectSequenceCard (sequenceCards);
+
+				if (selectedCard == null) {
+					TakiLogger.LogError ("AI selected null card for sequence!", TakiLogger.LogCategory.AI);
+					isProcessingSequence = false;
+					Invoke (nameof (EndAITakiSequence), thinkingTime);
+					return;
+				}
+
+				// CRITICAL: Validate selected card is still in hand
+				if (!computerHand.Contains (selectedCard)) {
+					TakiLogger.LogError ("AI selected card not in hand for sequence!", TakiLogger.LogCategory.AI);
+					isProcessingSequence = false;
+					Invoke (nameof (EndAITakiSequence), thinkingTime);
+					return;
+				}
+
+				// CRITICAL: Store card securely before scheduling execution
+				currentSequenceCard = selectedCard;
 				TakiLogger.LogAI ($"AI STRATEGY: Continue sequence with {selectedCard.GetDisplayText ()}");
 				OnAIDecisionMade?.Invoke ($"AI continues sequence with {selectedCard.GetDisplayText ()}");
 
-				// Execute card play after thinking time
-				currentSequenceCard = selectedCard;
+				// Schedule execution
 				Invoke (nameof (ExecuteSequenceCardPlay), thinkingTime);
 			} else {
-				// End sequence
-				TakiLogger.LogError ("ERROR! THIS SHOULD NOT HAPPEN - AI STRATEGY: Ending sequence by choice");
+				// End sequence by choice (this should rarely happen)
+				TakiLogger.LogAI ("AI STRATEGY: Choosing to end sequence (rare case)");
 				OnAIDecisionMade?.Invoke ("AI chooses to end sequence");
+
+				isProcessingSequence = false;
 				Invoke (nameof (EndAITakiSequence), thinkingTime);
 			}
 		}
@@ -222,59 +264,108 @@ namespace TakiGame {
 			return fallbackCard;
 		}
 
-		// PHASE 8B: Storage for sequence card execution
+		// PHASE 8B: Enhanced storage for sequence card execution with validation
 		private CardData currentSequenceCard = null;
+		private bool isProcessingSequence = false; // CRITICAL: Prevent overlapping sequence decisions
 
 		/// <summary>
-		/// PHASE 8B: Execute playing a card in sequence
+		/// CRITICAL FIX: Enhanced ExecuteSequenceCardPlay with comprehensive validation
 		/// </summary>
 		void ExecuteSequenceCardPlay () {
+			TakiLogger.LogAI ($"=== AI EXECUTING SEQUENCE CARD PLAY ===");
+			TakiLogger.LogAI ($"State: Card={currentSequenceCard?.GetDisplayText ()}, InSeq={gameState?.IsInTakiSequence}, Count={gameState?.NumberOfSequenceCards}");
+
 			// Double-check pause state
 			if (isPaused) {
 				TakiLogger.LogAI ("AI sequence card play execution cancelled - AI is paused");
+				isProcessingSequence = false;
 				return;
 			}
 
-			TakiLogger.LogAI ("=== AI EXECUTING SEQUENCE CARD PLAY ===");
-
+			// CRITICAL: Comprehensive validation before execution
 			if (currentSequenceCard == null) {
 				TakiLogger.LogError ("AI trying to play sequence card but no card stored!", TakiLogger.LogCategory.AI);
-				EndAITakiSequence (); // Fallback to ending sequence
+				isProcessingSequence = false;
+
+				// CRITICAL: Check if we should end sequence instead of error
+				if (gameState != null && gameState.IsInTakiSequence) {
+					TakiLogger.LogAI ("No stored card but sequence active - ending sequence");
+					Invoke (nameof (EndAITakiSequence), 0.1f);
+				} else {
+					TakiLogger.LogAI ("No stored card and no sequence - AI turn should end");
+					// Let the normal AI flow handle this
+				}
 				return;
 			}
 
-			// Verify card is still in hand and still valid for sequence
+			// CRITICAL: Verify sequence is still active
+			if (gameState == null || !gameState.IsInTakiSequence) {
+				TakiLogger.LogAI ("Sequence ended during AI card execution - clearing stored card");
+				currentSequenceCard = null;
+				isProcessingSequence = false;
+				return;
+			}
+
+			// CRITICAL: Verify card is still in hand
 			if (!computerHand.Contains (currentSequenceCard)) {
 				TakiLogger.LogError ("AI trying to play sequence card not in hand!", TakiLogger.LogCategory.AI);
-				EndAITakiSequence (); // Fallback to ending sequence
+				currentSequenceCard = null;
+				isProcessingSequence = false;
+				Invoke (nameof (EndAITakiSequence), 0.1f);
 				return;
 			}
 
-			// Verify card is still valid for current sequence
-			List<CardData> stillValidCards = GetValidSequenceCards ();
-			if (!stillValidCards.Contains (currentSequenceCard)) {
+			// CRITICAL: Verify card is still valid for current sequence
+			if (!gameState.CanPlayInSequence (currentSequenceCard)) {
 				TakiLogger.LogError ("AI trying to play card no longer valid for sequence!", TakiLogger.LogCategory.AI);
-				EndAITakiSequence (); // Fallback to ending sequence
+				currentSequenceCard = null;
+				isProcessingSequence = false;
+				Invoke (nameof (EndAITakiSequence), 0.1f);
 				return;
 			}
 
+			// All validations passed - execute the card play
 			TakiLogger.LogAI ($"AI playing sequence card: {currentSequenceCard.GetDisplayText ()}");
-			PlayCard (currentSequenceCard);
+			CardData cardToPlay = currentSequenceCard;
 
-			// Clear stored card
+			// Clear stored card BEFORE playing to prevent reuse
 			currentSequenceCard = null;
 
-			// Schedule next decision - either continue or end sequence
+			// Play the card using normal mechanism
+			PlayCard (cardToPlay);
+
+			// CRITICAL: Clear processing flag after successful play
+			isProcessingSequence = false;
+
+			// Schedule next decision with delay to allow state updates
 			Invoke (nameof (ContinueAISequenceDecision), thinkingTime * 0.5f);
 		}
 
 		/// <summary>
-		/// PHASE 8B: Continue AI sequence decision making
+		/// CRITICAL FIX: Enhanced sequence continuation with state validation
 		/// </summary>
 		void ContinueAISequenceDecision () {
 			// Double-check pause state
 			if (isPaused) {
 				TakiLogger.LogAI ("AI sequence decision continuation cancelled - AI is paused");
+				return;
+			}
+
+			// CRITICAL: Validate sequence is still active before continuing
+			if (gameState == null || !gameState.IsInTakiSequence) {
+				TakiLogger.LogAI ("Sequence ended during AI processing - no continuation needed");
+				return;
+			}
+
+			// CRITICAL: Validate AI is still the sequence initiator
+			if (gameState.TakiSequenceInitiator != PlayerType.Computer) {
+				TakiLogger.LogAI ("AI is not sequence initiator - stopping sequence decisions");
+				return;
+			}
+
+			// CRITICAL: Validate it's still AI's turn
+			if (!gameState.IsComputerTurn) {
+				TakiLogger.LogAI ("Not AI's turn anymore - stopping sequence decisions");
 				return;
 			}
 
@@ -284,8 +375,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// CRITICAL FIX: Enhanced AI TAKI sequence ending with proper event-driven communication
-		/// This goes in BasicComputerAI.cs and uses events to communicate with GameManager
+		/// CRITICAL FIX: Enhanced EndAITakiSequence with proper validation and cleanup
 		/// </summary>
 		void EndAITakiSequence () {
 			// Double-check pause state
@@ -296,8 +386,24 @@ namespace TakiGame {
 
 			TakiLogger.LogAI ("=== AI ENDING TAKI SEQUENCE ===");
 
+			// CRITICAL: Validate sequence state before ending
+			if (gameState == null) {
+				TakiLogger.LogAI ("AI sequence end: GameState is null - cannot end sequence");
+				isProcessingSequence = false;
+				return;
+			}
+
 			if (!gameState.IsInTakiSequence) {
-				TakiLogger.LogWarning ("AI trying to end sequence but no sequence is active!", TakiLogger.LogCategory.AI);
+				TakiLogger.LogAI ("AI sequence end: No sequence is active - clearing processing flag");
+				isProcessingSequence = false;
+				currentSequenceCard = null;
+				return;
+			}
+
+			// CRITICAL: Only AI can end its own sequences
+			if (gameState.TakiSequenceInitiator != PlayerType.Computer) {
+				TakiLogger.LogAI ("AI cannot end sequence initiated by human player");
+				isProcessingSequence = false;
 				return;
 			}
 
@@ -309,16 +415,17 @@ namespace TakiGame {
 			TakiLogger.LogAI ($"AI ending sequence: {finalCardCount} cards of {sequenceColor}");
 			TakiLogger.LogAI ($"Last card in sequence: {lastCard?.GetDisplayText () ?? "NULL"}");
 
+			// CRITICAL: Clear AI processing state before ending sequence
+			isProcessingSequence = false;
+			currentSequenceCard = null;
+
 			// End the sequence (this triggers the event and changes state)
 			gameState.EndTakiSequence ();
 
 			// Show completion message
 			OnAIDecisionMade?.Invoke ($"AI ends TAKI sequence ({finalCardCount} cards)");
 
-			// CRITICAL FIX: Use event to signal sequence completion instead of calling GameManager methods directly
-			TakiLogger.LogAI ("AI sequence ended - signaling completion via event");
-
-			// Use a small delay to ensure sequence state is fully processed, then signal completion
+			// Signal sequence completion with small delay to ensure state is processed
 			Invoke (nameof (SignalAISequenceComplete), 0.1f);
 		}
 
@@ -354,7 +461,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Handle AI decision when PlusTwo chain is active
+		/// Handle AI decision when PlusTwo chain is active 
 		/// AI Strategy: ALWAYS continue chain if possible, otherwise draw to break
 		/// </summary>
 		void HandlePlusTwoChainDecision () {
@@ -625,32 +732,40 @@ namespace TakiGame {
 			return IsInvoking (methodName);
 		}
 
+		/// <summary>
+		/// CRITICAL FIX: Enhanced debugging for sequence state
+		/// </summary>
 		[ContextMenu ("Debug AI Sequence State")]
 		public void DebugAISequenceState () {
-			TakiLogger.LogDiagnostics ("=== AI TAKI SEQUENCE STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ("=== AI SEQUENCE STATE DEBUG ===");
 			TakiLogger.LogDiagnostics ($"AI Hand Size: {HandSize}");
 			TakiLogger.LogDiagnostics ($"AI State: {GetAIStateDescription ()}");
 			TakiLogger.LogDiagnostics ($"Can Make Decisions: {CanMakeDecisions ()}");
+			TakiLogger.LogDiagnostics ($"Is Processing Sequence: {isProcessingSequence}");
+			TakiLogger.LogDiagnostics ($"Current Sequence Card: {currentSequenceCard?.GetDisplayText () ?? "NULL"}");
 
 			if (gameState != null) {
 				TakiLogger.LogDiagnostics ($"In TakiSequence: {gameState.IsInTakiSequence}");
 				TakiLogger.LogDiagnostics ($"Current Turn: {gameState.turnState}");
+				TakiLogger.LogDiagnostics ($"Sequence State Valid: {gameState.ValidateSequenceState ()}");
 
 				if (gameState.IsInTakiSequence) {
-					TakiLogger.LogDiagnostics ($"Taki Sequence Initiator: {gameState.TakiSequenceInitiator}");
-					TakiLogger.LogDiagnostics ($"Taki Sequence Color: {gameState.TakiSequenceColor}");
+					TakiLogger.LogDiagnostics ($"Sequence Initiator: {gameState.TakiSequenceInitiator}");
+					TakiLogger.LogDiagnostics ($"Sequence Color: {gameState.TakiSequenceColor}");
+					TakiLogger.LogDiagnostics ($"Sequence Card Count: {gameState.NumberOfSequenceCards}");
 
-					// Check how many valid taki sequence cards AI has
-					List<CardData> takiSequenceCards = GetValidSequenceCards ();
-					TakiLogger.LogDiagnostics ($"AI Valid Taki Sequence Cards: {takiSequenceCards.Count}");
+					List<CardData> validCards = GetValidSequenceCards ();
+					TakiLogger.LogDiagnostics ($"AI Valid Sequence Cards: {validCards.Count}");
 
-					foreach (var card in takiSequenceCards.Take (3)) { // Show first 3
+					foreach (var card in validCards.Take (3)) {
 						TakiLogger.LogDiagnostics ($"  - {card.GetDisplayText ()}");
 					}
 				}
+			} else {
+				TakiLogger.LogDiagnostics ("GameState is NULL!");
 			}
 
-			TakiLogger.LogDiagnostics ("=== END AI TAKI SEQUENCE DEBUG ===");
+			TakiLogger.LogDiagnostics ("=== END AI SEQUENCE DEBUG ===");
 		}
 
 		/// <summary> 
@@ -976,42 +1091,34 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Updated Clear Hand method with comprehensive reset
+		/// CRITICAL FIX: Enhanced ClearHand with sequence state cleanup
 		/// </summary>
 		public void ClearHand () {
 			computerHand.Clear ();
 
-			// COMPREHENSIVE RESET: Always reset pause state during clear hand
-			TakiLogger.LogAI ("Clearing hand and resetting all AI state (including chain state)");
+			TakiLogger.LogAI ("Clearing hand and resetting all AI state (including sequence state)");
 
-			// Force reset pause state regardless of current state
+			// Force reset pause state
 			isPaused = false;
 			wasThinkingWhenPaused = false;
 			pausedTopDiscardCard = null;
 			pausedThinkingTimeRemaining = 0f;
 
-			// RESET CHAIN STATE
-			currentChainPlusTwo = null;
+			// CRITICAL: Reset sequence processing state
+			isProcessingSequence = false;
+			currentSequenceCard = null;
 
 			// Cancel any pending operations
 			CancelAllAIOperations ();
 
-			// Clear any stored decision context
-			currentTopDiscardCard = null;
-
-			// Fire resume events in case other systems need to know
-			if (isPaused) { // This should be false now, but just in case
-				OnAIResumed?.Invoke ();
-			}
-
-			TakiLogger.LogAI ("AI hand cleared and state reset");
+			TakiLogger.LogAI ("AI hand cleared and all state reset (including sequence processing)");
 		}
 
 		/// <summary>
-		/// Reset AI to fresh state for new game
+		/// CRITICAL FIX: Reset processing state during AI reset
 		/// </summary>
 		public void ResetForNewGame () {
-			TakiLogger.LogAI ("=== RESETTING AI FOR NEW GAME (INCLUDING CHAIN STATE) ===");
+			TakiLogger.LogAI ("=== RESETTING AI FOR NEW GAME (INCLUDING SEQUENCE STATE) ===");
 
 			// Clear hand
 			computerHand.Clear ();
@@ -1022,8 +1129,9 @@ namespace TakiGame {
 			pausedTopDiscardCard = null;
 			pausedThinkingTimeRemaining = 0f;
 
-			// RESET CHAIN STATE
-			currentChainPlusTwo = null;
+			// CRITICAL: Reset sequence processing state
+			isProcessingSequence = false;
+			currentSequenceCard = null;
 
 			// Cancel all operations
 			CancelAllAIOperations ();
@@ -1031,7 +1139,7 @@ namespace TakiGame {
 			// Clear any stored decision context
 			currentTopDiscardCard = null;
 
-			TakiLogger.LogAI ("AI completely reset for new game");
+			TakiLogger.LogAI ("AI completely reset for new game (including sequence state)");
 		}
 
 		/// <summary> 

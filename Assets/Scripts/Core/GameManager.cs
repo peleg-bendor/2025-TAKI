@@ -2327,7 +2327,7 @@ namespace TakiGame {
 					break;
 
 				default:
-					// No special effects - normal turn end
+					// No special effects - normal turn end 
 					TakiLogger.LogAI ("AI played normal card - ending turn normally");
 					if (turnManager != null) {
 						turnManager.EndTurn ();
