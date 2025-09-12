@@ -175,7 +175,7 @@ namespace TakiGame {
 		/// </summary>
 		public void InitializeDeck () {
 			if (cardLoader == null || !cardLoader.HasValidDeck) {
-				TakiLogger.LogError ("Cannot initialize network deck: Invalid card data", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Cannot initialize network deck: Invalid card data", TakiLogger.LogCategory.Multiplayer);
 				return;
 			}
 
@@ -196,7 +196,7 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ("Setting up network game state (master client)");
 
 			if (!PhotonNetwork.IsMasterClient) {
-				TakiLogger.LogWarning ("SetupNetworkGame called on non-master client", TakiLogger.LogCategory.Network);
+				TakiLogger.LogWarning ("SetupNetworkGame called on non-master client", TakiLogger.LogCategory.Multiplayer);
 				return (new List<CardData> (), new List<CardData> (), null);
 			}
 
@@ -219,7 +219,7 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ($"Synchronizing deck state: Draw={drawCount}, Discard={discardCount}, Top={topDiscardCard?.GetDisplayText ()}");
 
 			if (deck == null) {
-				TakiLogger.LogError ("Cannot synchronize deck state: Deck component missing", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Cannot synchronize deck state: Deck component missing", TakiLogger.LogCategory.Multiplayer);
 				return;
 			}
 

@@ -24,8 +24,18 @@ namespace TakiGame {
 		[Tooltip ("Computer AI decision making")]
 		public BasicComputerAI computerAI;
 
-		[Tooltip ("Gameplay UI updates - owns turn, player actions, color selection")]
+		[Tooltip ("LEGACY - Gameplay UI updates (being replaced by screen-specific managers)")]
 		public GameplayUIManager gameplayUI;
+
+		[Header("New UI Architecture - Screen-Specific Managers")]
+		[Tooltip ("UI manager for Screen_SinglePlayerGame")]
+		public SinglePlayerUIManager singlePlayerUI;
+
+		[Tooltip ("UI manager for Screen_MultiPlayerGame")]
+		public MultiPlayerUIManager multiPlayerUI;
+
+		[Tooltip ("Enable new UI architecture (set to true after Inspector assignments complete)")]
+		public bool useNewUIArchitecture = false;
 
 		[Tooltip ("Deck management system")]
 		public DeckManager deckManager;
@@ -81,7 +91,7 @@ namespace TakiGame {
 
 		[Header ("PHASE 2: Network Multiplayer")]
 		[Tooltip ("Network game manager for multiplayer coordination")]
-		public NetworkGameManager networkGameManager;
+		public MultiplayerGameManager networkGameManager;
 
 		// ENHANCED: Turn flow control state
 		[Header ("Turn Flow Control")]
@@ -102,6 +112,39 @@ namespace TakiGame {
 		private bool isGameActive = false;
 
 		private bool isMultiplayerMode = false;
+
+		#region UI Manager Architecture
+
+		/// <summary>
+		/// Get the active UI manager based on current game mode
+		/// Falls back to legacy gameplayUI if new architecture is disabled
+		/// </summary>
+		public BaseGameplayUIManager GetActiveUI() {
+			if (!useNewUIArchitecture || (singlePlayerUI == null && multiPlayerUI == null)) {
+				// Fallback to legacy system - return null since GameplayUIManager doesn't inherit from BaseGameplayUIManager
+				TakiLogger.LogWarning("Using legacy GameplayUIManager - new UI architecture disabled", TakiLogger.LogCategory.UI);
+				return null;
+			}
+
+			if (isMultiplayerMode && multiPlayerUI != null) {
+				return multiPlayerUI;
+			} else if (!isMultiplayerMode && singlePlayerUI != null) {
+				return singlePlayerUI;
+			}
+
+			// Final fallback
+			TakiLogger.LogWarning($"No UI manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}", TakiLogger.LogCategory.UI);
+			return null;
+		}
+
+
+		/// <summary>
+		/// Helper method for migrating gameplayUI?.Method() calls
+		/// Usage: GetActiveUI()?.Method() instead of gameplayUI?.Method()
+		/// </summary>
+		public BaseGameplayUIManager GetUI() => GetActiveUI();
+
+		#endregion
 
 		void Start () {
 			// Configure logging system
@@ -197,7 +240,7 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ("=== INITIALIZING MULTIPLAYER SYSTEMS (MILESTONE 1) ===");
 
 			if (networkGameManager == null) {
-				TakiLogger.LogError ("NetworkGameManager not assigned!", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("MultiplayerGameManager not assigned!", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -468,7 +511,7 @@ namespace TakiGame {
 
 			// Ensure opponent hand count is properly displayed
 			if (computerHandManager != null && computerHandManager.IsOpponentHand) {
-				// Hand count should already be updated by NetworkGameManager
+				// Hand count should already be updated by MultiplayerGameManager
 				// This ensures UI consistency
 				TakiLogger.LogNetwork ($"Network hand count sync: Local={playerHand.Count}, Opponent={computerHandManager.NetworkOpponentHandCount}");
 			}

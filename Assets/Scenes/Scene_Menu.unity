@@ -732,7 +732,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!114 &138603707
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4973,7 +4972,7 @@ GameObject:
   - component: {fileID: 475843240}
   - component: {fileID: 475843239}
   m_Layer: 5
-  m_Name: Player1MessageText
+  m_Name: Player2MessageText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5921,7 +5920,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!114 &539775788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6409,7 +6407,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &590268797
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8144,8 +8142,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 902178959}
   - {fileID: 138603705}
+  - {fileID: 902178959}
   - {fileID: 539775786}
   m_Father: {fileID: 793150723}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8284,7 +8282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &793150723
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8590,8 +8588,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1008766641}
   - {fileID: 1499371184}
+  - {fileID: 1008766641}
   - {fileID: 1168683624}
   m_Father: {fileID: 793150723}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -9289,7 +9287,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!1 &888965484
 GameObject:
   m_ObjectHideFlags: 0
@@ -11531,9 +11528,11 @@ GameObject:
   - component: {fileID: 1026764717}
   - component: {fileID: 1026764716}
   - component: {fileID: 1026764715}
-  - component: {fileID: 1026764718}
   - component: {fileID: 1026764719}
   - component: {fileID: 1026764720}
+  - component: {fileID: 1026764721}
+  - component: {fileID: 1026764723}
+  - component: {fileID: 1026764722}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -11657,6 +11656,9 @@ MonoBehaviour:
   turnManager: {fileID: 1026764711}
   computerAI: {fileID: 1026764710}
   gameplayUI: {fileID: 1026764709}
+  singlePlayerUI: {fileID: 1026764723}
+  multiPlayerUI: {fileID: 1026764722}
+  useNewUIArchitecture: 1
   deckManager: {fileID: 1099715888}
   startingPlayer: 0
   playerHand: []
@@ -11667,7 +11669,7 @@ MonoBehaviour:
   pauseManager: {fileID: 1026764717}
   gameEndManager: {fileID: 1026764716}
   exitValidationManager: {fileID: 1026764715}
-  networkGameManager: {fileID: 1026764718}
+  networkGameManager: {fileID: 1026764721}
 --- !u!114 &1026764714
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11743,20 +11745,6 @@ MonoBehaviour:
   computerAI: {fileID: 1026764710}
   gameplayUI: {fileID: 1026764709}
   menuNavigation: {fileID: 286681466}
---- !u!114 &1026764718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1026764700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2597999ba9b1dfd48b0754d5a7f7f1e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  turnMgr: {fileID: 1026764719}
-  gameManager: {fileID: 1026764713}
 --- !u!114 &1026764719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11792,6 +11780,98 @@ MonoBehaviour:
   sceneViewId: 1
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &1026764721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1026764700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fff5b68d1fed77f4c8bdc2eeee2b24aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turnMgr: {fileID: 1026764719}
+  gameManager: {fileID: 1026764713}
+--- !u!114 &1026764722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1026764700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75e0140493746674189037869b34ef84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  redColor: {r: 1, g: 0, b: 0, a: 1}
+  blueColor: {r: 0, g: 0, b: 1, a: 1}
+  greenColor: {r: 0, g: 1, b: 0, a: 1}
+  yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  wildColor: {r: 1, g: 1, b: 1, a: 1}
+  turnIndicatorText: {fileID: 2025419363}
+  currentColorIndicator: {fileID: 1992932893}
+  playCardButton: {fileID: 923876880}
+  drawCardButton: {fileID: 718596704}
+  endTurnButton: {fileID: 432479822}
+  pauseButton: {fileID: 517483322}
+  player1HandSizeText: {fileID: 44698874}
+  player2HandSizeText: {fileID: 1944825772}
+  playerMessageText: {fileID: 1083940413}
+  computerMessageText: {fileID: 475843239}
+  colorSelectionPanel: {fileID: 1425136735}
+  selectRedButton: {fileID: 1080119977}
+  selectBlueButton: {fileID: 2070090424}
+  selectGreenButton: {fileID: 270262562}
+  selectYellowButton: {fileID: 689414760}
+  chainStatusText: {fileID: 313556670}
+  endTakiSequenceButton: {fileID: 590268798}
+  takiSequenceStatusText: {fileID: 1749992082}
+  drawPilePanel: {fileID: 547943775}
+  drawPileCountText: {fileID: 1972942779}
+  discardPilePanel: {fileID: 396420032}
+  discardPileCountText: {fileID: 1267218270}
+--- !u!114 &1026764723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1026764700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b71077638b716f489bc51bb9f19eeb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  redColor: {r: 1, g: 0, b: 0, a: 1}
+  blueColor: {r: 0, g: 0, b: 1, a: 1}
+  greenColor: {r: 0, g: 1, b: 0, a: 1}
+  yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  wildColor: {r: 1, g: 1, b: 1, a: 1}
+  turnIndicatorText: {fileID: 1469045368}
+  currentColorIndicator: {fileID: 1851409437}
+  playCardButton: {fileID: 1463196891}
+  drawCardButton: {fileID: 938321214}
+  endTurnButton: {fileID: 1886274360}
+  pauseButton: {fileID: 1871367750}
+  player1HandSizeText: {fileID: 1637192615}
+  player2HandSizeText: {fileID: 710003516}
+  playerMessageText: {fileID: 1829680383}
+  computerMessageText: {fileID: 931931606}
+  colorSelectionPanel: {fileID: 762993227}
+  selectRedButton: {fileID: 1141522280}
+  selectBlueButton: {fileID: 2047257697}
+  selectGreenButton: {fileID: 481866902}
+  selectYellowButton: {fileID: 1704348695}
+  chainStatusText: {fileID: 1701207491}
+  endTakiSequenceButton: {fileID: 1280598185}
+  takiSequenceStatusText: {fileID: 1876069286}
+  drawPilePanel: {fileID: 896669773}
+  drawPileCountText: {fileID: 129087692}
+  discardPilePanel: {fileID: 731373649}
+  discardPileCountText: {fileID: 1191459745}
 --- !u!1 &1060675605
 GameObject:
   m_ObjectHideFlags: 0
@@ -12978,7 +13058,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!114 &1168683626
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13992,7 +14071,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1280598184
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14875,7 +14954,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1425136736
 RectTransform:
   m_ObjectHideFlags: 0
@@ -16598,7 +16677,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!114 &1499371186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17033,7 +17111,6 @@ MonoBehaviour:
   tightSpacingThreshold: 8
   horizontalPadding: 20
   isNetworkGame: 0
-  opponentCountText: {fileID: 0}
 --- !u!1 &1561446172
 GameObject:
   m_ObjectHideFlags: 0
@@ -18450,7 +18527,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1678040292
 RectTransform:
   m_ObjectHideFlags: 0
@@ -22068,7 +22145,7 @@ GameObject:
   - component: {fileID: 1944825773}
   - component: {fileID: 1944825772}
   m_Layer: 5
-  m_Name: 'Player1HandSizeText '
+  m_Name: 'Player2HandSizeText '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

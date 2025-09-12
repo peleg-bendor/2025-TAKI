@@ -36,9 +36,6 @@ namespace TakiGame {
 		[Tooltip ("Is this a network multiplayer game?")]
 		public bool isNetworkGame = false;
 
-		[Tooltip ("Text to show opponent hand count")]
-		public TMPro.TextMeshProUGUI opponentCountText;
-
 		// Events
 		public System.Action<CardController> OnCardSelected;
 		public System.Action<List<CardData>> OnHandUpdated;
@@ -54,6 +51,7 @@ namespace TakiGame {
 
 		// Integration references
 		private GameManager gameManager;
+		private BaseGameplayUIManager activeUI;
 
 		void Awake () {
 			// Validate components
@@ -71,6 +69,15 @@ namespace TakiGame {
 			gameManager = FindObjectOfType<GameManager> ();
 			if (gameManager == null) {
 				TakiLogger.LogWarning ($"HandManager {gameObject.name}: GameManager not found!", TakiLogger.LogCategory.System);
+				return;
+			}
+
+			// Get active UI manager from GameManager (fixes screen hierarchy issue)
+			activeUI = gameManager.GetActiveUI();
+			if (activeUI == null) {
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: No active UI manager available from GameManager!", TakiLogger.LogCategory.System);
+			} else {
+				TakiLogger.LogUI ($"HandManager {gameObject.name}: Connected to active UI manager: {activeUI.GetType().Name}");
 			}
 		}
 
@@ -95,17 +102,20 @@ namespace TakiGame {
 
 		/// <summary>
 		/// MILESTONE 1: Update opponent hand count for network display
-		/// FIXED: Ensures stable card back display with state tracking
+		/// FIXED: Uses centralized UI manager instead of direct UI access
 		/// </summary>
 		/// <param name="opponentCount">Number of cards opponent has</param>
 		public void UpdateNetworkOpponentHandCount (int opponentCount) {
 			networkOpponentHandCount = opponentCount;
 
-			// Update count display text
-			if (opponentCountText != null) {
-				opponentCountText.text = $"Opponent: {opponentCount} cards";
-				opponentCountText.gameObject.SetActive (true);
-				TakiLogger.LogNetwork ($"Opponent count text updated: {opponentCount}");
+			// Use centralized UI manager for hand size updates
+			if (activeUI != null) {
+				// Get local hand count from GameManager or assume this is opponent hand
+				int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+				activeUI.UpdateHandSizeDisplay (localHandCount, opponentCount);
+				TakiLogger.LogNetwork ($"Opponent count updated via centralized UI: {opponentCount}");
+			} else {
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Cannot update UI - Active UI manager not found", TakiLogger.LogCategory.System);
 			}
 
 			// FIXED: Only update card backs if we're actually displaying opponent hand AND count changed
@@ -150,7 +160,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// MILESTONE 1: Initialize hands for network multiplayer
-		/// Configures proper display based on hand type
+		/// FIXED: Uses centralized UI manager for initialization
 		/// </summary>
 		/// <param name="isLocalPlayerHand">True if this is the local player's hand</param>
 		public void InitializeNetworkHands (bool isLocalPlayerHand) {
@@ -160,20 +170,15 @@ namespace TakiGame {
 				// Local player hand - always face up
 				showFaceUpCards = true;
 				isDisplayingOpponentHand = false;
-
-				// Hide opponent count text for own hand
-				if (opponentCountText != null) {
-					opponentCountText.gameObject.SetActive (false);
-				}
 			} else {
 				// Opponent hand - always face down with count
 				showFaceUpCards = false;
 				isDisplayingOpponentHand = true;
 
-				// Show opponent count text
-				if (opponentCountText != null) {
-					opponentCountText.gameObject.SetActive (true);
-					opponentCountText.text = "Opponent: 0 cards";
+				// Initialize opponent count through centralized UI
+				if (activeUI != null) {
+					int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+					activeUI.UpdateHandSizeDisplay (localHandCount, 0);
 				}
 			}
 
@@ -550,7 +555,7 @@ namespace TakiGame {
 		/// <param name="realOpponentCards">Real cards from network (for synchronization)</param>
 		public void ShowOpponentHandWithPrivacy (List<CardData> realOpponentCards) {
 			if (realOpponentCards == null) {
-				TakiLogger.LogError ("ShowOpponentHandWithPrivacy called with null cards", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("ShowOpponentHandWithPrivacy called with null cards", TakiLogger.LogCategory.Multiplayer);
 				return;
 			}
 
@@ -568,11 +573,11 @@ namespace TakiGame {
 			// Arrange cards with proper spacing
 			ArrangeCards ();
 
-			// Update opponent count display
+			// Update opponent count display through centralized UI
 			networkOpponentHandCount = realOpponentCards.Count;
-			if (opponentCountText != null) {
-				opponentCountText.text = $"Opponent: {realOpponentCards.Count} cards";
-				opponentCountText.gameObject.SetActive (true);
+			if (activeUI != null) {
+				int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+				activeUI.UpdateHandSizeDisplay (localHandCount, realOpponentCards.Count);
 			}
 
 			TakiLogger.LogNetwork ($"Opponent hand displayed with privacy: {realOpponentCards.Count} real cards as card backs");
@@ -673,11 +678,6 @@ namespace TakiGame {
 				showFaceUpCards = true;
 				isDisplayingOpponentHand = false;
 
-				// Hide opponent count text for own hand
-				if (opponentCountText != null) {
-					opponentCountText.gameObject.SetActive (false);
-				}
-
 				// Initialize with real cards if provided
 				if (initialCards != null && initialCards.Count > 0) {
 					// Call the standard UpdateHandDisplay directly to ensure local hand is shown properly
@@ -689,10 +689,11 @@ namespace TakiGame {
 				showFaceUpCards = false;
 				isDisplayingOpponentHand = true;
 
-				// Show opponent count text
-				if (opponentCountText != null) {
-					opponentCountText.gameObject.SetActive (true);
-					opponentCountText.text = "Opponent: 0 cards";
+				// Use centralized UI to initialize opponent count
+				if (activeUI != null) {
+					int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+					int opponentCount = initialCards?.Count ?? 0;
+					activeUI.UpdateHandSizeDisplay (localHandCount, opponentCount);
 				}
 
 				// Use enhanced privacy display for opponent hands
@@ -731,9 +732,10 @@ namespace TakiGame {
 					}
 				}
 
-				// Update count display
-				if (opponentCountText != null) {
-					opponentCountText.text = $"Opponent: {networkOpponentHandCount} cards";
+				// Update count display through centralized UI
+				if (activeUI != null) {
+					int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+					activeUI.UpdateHandSizeDisplay (localHandCount, networkOpponentHandCount);
 				}
 
 				// Rearrange all cards
@@ -762,7 +764,7 @@ namespace TakiGame {
 				int cardIndex = currentHand.FindIndex (card => card?.cardType == cardData.cardType &&
 															card?.color == cardData.color);
 				if (cardIndex < 0) {
-					TakiLogger.LogWarning ($"Card not found in private hand: {cardData.GetDisplayText ()}", TakiLogger.LogCategory.Network);
+					TakiLogger.LogWarning ($"Card not found in private hand: {cardData.GetDisplayText ()}", TakiLogger.LogCategory.Multiplayer);
 					return false;
 				}
 
@@ -781,9 +783,10 @@ namespace TakiGame {
 					}
 				}
 
-				// Update count display
-				if (opponentCountText != null) {
-					opponentCountText.text = $"Opponent: {networkOpponentHandCount} cards";
+				// Update count display through centralized UI
+				if (activeUI != null) {
+					int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+					activeUI.UpdateHandSizeDisplay (localHandCount, networkOpponentHandCount);
 				}
 
 				// Rearrange remaining cards
@@ -831,11 +834,11 @@ namespace TakiGame {
 		public void SynchronizeOpponentHandEnhanced (int opponentCount, List<CardData> realCards = null) {
 			networkOpponentHandCount = opponentCount;
 
-			// Update count display text
-			if (opponentCountText != null) {
-				opponentCountText.text = $"Opponent: {opponentCount} cards";
-				opponentCountText.gameObject.SetActive (true);
-				TakiLogger.LogNetwork ($"Opponent count text updated: {opponentCount}");
+			// Update count display through centralized UI
+			if (activeUI != null) {
+				int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+				activeUI.UpdateHandSizeDisplay (localHandCount, opponentCount);
+				TakiLogger.LogNetwork ($"Opponent count updated via centralized UI: {opponentCount}");
 			}
 
 			// If we have real cards, use enhanced privacy display

@@ -227,7 +227,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Start multiplayer game (placeholder for future implementation)
-		/// ENHANCED: Will integrate with NetworkGameManager when created
+		/// ENHANCED: Will integrate with MultiplayerGameManager when created
 		/// </summary>
 		private void StartMultiPlayerGame () {
 			if (gameManager != null) {

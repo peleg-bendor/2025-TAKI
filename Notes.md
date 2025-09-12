@@ -348,4 +348,592 @@ Right now there is a lot of log traffic, as well as messy commenting.
 This makes finding issues, and using conqure
 
 
+Look at @Assets/Scripts/Multiplayer/MultiplayerMenuLogic.cs and @Assets/Scripts/Multiplayer/NetworkGameManager.cs - specifically how photon is used. Currently, I only send the initial game state once the guest is connected (the call to photonView.RPC).
+Before calling photonView.RPC - please log the whole message (all details) using `TakiLogger.LogNetwork (???);`
+Also, can I log the full message when received by the client?
 
+ Please inspect anf tell me if it looks ok
+I want to ignore this issue. Now, before sending the initial game state (the call to photonView.RPC) - log all that is sent. Likewise -
+   log the incomming data. Use TakiLogger.LogCategory.Network
+
+
+
+
+# Notes from me looking at the logs
+
+## 1. UpdateHandDisplay vs UpdateHandDisplayEnhanced
+
+## 2. I didn't see in the logs "Opponent count text updated" from `UpdateNetworkOpponentHandCount`
+
+## 3. I also see "Showing 8 card backs for opponent hand" - meaning `ShowOpponentHandAsCardBacks` is called - in which we have:
+```
+// Create list of null cards for card backs
+List<CardData> cardBacks = new List<CardData> ();
+for (int i = 0; i < cardCount; i++) {
+	cardBacks.Add (null); // null = card back in our system (now properly handled by CardController)
+}
+```
+And `cardBacks.Add (null)` looks to me to be very very problematic
+
+## 4. I also see `Card back initialized for opponent display`
+Which calls `SetupCardBackDisplay` which has this problematic line: `this.cardData = null; // Explicitly null for card backs`
+
+
+
+---
+
+I have been analysing the logs, and have found a few suspicius things, but it's best if we tackle them one at a time. 
+
+
+---------
+
+I want us to look into UpdateHandDisplay and UpdateHandDisplayEnhanced. How come we have these two? What are their differences? In actuality, where, when, and by who are they called? Is it wise to keep them both?
+
+Yes I see, that sounds like a good idea, but I will not implement it just yet - I have another point to raise first: I searched in the logs for "Opponent count text updated:" and no results shoed up - could it be that `opponentCountText` = null? If so, is that not problematic?
+
+
+-------
+
+# **Summary: Current Architecture Analysis** 📋
+
+## **What We Discovered** 🔍
+
+### **1. Missing UI Assignment Issue**
+- **Problem**: `opponentCountText` in HandManager is null → No "Opponent count text updated" logs
+- **Location**: HandManager script expects direct UI text assignment but it's not assigned in Inspector
+
+### **2. Architecture Inconsistency** ⚠️
+- **Most components**: Use centralized UI through `GameplayUIManager` ✅
+  - `TurnManager` → `gameplayUI.UpdateTurnDisplay()`
+  - `NetworkGameManager` → `gameplayUI.ShowNetworkStatus()`
+- **HandManager**: Tries to control UI directly ❌
+  - `HandManager.opponentCountText` → Direct TextMeshProUGUI assignment (null)
+
+### **3. Missing HandManager GameObjects** 🏗️
+- **Expected**: `PlayerHandManager` and `ComputerHandManager` GameObjects with HandManager scripts
+- **Reality**: Only UI panels and text elements exist, no HandManager GameObjects in hierarchy
+- **Impact**: Visual card system not implemented, only text-based hand size display
+
+## **Two Architectural Paths** 🎯
+
+### **Option A: Fix Inconsistency (Recommended)**
+- **Don't create HandManager GameObjects**
+- **Don't assign `opponentCountText`**
+- **Make HandManager use existing centralized UI**:
+  ```csharp
+  // Instead of: handManager.opponentCountText.text = "..."
+  // Use: gameplayUI.UpdateHandSizeDisplayMultiplayer(localCount, opponentCount)
+  ```
+
+### **Option B: Complete HandManager System**
+- **Create `PlayerHandManager` and `ComputerHandManager` GameObjects**
+- **Assign `opponentCountText` to existing `Player2HandSizeText`**
+- **Implement full visual card system with card prefabs and opponent privacy**
+
+## **Key Insight** 💡
+The `opponentCountText` null issue **reveals a design inconsistency** where HandManager tries to bypass the established centralized UI pattern used by all other components.
+
+## **Recommendation** ✅
+**Fix the inconsistency** by making HandManager follow the same centralized UI pattern as TurnManager, NetworkGameManager, and other components. This avoids UI assignment issues and maintains architectural consistency.
+
+#What are your thoughts on this? do you have access to seeing the inspector?
+
+
+
+-------
+
+What does this log tell us: "[SYS] HandManager Player2HandPanel: Cannot update UI - GameplayUIManager not found" ? What can it tell us about the inspector?
+
+And here is for you to know about the inspector and Hierarchy
+
+**Scene Hierarchy**:
+```
+Scene_Menu ✅ COMPLETE + MULTIPLAYER ENHANCED
+├── Main Camera
+├── Canvas
+│   ├── Screen_MainMenu 
+│   ├── Screen_StudentInfo 
+│   ├── Screen_SinglePlayer 
+│   ├── Screen_MultiPlayer - [PHASE 1 COMPLETE - PERFECT MATCHMAKING]
+│   ├── Screen_SinglePlayerGame - FULLY FUNCTIONAL
+│   │   ├── Player1Panel (Human) 
+│   │   │   ├── Player1HandPanel - HandManager 
+│   │   │   └── Player1ActionPanel 
+│   │   │       ├── Btn_Player1PlayCard 
+│   │   │       ├── Btn_Player1DrawCard 
+│   │   │       ├── Btn_Player1EndTurn 
+│   │   │       └── Player1HandSizePanel 
+│   │   │           └── Player1HandSizeText 
+│   │   ├── Player2Panel (Computer) 
+│   │   │   ├── Player2HandPanel - HandManager 
+│   │   │   └── Player2ActionPanel 
+│   │   │       ├── Player2MessageText 
+│   │   │       └── Player2HandSizePanel 
+│   │   │           └── Player2HandSizeText 
+│   │   ├── GameBoardPanel 
+│   │   │   ├── DrawPilePanel 
+│   │   │   │   └── DrawPileCountText 
+│   │   │   ├── DiscardPilePanel 
+│   │   │   │   └── DiscardPileCountText 
+│   │   │   └── Btn_Player1EndTakiSequence 
+│   │   ├── MainGameInfoPanel 
+│   │   │   ├── GameMessageText 
+│   │   │   ├── chainStatusText 
+│   │   │   └── takiSequenceStatusText 
+│   │   ├── SideInfoPanel 
+│   │   │   ├── TurnIndicatorText 
+│   │   │   └── DeckMessageText 
+│   │   ├── ColorSelectionPanel 
+│   │   │   ├── Btn_SelectRed 
+│   │   │   ├── Btn_SelectBlue 
+│   │   │   ├── Btn_SelectGreen 
+│   │   │   └── Btn_SelectYellow 
+│   │   ├── CurrentColorIndicator 
+│   │   ├── Btn_Exit - SAFE EXIT
+│   │   ├── Btn_Pause - FULL PAUSE SYSTEM
+│   │   └── Screen_GameEnd - PROFESSIONAL END
+│   ├── Screen_MultiPlayerGame 
+│   │   ├── Player1Panel (Human) 
+│   │   │   ├── Player1HandPanel - HandManager 
+│   │   │   ├── Player1ActionPanel 
+│   │   │   │   ├── Btn_Player1PlayCard 
+│   │   │   │   ├── Btn_Player1DrawCard 
+│   │   │   │   ├── Btn_Player1EndTurn 
+│   │   │   │   └── Player1HandSizePanel 
+│   │   │   │       └── Player1HandSizeText 
+│   │   │   └── Player1InfoPanel 
+│   │   │       ├── Player1TimerPanel 
+│   │   │       │   └── Player1TimerText 
+│   │   │       └── Player1MessagePanel 
+│   │   │           └── Player1MessageText 
+│   │   ├── Player2Panel (Human) 
+│   │   │   ├── Player2HandPanel - HandManager 
+│   │   │   ├── Player2ActionPanel 
+│   │   │   │   ├── Btn_Player2PlayCard 
+│   │   │   │   ├── Btn_Player2DrawCard 
+│   │   │   │   ├── Btn_Player2EndTurn 
+│   │   │   │   └── Player2HandSizePanel 
+│   │   │   │       └── Player2HandSizeText 
+│   │   │   └── Player2InfoPanel 
+│   │   │       ├── Player2TimerPanel 
+│   │   │       │   └── Player2TimerText 
+│   │   │       └── Player2MessagePanel 
+│   │   │           └── Player2MessageText 
+│   │   ├── GameBoardPanel 
+│   │   │   ├── DrawPilePanel 
+│   │   │   │   └── DrawPileCountText 
+│   │   │   ├── DiscardPilePanel 
+│   │   │   │   └── DiscardPileCountText 
+│   │   │   └── Btn_Player1EndTakiSequence 
+│   │   ├── MainGameInfoPanel 
+│   │   │   ├── GameMessageText 
+│   │   │   ├── chainStatusText 
+│   │   │   └── takiSequenceStatusText 
+│   │   ├── SideInfoPanel 
+│   │   │   ├── TurnIndicatorText 
+│   │   │   └── DeckMessageText 
+│   │   ├── ColorSelectionPanel 
+│   │   │   ├── Btn_SelectRed 
+│   │   │   ├── Btn_SelectBlue 
+│   │   │   ├── Btn_SelectGreen 
+│   │   │   └── Btn_SelectYellow 
+│   │   ├── CurrentColorIndicator 
+│   │   ├── Btn_Exit 
+│   │   ├── Btn_Pause 
+│   │   └── Screen_GameEnd 
+│   ├── Screen_Settings 
+│   ├── Screen_ExitValidation - COMPREHENSIVE CLEANUP
+│   ├── Screen_Paused - STATE PRESERVATION
+│   ├── Screen_GameEnd - WINNER ANNOUNCEMENT
+│   ├── Screen_Loading 
+│   └── Screen_Exiting 
+├── EventSystem 
+├── MenuNavigation [Components: Menu Navigation (Script)]
+├── BackgroundMusic  [Components: Dont Destroy On Load (Script)]
+├── SFXController 
+├── DeckManager [Components: Deck Manager (Script), Deck (Script), Card Data Loader (Script), Deck UI Manager (Script), Game Setup Manager (Script), Pile Manager (Script)]
+├── GameManager [Components: Game Manager (Script), Game State Manager (Script), Turn Manager (Script), Basic Computer AI (Script), Gameplay UI Manager (Script), Taki Game Diagnostics (Script), Pause Manager (Script), Game End Manager (Script), Exit Validation Manager (Script), Pun Turn Manager (Script), Photon View (Script), Multiplayer Game Manager (Script)]
+└── MultiplayerMenuLogic [Components: Multiplayer Menu Logic (Script)]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> What does this log tell us: "[SYS] HandManager Player2HandPanel: Cannot update UI - GameplayUIManager not found" ? What can it tell us about
+   the inspector?
+
+  And here is for you to know about the inspector and Hierarchy
+
+  **Scene Hierarchy**:
+  ```
+  Scene_Menu ✅ COMPLETE + MULTIPLAYER ENHANCED
+  ├── Main Camera
+  ├── Canvas
+  │   ├── Screen_MainMenu
+  │   ├── Screen_StudentInfo
+  │   ├── Screen_SinglePlayer
+  │   ├── Screen_MultiPlayer - [PHASE 1 COMPLETE - PERFECT MATCHMAKING]
+  │   ├── Screen_SinglePlayerGame - FULLY FUNCTIONAL
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel - HandManager
+  │   │   │   └── Player1ActionPanel
+  │   │   │       ├── Btn_Player1PlayCard
+  │   │   │       ├── Btn_Player1DrawCard
+  │   │   │       ├── Btn_Player1EndTurn
+  │   │   │       └── Player1HandSizePanel
+  │   │   │           └── Player1HandSizeText
+  │   │   ├── Player2Panel (Computer)
+  │   │   │   ├── Player2HandPanel - HandManager
+  │   │   │   └── Player2ActionPanel
+  │   │   │       ├── Player2MessageText
+  │   │   │       └── Player2HandSizePanel
+  │   │   │           └── Player2HandSizeText
+  │   │   ├── GameBoardPanel
+  │   │   │   ├── DrawPilePanel
+  │   │   │   │   └── DrawPileCountText
+  │   │   │   ├── DiscardPilePanel
+  │   │   │   │   └── DiscardPileCountText
+  │   │   │   └── Btn_Player1EndTakiSequence
+  │   │   ├── MainGameInfoPanel
+  │   │   │   ├── GameMessageText
+  │   │   │   ├── chainStatusText
+  │   │   │   └── takiSequenceStatusText
+  │   │   ├── SideInfoPanel
+  │   │   │   ├── TurnIndicatorText
+  │   │   │   └── DeckMessageText
+  │   │   ├── ColorSelectionPanel
+  │   │   │   ├── Btn_SelectRed
+  │   │   │   ├── Btn_SelectBlue
+  │   │   │   ├── Btn_SelectGreen
+  │   │   │   └── Btn_SelectYellow
+  │   │   ├── CurrentColorIndicator
+  │   │   ├── Btn_Exit - SAFE EXIT
+  │   │   ├── Btn_Pause - FULL PAUSE SYSTEM
+  │   │   └── Screen_GameEnd - PROFESSIONAL END
+  │   ├── Screen_MultiPlayerGame
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel - HandManager
+  │   │   │   ├── Player1ActionPanel
+  │   │   │   │   ├── Btn_Player1PlayCard
+  │   │   │   │   ├── Btn_Player1DrawCard
+  │   │   │   │   ├── Btn_Player1EndTurn
+  │   │   │   │   └── Player1HandSizePanel
+  │   │   │   │       └── Player1HandSizeText
+  │   │   │   └── Player1InfoPanel
+  │   │   │       ├── Player1TimerPanel
+  │   │   │       │   └── Player1TimerText
+  │   │   │       └── Player1MessagePanel
+  │   │   │           └── Player1MessageText
+  │   │   ├── Player2Panel (Human)
+  │   │   │   ├── Player2HandPanel - HandManager
+  │   │   │   ├── Player2ActionPanel
+  │   │   │   │   ├── Btn_Player2PlayCard
+  │   │   │   │   ├── Btn_Player2DrawCard
+  │   │   │   │   ├── Btn_Player2EndTurn
+  │   │   │   │   └── Player2HandSizePanel
+  │   │   │   │       └── Player2HandSizeText
+  │   │   │   └── Player2InfoPanel
+  │   │   │       ├── Player2TimerPanel
+  │   │   │       │   └── Player2TimerText
+  │   │   │       └── Player2MessagePanel
+  │   │   │           └── Player2MessageText
+  │   │   ├── GameBoardPanel
+  │   │   │   ├── DrawPilePanel
+  │   │   │   │   └── DrawPileCountText
+  │   │   │   ├── DiscardPilePanel
+  │   │   │   │   └── DiscardPileCountText
+  │   │   │   └── Btn_Player1EndTakiSequence
+  │   │   ├── MainGameInfoPanel
+  │   │   │   ├── GameMessageText
+  │   │   │   ├── chainStatusText
+  │   │   │   └── takiSequenceStatusText
+  │   │   ├── SideInfoPanel
+  │   │   │   ├── TurnIndicatorText
+  │   │   │   └── DeckMessageText
+  │   │   ├── ColorSelectionPanel
+  │   │   │   ├── Btn_SelectRed
+  │   │   │   ├── Btn_SelectBlue
+  │   │   │   ├── Btn_SelectGreen
+  │   │   │   └── Btn_SelectYellow
+  │   │   ├── CurrentColorIndicator
+  │   │   ├── Btn_Exit
+  │   │   ├── Btn_Pause
+  │   │   └── Screen_GameEnd
+  │   ├── Screen_Settings
+  │   ├── Screen_ExitValidation - COMPREHENSIVE CLEANUP
+  │   ├── Screen_Paused - STATE PRESERVATION
+  │   ├── Screen_GameEnd - WINNER ANNOUNCEMENT
+  │   ├── Screen_Loading
+  │   └── Screen_Exiting
+  ├── EventSystem
+  ├── MenuNavigation [Components: Menu Navigation (Script)]
+  ├── BackgroundMusic  [Components: Dont Destroy On Load (Script)]
+  ├── SFXController
+  ├── DeckManager [Components: Deck Manager (Script), Deck (Script), Card Data Loader (Script), Deck UI Manager (Script), Game Setup Manager
+  (Script), Pile Manager (Script)]
+  ├── GameManager [Components: Game Manager (Script), Game State Manager (Script), Turn Manager (Script), Basic Computer AI (Script), Gameplay
+   UI Manager (Script), Taki Game Diagnostics (Script), Pause Manager (Script), Game End Manager (Script), Exit Validation Manager (Script),
+  Pun Turn Manager (Script), Photon View (Script), Multiplayer Game Manager (Script)]
+  └── MultiplayerMenuLogic [Components: Multiplayer Menu Logic (Script)]
+
+  ```
+
+> Do you not think that the main problem is in the architecture of our hierarchy?
+
+✻ Thinking…
+
+  The user is asking me to think more deeply about the architecture of the hierarchy. Let me analyze what they've shown me:
+
+  Looking at the hierarchy again:
+
+  Scene_Menu
+  ├── Canvas
+  │   ├── Screen_SinglePlayerGame - FULLY FUNCTIONAL
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel - HandManager
+  │   │   ├── Player2Panel (Computer)
+  │   │   │   ├── Player2HandPanel - HandManager
+  │   │   │   └── Player2ActionPanel
+  │   │   │       ├── Player2MessageText
+  │   │   │       └── Player2HandSizePanel
+  │   │   │           └── Player2HandSizeText
+  │   │   ├── MainGameInfoPanel
+  │   │   │   ├── GameMessageText
+  │   ├── Screen_MultiPlayerGame
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel - HandManager
+  │   │   ├── Player2Panel (Human)
+  │   │   │   ├── Player2HandPanel - HandManager
+  ├── GameManager [Components: ... Gameplay UI Manager (Script) ...]
+
+  Wait, I think I see the fundamental architectural problem now!
+
+  The issue is that there are TWO different game screens:
+  1. Screen_SinglePlayerGame - has its own UI elements
+  2. Screen_MultiPlayerGame - has its own SEPARATE UI elements
+
+  But there's only ONE GameplayUIManager script attached to the GameManager GameObject.
+
+  The GameplayUIManager script needs to be assigned to UI text elements in the Inspector, but:
+  - It can only reference ONE set of UI elements
+  - But there are TWO different sets of UI elements (SinglePlayer vs Multiplayer screens)
+  - The UI elements are in different parts of the hierarchy
+
+  I see a critical configuration challenge where the single UI manager can't dynamically adapt between different screen contexts. The script
+  is essentially locked into referencing one set of UI elements, creating a rigid structure that breaks when switching game modes. This means
+  the HandManager and other components might fail to connect properly when transitioning between single and multiplayer screens, leading to
+  potential runtime errors or disconnected UI interactions.
+
+● You're absolutely right! 🎯 Looking at the hierarchy more carefully, I can see the fundamental architectural problem:
+
+  The Real Issue: Duplicate UI Hierarchies ⚠️
+
+  Screen_SinglePlayerGame
+  ├── Player1HandPanel - HandManager ✅
+  ├── Player2HandPanel - HandManager ✅
+  ├── Player1HandSizeText ✅
+  ├── Player2HandSizeText ✅
+  └── Other UI elements...
+
+  Screen_MultiPlayerGame
+  ├── Player1HandPanel - HandManager ✅
+  ├── Player2HandPanel - HandManager ✅
+  ├── Player1HandSizeText ✅
+  ├── Player2HandSizeText ✅
+  └── Other UI elements... (DUPLICATES!)
+
+  GameManager (ONE GameObject)
+  └── GameplayUIManager (ONE script)
+
+  The Architectural Problem 🚨
+
+  1. Two Complete UI Hierarchies - SinglePlayer and MultiPlayer screens have identical UI structures
+  2. One Centralized UI Manager - GameplayUIManager can only reference ONE set of UI components in Inspector
+  3. Screen Switching - Only one screen is active at a time, but GameplayUIManager is trying to manage both
+
+  Why It Fails ❌
+
+  When GameplayUIManager is assigned in Inspector, it can reference either:
+  - Screen_SinglePlayerGame/Player2HandSizeText OR
+  - Screen_MultiPlayerGame/Player2HandSizeText
+
+  But NOT BOTH. So when the wrong screen is active, the references are null/inactive!
+
+  ---
+  🎯 IMPLEMENTATION PLAN: Per-Screen UI Managers
+
+  Phase 1: Architecture Design 📋
+
+  Step 1.1: Create Base UI Manager
+
+  // BaseGameplayUIManager.cs - Shared functionality
+  public abstract class BaseGameplayUIManager : MonoBehaviour {
+      // Common UI elements (turn display, color selection, etc.)
+      // Common methods (UpdateTurnDisplay, ShowColorSelection, etc.)
+      // Abstract methods for screen-specific functionality
+  }
+
+  Step 1.2: Create Specialized Managers
+
+  // SinglePlayerUIManager.cs
+  public class SinglePlayerUIManager : BaseGameplayUIManager {
+      // References to Screen_SinglePlayerGame UI elements
+      // SinglePlayer-specific methods (computer AI messages, etc.)
+  }
+
+  // MultiPlayerUIManager.cs
+  public class MultiPlayerUIManager : BaseGameplayUIManager {
+      // References to Screen_MultiPlayerGame UI elements
+      // Multiplayer-specific methods (opponent actions, network status, etc.)
+  }
+
+  Phase 2: Safe Migration Strategy 🛡️
+
+  Step 2.1: Preserve Existing System
+
+  - ✅ Keep current GameplayUIManager active during transition
+  - ✅ Add new managers alongside existing one
+  - ✅ Gradual migration - move functionality piece by piece
+  - ✅ Fallback mechanisms - if new manager fails, use old one
+
+  Step 2.2: Create Manager Hierarchy
+
+  GameManager
+  ├── GameplayUIManager (LEGACY - gradually phase out)
+  ├── SinglePlayerUIManager (NEW)
+  └── MultiPlayerUIManager (NEW)
+
+  Phase 3: Implementation Steps 🔨
+
+  Step 3.1: Create Base Classes ⚙️
+
+  1. Extract common functionality from current GameplayUIManager
+  2. Create BaseGameplayUIManager with shared methods
+  3. Define abstract methods for screen-specific functionality
+  4. Create interfaces for GameManager communication
+
+  Step 3.2: Implement Specialized Managers 🎯
+
+  1. SinglePlayerUIManager:
+    - References to Screen_SinglePlayerGame elements
+    - Computer AI message handling
+    - Singleplayer-specific turn flow
+  2. MultiPlayerUIManager:
+    - References to Screen_MultiPlayerGame elements
+    - Network status displays
+    - Opponent action feedback
+    - Timer displays
+
+  Step 3.3: Update Integration Points 🔗
+
+  1. GameManager modifications:
+  public SinglePlayerUIManager singlePlayerUI;
+  public MultiPlayerUIManager multiPlayerUI;
+
+  BaseGameplayUIManager GetActiveUI() {
+      return IsMultiplayerMode ? multiPlayerUI : singlePlayerUI;
+  }
+  2. HandManager modifications:
+  // Instead of: FindObjectOfType<GameplayUIManager>()
+  // Use: gameManager.GetActiveUI()
+
+  Phase 4: Migration Plan 📋
+
+  Step 4.1: Preparation (Week 1)
+
+  - Create BaseGameplayUIManager class
+  - Create SinglePlayerUIManager class
+  - Create MultiPlayerUIManager class
+  - Set up Inspector assignments for both screens
+
+  Step 4.2: Integration (Week 1-2)
+
+  - Update GameManager to reference both UI managers
+  - Create UI manager selection logic
+  - Update HandManager to use active UI manager
+  - Update other components (TurnManager, NetworkGameManager, etc.)
+
+  Step 4.3: Testing (Week 2)
+
+  - Test SinglePlayer mode with new manager
+  - Test MultiPlayer mode with new manager
+  - Test screen switching scenarios
+  - Verify all UI elements work correctly
+
+  Step 4.4: Cleanup (Week 2-3)
+
+  - Remove legacy GameplayUIManager references
+  - Clean up unused code
+  - Update documentation
+  - Performance validation
+
+  Phase 5: Safety Measures 🛡️
+
+  Rollback Plan
+
+  public class GameManager : MonoBehaviour {
+      public GameplayUIManager legacyUI;  // Keep as backup
+      public SinglePlayerUIManager singlePlayerUI;
+      public MultiPlayerUIManager multiPlayerUI;
+
+      public bool useLegacyUI = false;  // Emergency rollback flag
+
+      BaseGameplayUIManager GetActiveUI() {
+          if (useLegacyUI && legacyUI != null) return legacyUI;
+          return IsMultiplayerMode ? multiPlayerUI : singlePlayerUI;
+      }
+  }
+
+  Validation Checks
+
+  void ValidateUIManagers() {
+      // Ensure both managers have proper Inspector assignments
+      // Log warnings if any UI elements are missing
+      // Provide fallback to legacy manager if needed
+  }
+
+  Benefits of This Plan ✅
+
+  1. Zero Risk - Legacy system remains as backup
+  2. Gradual Migration - Can implement piece by piece
+  3. Clear Ownership - Each manager handles one screen only
+  4. Better Performance - No cross-screen reference checks
+  5. Easier Maintenance - Isolated, focused responsibilities

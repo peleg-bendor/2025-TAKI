@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace TakiGame {
 	/// <summary>
-	/// PHASE 2 MILESTONE 1: Enhanced NetworkGameManager with Deck Initialization
+	/// PHASE 2 MILESTONE 1: Enhanced MultiplayerGameManager with Deck Initialization
 	/// Following instructor's proven pattern with master/client coordination
 	/// FIXED: All CardData constructor calls removed
 	/// </summary>
-	public class NetworkGameManager : MonoBehaviourPunCallbacks, IPunTurnManagerCallbacks {
+	public class MultiplayerGameManager : MonoBehaviourPunCallbacks, IPunTurnManagerCallbacks {
 
 		[Header ("Network Turn Management")]
 		public PunTurnManager turnMgr;
@@ -88,6 +88,17 @@ namespace TakiGame {
 				string serializedPlayer1Hand = SerializeHand (gameState.player1Hand);
 				string serializedPlayer2Hand = SerializeHand (gameState.player2Hand);
 
+				// Log the complete message before sending
+				TakiLogger.LogNetwork ("=== SENDING INITIAL GAME STATE RPC ===");
+				TakiLogger.LogNetwork ($"Starting Card ID: {startingCardId}");
+				TakiLogger.LogNetwork ($"Draw Pile Count: {gameManager.deckManager.DrawPileCount}");
+				TakiLogger.LogNetwork ($"Player 1 Hand (serialized): {serializedPlayer1Hand}");
+				TakiLogger.LogNetwork ($"Player 2 Hand (serialized): {serializedPlayer2Hand}");
+				TakiLogger.LogNetwork ($"Master Client Actor Number: {PhotonNetwork.LocalPlayer.ActorNumber}");
+				TakiLogger.LogNetwork ($"Player 1 Hand Size: {gameState.player1Hand.Count} cards");
+				TakiLogger.LogNetwork ($"Player 2 Hand Size: {gameState.player2Hand.Count} cards");
+				TakiLogger.LogNetwork ("=== RPC MESSAGE DETAILS LOGGED ===");
+
 				// Send to other clients
 				photonView.RPC ("ReceiveInitialGameState", RpcTarget.Others,
 					startingCardId,
@@ -121,7 +132,14 @@ namespace TakiGame {
 		/// </summary>
 		[PunRPC]
 		void ReceiveInitialGameState (string startingCardId, int drawCount, string serializedPlayer1Hand, string serializedPlayer2Hand, int masterActor) {
-			TakiLogger.LogNetwork ($"Received initial game state with actual card data");
+			TakiLogger.LogNetwork ("=== RECEIVED INITIAL GAME STATE RPC ===");
+			TakiLogger.LogNetwork ($"Starting Card ID: {startingCardId}");
+			TakiLogger.LogNetwork ($"Draw Pile Count: {drawCount}");
+			TakiLogger.LogNetwork ($"Player 1 Hand (serialized): {serializedPlayer1Hand}");
+			TakiLogger.LogNetwork ($"Player 2 Hand (serialized): {serializedPlayer2Hand}");
+			TakiLogger.LogNetwork ($"Master Client Actor: {masterActor}");
+			TakiLogger.LogNetwork ($"Local Player Actor: {PhotonNetwork.LocalPlayer.ActorNumber}");
+			TakiLogger.LogNetwork ("=== RPC MESSAGE RECEIVED DETAILS LOGGED ===");
 
 			if (!_waitingForDeckState) {
 				TakiLogger.LogWarning ("Received game state but wasn't waiting for it", TakiLogger.LogCategory.Network);
@@ -253,7 +271,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// DEBUG: Test serialization/deserialization process
-		/// Add this method to NetworkGameManager and call it before sending hands
+		/// Add this method to MultiplayerGameManager and call it before sending hands
 		/// </summary>
 		[ContextMenu ("Debug Serialization")]
 		void DebugSerialization () {
