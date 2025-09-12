@@ -119,14 +119,14 @@ namespace TakiGame {
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
-			Debug.Log ($"PHASE 7: TAKI Deck Generation Complete! Generated {cardsGenerated} cards.");
-			Debug.Log ("PHASE 7: Updated Plus cards to isActiveCard = true for additional actions");
+			TakiLogger.LogInfo ($"TAKI Deck Generation Complete! Generated {cardsGenerated} cards.", TakiLogger.LogCategory.System);
+			TakiLogger.LogInfo ("Updated Plus cards to isActiveCard = true for additional actions", TakiLogger.LogCategory.System);
 
 			// Verify count
 			if (cardsGenerated == 110) {
-				Debug.Log ("Deck composition verified: 110 cards total");
+				TakiLogger.LogInfo ("Deck composition verified: 110 cards total", TakiLogger.LogCategory.System);
 			} else {
-				Debug.LogWarning ($"[WARNING] Expected 110 cards, but generated {cardsGenerated}");
+				TakiLogger.LogWarning ($"Expected 110 cards, but generated {cardsGenerated}", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace TakiGame {
 
 			// Check if already exists
 			if (File.Exists (assetPath)) {
-				Debug.LogWarning ($"Card already exists: {fileName}");
+				TakiLogger.LogWarning ($"Card already exists: {fileName}", TakiLogger.LogCategory.System);
 				return 0;
 			}
 
@@ -150,7 +150,7 @@ namespace TakiGame {
 			card.isActiveCard = false;
 
 			AssetDatabase.CreateAsset (card, assetPath);
-			Debug.Log ($"Generated NUMBER card: {card.cardName} (isActiveCard = {card.isActiveCard})");
+			TakiLogger.LogInfo ($"Generated NUMBER card: {card.cardName} (isActiveCard = {card.isActiveCard})", TakiLogger.LogCategory.System);
 			return 1;
 		}
 
@@ -160,7 +160,7 @@ namespace TakiGame {
 
 			// Check if already exists
 			if (File.Exists (assetPath)) {
-				Debug.LogWarning ($"Card already exists: {fileName}");
+				TakiLogger.LogWarning ($"Card already exists: {fileName}", TakiLogger.LogCategory.System);
 				return 0;
 			}
 
@@ -175,7 +175,7 @@ namespace TakiGame {
 				case CardType.Plus:
 					// PHASE 7 CHANGE: Plus cards now allow additional action
 					card.isActiveCard = true; // NEW: Allow additional action after playing
-					Debug.Log ($"PHASE 7: Plus card set to isActiveCard = true for additional actions");
+					TakiLogger.LogInfo ($"Plus card set to isActiveCard = true for additional actions", TakiLogger.LogCategory.System);
 					break;
 				case CardType.Stop:
 					card.isActiveCard = false; // END turn after playing (turn skip handled in game logic)
@@ -192,12 +192,12 @@ namespace TakiGame {
 				default:
 					// Default to ending turn for safety
 					card.isActiveCard = false;
-					Debug.LogWarning ($"Unknown special card type: {cardType} - defaulting to isActiveCard = false");
+					TakiLogger.LogWarning ($"Unknown special card type: {cardType} - defaulting to isActiveCard = false", TakiLogger.LogCategory.System);
 					break;
 			}
 
 			AssetDatabase.CreateAsset (card, assetPath);
-			Debug.Log ($"Generated SPECIAL card: {card.cardName} (isActiveCard = {card.isActiveCard})");
+			TakiLogger.LogInfo ($"Generated SPECIAL card: {card.cardName} (isActiveCard = {card.isActiveCard})", TakiLogger.LogCategory.System);
 			return 1;
 		}
 
@@ -207,7 +207,7 @@ namespace TakiGame {
 
 			// Check if already exists
 			if (File.Exists (assetPath)) {
-				Debug.LogWarning ($"Card already exists: {fileName}");
+				TakiLogger.LogWarning ($"Card already exists: {fileName}", TakiLogger.LogCategory.System);
 				return 0;
 			}
 
@@ -229,18 +229,18 @@ namespace TakiGame {
 				default:
 					// Default to ending turn for safety 
 					card.isActiveCard = false;
-					Debug.LogWarning ($"Unknown wild card type: {cardType} - defaulting to isActiveCard = false");
+					TakiLogger.LogWarning ($"Unknown wild card type: {cardType} - defaulting to isActiveCard = false", TakiLogger.LogCategory.System);
 					break;
 			}
 
 			AssetDatabase.CreateAsset (card, assetPath);
-			Debug.Log ($"Generated WILD card: {card.cardName} (isActiveCard = {card.isActiveCard})");
+			TakiLogger.LogInfo ($"Generated WILD card: {card.cardName} (isActiveCard = {card.isActiveCard})", TakiLogger.LogCategory.System);
 			return 1;
 		}
 
 		void ClearExistingCards () {
 			if (!Directory.Exists (outputPath)) {
-				Debug.Log ("Output directory doesn't exist, nothing to clear.");
+				TakiLogger.LogInfo ("Output directory doesn't exist, nothing to clear.", TakiLogger.LogCategory.System);
 				return;
 			}
 
@@ -255,7 +255,7 @@ namespace TakiGame {
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
-			Debug.Log ($"Cleared {deletedCount} existing card assets.");
+			TakiLogger.LogInfo ($"Cleared {deletedCount} existing card assets.", TakiLogger.LogCategory.System);
 		}
 	}
 }

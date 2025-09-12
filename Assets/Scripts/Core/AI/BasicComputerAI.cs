@@ -867,7 +867,7 @@ namespace TakiGame {
 				}
 
 				bool isValid = gameState.IsValidMove (card, topDiscardCard);
-				TakiLogger.LogRules ($"  {card.GetDisplayText ()} -> {isValid}", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogRules ($"  {card.GetDisplayText ()} -> {isValid}", TakiLogger.LogLevel.Trace);
 
 				if (isValid) {
 					validCards.Add (card);
@@ -1044,7 +1044,7 @@ namespace TakiGame {
 
 			TakiLogger.LogAI ($"AI color analysis: {colorCounts.Count} colors found in hand");
 			foreach (var kvp in colorCounts) {
-				TakiLogger.LogAI ($"  {kvp.Key}: {kvp.Value} cards", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogAI ($"  {kvp.Key}: {kvp.Value} cards", TakiLogger.LogLevel.Trace);
 			}
 
 			// Select most common color, or random if tie/no cards

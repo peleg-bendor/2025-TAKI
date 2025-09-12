@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace TakiGame {
 	/// <summary>
@@ -8,14 +9,14 @@ namespace TakiGame {
 	/// </summary>
 	public static class TakiLogger {
 
-		// Log levels for controlling verbosity
+		// Log levels for controlling verbosity (standard hierarchy)
 		public enum LogLevel {
-			None = 0,       // No logging
+			Off = 0,        // No logging
 			Error = 1,      // Only errors
 			Warning = 2,    // Errors + warnings  
 			Info = 3,       // Errors + warnings + info
 			Debug = 4,      // Errors + warnings + info + debug
-			Verbose = 5     // Everything including verbose details
+			Trace = 5       // Everything including trace details
 		}
 
 		// Log categories for different systems
@@ -30,7 +31,9 @@ namespace TakiGame {
 			Rules,          // Rule validation
 			System,         // System integration and events
 			Diagnostics,    // Debug and diagnostic information
-			SpecialCards    // PHASE 7: Special card effects and validation
+			SpecialCards,    // PHASE 7: Special card effects and validation
+			Network,
+			Multiplayer
 		}
 
 		// Current log level - can be changed at runtime
@@ -38,6 +41,23 @@ namespace TakiGame {
 
 		// Production mode toggle - minimal logging for release
 		public static bool isProductionMode = false;
+
+		// Per-category log levels (hardcoded configuration)
+		private static readonly Dictionary<LogCategory, LogLevel> categoryLogLevels = new Dictionary<LogCategory, LogLevel> {
+			{ LogCategory.TurnFlow, LogLevel.Debug },
+			{ LogCategory.CardPlay, LogLevel.Info },
+			{ LogCategory.GameState, LogLevel.Info },
+			{ LogCategory.TurnManagement, LogLevel.Debug },
+			{ LogCategory.UI, LogLevel.Warning },
+			{ LogCategory.AI, LogLevel.Info },
+			{ LogCategory.Deck, LogLevel.Debug },
+			{ LogCategory.Rules, LogLevel.Debug },
+			{ LogCategory.System, LogLevel.Info },
+			{ LogCategory.Diagnostics, LogLevel.Trace },
+			{ LogCategory.SpecialCards, LogLevel.Info },
+			{ LogCategory.Network, LogLevel.Info },
+			{ LogCategory.Multiplayer, LogLevel.Info }
+		};
 
 		// Category-specific logging methods
 
@@ -107,7 +127,7 @@ namespace TakiGame {
 		/// <summary>
 		/// Log diagnostic and debug information
 		/// </summary>
-		public static void LogDiagnostics (string message, LogLevel level = LogLevel.Verbose) {
+		public static void LogDiagnostics (string message, LogLevel level = LogLevel.Trace) {
 			Log (LogCategory.Diagnostics, message, level);
 		}
 
@@ -118,41 +138,60 @@ namespace TakiGame {
 			Log (LogCategory.SpecialCards, message, level);
 		}
 
+		/// <summary>
+		/// Log network-specific message
+		/// </summary>
+		public static void LogNetwork (string message, LogLevel level = LogLevel.Info) {
+			Log (LogCategory.Network, message, level);
+		}
+
+		/// <summary>
+		/// Log multiplayer-specific message  
+		/// </summary>
+		public static void LogMultiplayer (string message, LogLevel level = LogLevel.Info) {
+			Log (LogCategory.Multiplayer, message, level);
+		}
+
 		// Direct level-based logging methods
 
 		/// <summary>
-		/// Log error messages (always shown unless level is None)
+		/// Log error messages (always shown unless level is Off)
 		/// </summary>
 		public static void LogError (string message, LogCategory category = LogCategory.System) {
-			if (!ShouldLog (LogLevel.Error)) return;
-
-			string formattedMessage = FormatMessage (category, message);
-			Debug.LogError (formattedMessage);
+			Log (category, message, LogLevel.Error);
 		}
 
 		/// <summary>
 		/// Log warning messages
 		/// </summary>
 		public static void LogWarning (string message, LogCategory category = LogCategory.System) {
-			if (!ShouldLog (LogLevel.Warning)) return;
-
-			string formattedMessage = FormatMessage (category, message);
-			Debug.LogWarning (formattedMessage);
+			Log (category, message, LogLevel.Warning);
 		}
 
 		/// <summary>
 		/// Log info messages (important game events)
 		/// </summary>
 		public static void LogInfo (string message, LogCategory category = LogCategory.System) {
-			if (!ShouldLog (LogLevel.Info)) return;
+			Log (category, message, LogLevel.Info);
+		}
 
-			string formattedMessage = FormatMessage (category, message);
-			Debug.Log (formattedMessage);
+		/// <summary>
+		/// Log debug messages (detailed flow information)
+		/// </summary>
+		public static void LogDebug (string message, LogCategory category = LogCategory.System) {
+			Log (category, message, LogLevel.Debug);
+		}
+
+		/// <summary>
+		/// Log trace messages (verbose detailed information)
+		/// </summary>
+		public static void LogTrace (string message, LogCategory category = LogCategory.System) {
+			Log (category, message, LogLevel.Trace);
 		}
 
 		// Core logging method
 		private static void Log (LogCategory category, string message, LogLevel level) {
-			if (!ShouldLog (level)) return;
+			if (!ShouldLog (category, level)) return;
 
 			string formattedMessage = FormatMessage (category, message);
 
@@ -173,14 +212,26 @@ namespace TakiGame {
 		// Helper methods
 
 		/// <summary>
-		/// Check if we should log at the specified level
+		/// Check if we should log at the specified level for the given category
 		/// </summary>
-		private static bool ShouldLog (LogLevel level) {
+		private static bool ShouldLog (LogCategory category, LogLevel level) {
+			// If logging is completely off, don't log anything
+			if (currentLogLevel == LogLevel.Off) {
+				return false;
+			}
+
+			// In production mode, only show warnings and errors
 			if (isProductionMode && level > LogLevel.Warning) {
 				return false;
 			}
 
-			return currentLogLevel >= level;
+			// Get category-specific log level, fallback to global level if not found
+			LogLevel categoryLevel = categoryLogLevels.ContainsKey(category) 
+				? categoryLogLevels[category] 
+				: currentLogLevel;
+
+			// Show this log if both global AND category levels allow it
+			return currentLogLevel >= level && categoryLevel >= level;
 		}
 
 		/// <summary>
@@ -207,6 +258,8 @@ namespace TakiGame {
 				case LogCategory.System: return "SYS";
 				case LogCategory.Diagnostics: return "DIAG";
 				case LogCategory.SpecialCards: return "SPECIAL";
+				case LogCategory.Network: return "NET";
+				case LogCategory.Multiplayer: return "MP";
 				default: return "GAME";
 			}
 		}
@@ -237,6 +290,37 @@ namespace TakiGame {
 		public static string GetLoggerInfo () {
 			string mode = isProductionMode ? "Production" : "Development";
 			return $"TakiLogger - Level: {currentLogLevel}, Mode: {mode}";
+		}
+
+		/// <summary>
+		/// Quick setup for common logging scenarios
+		/// </summary>
+		public static void SetupLogging(LogLevel level, bool production = false) {
+			currentLogLevel = level;
+			isProductionMode = production;
+			LogInfo($"TakiLogger configured: Level={level}, Production={production}", LogCategory.System);
+		}
+
+		/// <summary>
+		/// Enable/disable all logging
+		/// </summary>
+		public static void EnableLogging(bool enabled) {
+			currentLogLevel = enabled ? LogLevel.Info : LogLevel.Off;
+			LogInfo($"Logging {(enabled ? "enabled" : "disabled")}", LogCategory.System);
+		}
+
+		/// <summary>
+		/// Set to development mode with verbose logging
+		/// </summary>
+		public static void EnableDebugMode() {
+			SetupLogging(LogLevel.Debug, false);
+		}
+
+		/// <summary>
+		/// Set to production mode with minimal logging
+		/// </summary>
+		public static void EnableProductionMode() {
+			SetupLogging(LogLevel.Warning, true);
 		}
 
 		// Conditional compilation for release builds

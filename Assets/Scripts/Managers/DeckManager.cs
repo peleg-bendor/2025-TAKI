@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Photon.Pun;
 
 namespace TakiGame {
 	/// <summary>
-	/// Coordinator that manages all deck-related operations
-	/// Delegates responsibilities to specialized components
-	/// Main interface for other systems to interact with deck functionality
+	/// MILESTONE 1: Enhanced DeckManager with network coordination support
+	/// Preserves all existing functionality while adding network-aware methods
 	/// </summary>
 	public class DeckManager : MonoBehaviour {
 
@@ -22,6 +22,10 @@ namespace TakiGame {
 		[Tooltip ("Handles game setup and initialization")]
 		public GameSetupManager gameSetup;
 
+		[Header ("MILESTONE 1: Network Support")]
+		[Tooltip ("Is this a network multiplayer game?")]
+		private bool isNetworkMode = false;
+
 		// Events for external systems (unified interface)
 		public System.Action<CardData> OnCardDrawn;
 		public System.Action<CardData> OnCardDiscarded;
@@ -29,6 +33,9 @@ namespace TakiGame {
 		public System.Action OnDeckEmpty;
 		public System.Action OnGameInitialized;
 		public System.Action<List<CardData>, List<CardData>, CardData> OnInitialGameSetup;
+
+		// MILESTONE 1: Network events
+		public System.Action<int, int> OnNetworkDeckStateUpdated; // drawCount, discardCount
 
 		void Start () {
 			InitializeComponents ();
@@ -42,7 +49,7 @@ namespace TakiGame {
 		/// </summary>
 		void ForceInitialUIUpdate () {
 			UpdateUI ();
-			TakiLogger.LogDeck ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}", TakiLogger.LogLevel.Verbose);
+			TakiLogger.LogDeck ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}", TakiLogger.LogLevel.Trace);
 		}
 
 		/// <summary>
@@ -109,8 +116,10 @@ namespace TakiGame {
 			if (cardLoader != null) {
 				cardLoader.OnCardsLoaded += (cards) => {
 					deckUI.ShowDeckLoadedMessage (cards.Count);
-					// Auto-initialize deck with loaded cards
-					AutoInitializeDeck ();
+					// Auto-initialize deck with loaded cards only if not in network mode
+					if (!isNetworkMode) {
+						AutoInitializeDeck ();
+					}
 				};
 
 				cardLoader.OnLoadError += (error) => {
@@ -137,10 +146,123 @@ namespace TakiGame {
 		void UpdateUI () {
 			if (deck != null && deckUI != null) {
 				deckUI.UpdateDeckUI (deck.DrawPileCount, deck.DiscardPileCount);
+
+				// MILESTONE 1: Fire network deck update event
+				if (isNetworkMode) {
+					OnNetworkDeckStateUpdated?.Invoke (deck.DrawPileCount, deck.DiscardPileCount);
+				}
 			}
 		}
 
-		// ===== PUBLIC API - Delegates to appropriate components =====
+		// ===== MILESTONE 1: NETWORK-AWARE METHODS =====
+
+		/// <summary>
+		/// MILESTONE 1: Set network mode for multiplayer coordination
+		/// </summary>
+		/// <param name="networkMode">True if this is a network game</param>
+		public void SetNetworkMode (bool networkMode) {
+			isNetworkMode = networkMode;
+			TakiLogger.LogNetwork ($"DeckManager network mode set to: {networkMode}");
+
+			if (networkMode) {
+				TakiLogger.LogNetwork ("Network mode enabled - deck will be coordinated across clients");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Initialize deck for network game (lightweight)
+		/// Used by clients to prepare deck without full game setup
+		/// </summary>
+		public void InitializeDeck () {
+			if (cardLoader == null || !cardLoader.HasValidDeck) {
+				TakiLogger.LogError ("Cannot initialize network deck: Invalid card data", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			// Initialize basic deck without full game setup
+			List<CardData> allCards = cardLoader.GetAllCardsForDeck ();
+			if (deck != null) {
+				deck.InitializeDeck (allCards);
+				TakiLogger.LogNetwork ($"Network deck initialized with {allCards.Count} cards");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Setup network game (master client only)
+		/// Coordinates initial game state for network synchronization
+		/// </summary>
+		/// <returns>Initial game state for network broadcasting</returns>
+		public (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) SetupNetworkGame () {
+			TakiLogger.LogNetwork ("Setting up network game state (master client)");
+
+			if (!PhotonNetwork.IsMasterClient) {
+				TakiLogger.LogWarning ("SetupNetworkGame called on non-master client", TakiLogger.LogCategory.Network);
+				return (new List<CardData> (), new List<CardData> (), null);
+			}
+
+			// Use existing setup logic
+			var gameState = SetupInitialGame ();
+
+			TakiLogger.LogNetwork ($"Network game setup complete: P1={gameState.player1Hand.Count}, P2={gameState.player2Hand.Count}, Start={gameState.startingCard?.GetDisplayText ()}");
+
+			return gameState;
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Synchronize deck state from network data
+		/// Used by clients to match master's deck state
+		/// </summary>
+		/// <param name="drawCount">Draw pile count from master</param>
+		/// <param name="discardCount">Discard pile count from master</param>
+		/// <param name="topDiscardCard">Top discard card from master</param>
+		public void SynchronizeDeckState (int drawCount, int discardCount, CardData topDiscardCard) {
+			TakiLogger.LogNetwork ($"Synchronizing deck state: Draw={drawCount}, Discard={discardCount}, Top={topDiscardCard?.GetDisplayText ()}");
+
+			if (deck == null) {
+				TakiLogger.LogError ("Cannot synchronize deck state: Deck component missing", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			// Place top discard card if provided
+			if (topDiscardCard != null) {
+				deck.DiscardCard (topDiscardCard);
+			}
+
+			// Update UI to reflect synchronized state
+			UpdateUI ();
+
+			TakiLogger.LogNetwork ("Deck state synchronized successfully");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Get current deck state for network broadcasting
+		/// Used by master client to share deck state
+		/// </summary>
+		/// <returns>Current deck state data</returns>
+		public (int drawCount, int discardCount, CardData topCard) GetDeckStateForNetwork () {
+			if (deck == null) {
+				return (0, 0, null);
+			}
+
+			return (deck.DrawPileCount, deck.DiscardPileCount, deck.GetTopDiscardCard ());
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Update network hand counts for display
+		/// Used to show opponent hand counts without revealing cards
+		/// </summary>
+		/// <param name="player1Count">Player 1 hand count</param>
+		/// <param name="player2Count">Player 2 hand count</param>
+		public void UpdateNetworkHandCounts (int player1Count, int player2Count) {
+			TakiLogger.LogNetwork ($"Updating network hand counts: P1={player1Count}, P2={player2Count}");
+
+			if (deckUI != null) {
+				// Show hand counts in UI - this will be picked up by GameplayUIManager
+				deckUI.ShowDeckMessage ($"Hands: P1({player1Count}) P2({player2Count})", false);
+			}
+		}
+
+		// ===== PRESERVED EXISTING PUBLIC API =====
 
 		/// <summary>
 		/// Draw a single card from the deck
@@ -176,14 +298,8 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Initialize a new deck for a fresh game
-		/// </summary>
-		public void InitializeDeck () {
-			gameSetup?.InitializeNewGame ();
-		}
-
-		/// <summary>
 		/// Set up initial game state (deal hands and place starting card)
+		/// ENHANCED: Works for both singleplayer and network master
 		/// </summary>
 		/// <returns>Player hands and starting card</returns>
 		public (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) SetupInitialGame () {
@@ -255,5 +371,9 @@ namespace TakiGame {
 		// Quick access methods for common operations
 		public bool CanSetupNewGame => cardLoader?.HasValidDeck ?? false;
 		public bool IsDeckReady => deck != null && HasValidDeck;
+
+		// MILESTONE 1: Network properties
+		public bool IsNetworkMode => isNetworkMode;
+		public bool CanSetupNetworkGame => isNetworkMode && PhotonNetwork.IsMasterClient && HasValidDeck;
 	}
 }

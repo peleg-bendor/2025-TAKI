@@ -40,7 +40,7 @@ namespace TakiGame {
 		/// ENHANCED: Now includes deck initialization
 		/// </summary>
 		public void StartNetworkGame () {
-			TakiLogger.LogNetwork ("Starting network game");
+			TakiLogger.LogNetwork ("=== STARTING NETWORK GAME WITH DECK INITIALIZATION ===");
 
 			_isGameOver = false;
 			_isFirstTurn = true;
@@ -55,10 +55,13 @@ namespace TakiGame {
 		/// Master creates deck, clients receive synchronized state
 		/// </summary>
 		void InitializeSharedDeck () {
+			TakiLogger.LogNetwork ("=== INITIALIZING SHARED DECK ===");
+
 			if (PhotonNetwork.IsMasterClient) {
-				TakiLogger.LogNetwork ("Master: Setting up deck");
+				TakiLogger.LogNetwork ("I am Master Client - setting up deck and broadcasting state");
 				SetupMasterDeck ();
 			} else {
+				TakiLogger.LogNetwork ("I am Client - waiting for initial game state from master");
 				_waitingForDeckState = true;
 			}
 		}
@@ -70,36 +73,38 @@ namespace TakiGame {
 		/// </summary>
 		void SetupMasterDeck () {
 			if (gameManager?.deckManager == null) {
-				TakiLogger.LogError ("Missing components for master deck setup", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Cannot setup master deck: Missing components", TakiLogger.LogCategory.Network);
 				return;
 			}
+
+			TakiLogger.LogNetwork ("Master client setting up deck - simplified approach");
 
 			// Use existing deck setup logic
 			var gameState = gameManager.deckManager.SetupInitialGame ();
 
 			if (gameState.startingCard != null) {
-				NetworkGameState networkState = new NetworkGameState {
-					startingCardIdentifier = CardDataHelper.CreateCardIdentifier (gameState.startingCard),
-					drawPileCount = gameManager.deckManager.DrawPileCount,
-					player1Hand = gameState.player1Hand,
-					player2Hand = gameState.player2Hand,
-					masterClientActor = PhotonNetwork.LocalPlayer.ActorNumber
-				};
+				// Create and send network state
+				string startingCardId = CardDataHelper.CreateCardIdentifier (gameState.startingCard);
+				string serializedPlayer1Hand = SerializeHand (gameState.player1Hand);
+				string serializedPlayer2Hand = SerializeHand (gameState.player2Hand);
 
-				// Send complete game state to all clients
+				// Send to other clients
 				photonView.RPC ("ReceiveInitialGameState", RpcTarget.Others,
-					networkState.startingCardIdentifier,
-					networkState.drawPileCount,
-					SerializeHand (networkState.player1Hand),
-					SerializeHand (networkState.player2Hand),
-					networkState.masterClientActor);
+					startingCardId,
+					gameManager.deckManager.DrawPileCount,
+					serializedPlayer1Hand,
+					serializedPlayer2Hand,
+					PhotonNetwork.LocalPlayer.ActorNumber);
 
+				// Setup local state using simplified method
 				SetupLocalMultiplayerHands (gameState.player1Hand, gameState.player2Hand);
 
+				// Update deck display
 				UpdateMultiplayerDeckDisplay ();
 
 				_isDeckInitialized = true;
 
+				// Start turns
 				if (turnMgr != null) {
 					turnMgr.BeginTurn ();
 				}
@@ -119,12 +124,13 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ($"Received initial game state with actual card data");
 
 			if (!_waitingForDeckState) {
-				TakiLogger.LogWarning ("Received unexpected game state", TakiLogger.LogCategory.Network);
+				TakiLogger.LogWarning ("Received game state but wasn't waiting for it", TakiLogger.LogCategory.Network);
 				return;
 			}
 
 			_waitingForDeckState = false;
 
+			// FIXED: Deserialize actual cards instead of creating placeholders
 			List<CardData> player1Hand = DeserializeHand (serializedPlayer1Hand);
 			List<CardData> player2Hand = DeserializeHand (serializedPlayer2Hand);
 
@@ -132,7 +138,7 @@ namespace TakiGame {
 			ApplyReceivedGameState (startingCardId, drawCount, player1Hand, player2Hand, masterActor);
 			_isDeckInitialized = true;
 
-			TakiLogger.LogNetwork ("Client deck initialization complete");
+			TakiLogger.LogNetwork ("Client deck initialization complete with actual cards");
 		}
 
 		/// <summary>
@@ -146,6 +152,8 @@ namespace TakiGame {
 				return;
 			}
 
+			TakiLogger.LogNetwork ("Applying received game state with simplified approach");
+
 			// Initialize local deck without full setup
 			gameManager.deckManager.InitializeDeck ();
 
@@ -153,6 +161,7 @@ namespace TakiGame {
 			CardData startingCard = FindCardFromIdentifier (startingCardId);
 			if (startingCard != null) {
 				gameManager.deckManager.DiscardCard (startingCard);
+				TakiLogger.LogNetwork ($"Starting card placed: {startingCard.GetDisplayText ()}");
 			} else {
 				TakiLogger.LogWarning ($"Could not find starting card: {startingCardId}", TakiLogger.LogCategory.Network);
 			}
@@ -168,6 +177,7 @@ namespace TakiGame {
 				gameManager.gameplayUI.ShowPlayerMessage ("Game synchronized - Ready to play!");
 			}
 
+			TakiLogger.LogNetwork ("Game state applied successfully with simplified approach");
 		}
 
 		/// <summary>
@@ -176,10 +186,16 @@ namespace TakiGame {
 		/// APPROACH: Simple assignment -> GameManager setup -> display
 		/// </summary>
 		void SetupLocalMultiplayerHands (List<CardData> player1Hand, List<CardData> player2Hand) {
+			TakiLogger.LogNetwork ("Setting up multiplayer hands - simplified approach");
 
 			// Validate inputs first
 			if (player1Hand == null || player2Hand == null) {
-				TakiLogger.LogError ("Null hands received", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Cannot setup hands: One or both hands are null", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			if (player1Hand.Count == 0 && player2Hand.Count == 0) {
+				TakiLogger.LogError ("Cannot setup hands: Both hands are empty", TakiLogger.LogCategory.Network);
 				return;
 			}
 
@@ -187,54 +203,100 @@ namespace TakiGame {
 			List<Player> sortedPlayers = PhotonNetwork.PlayerList.OrderBy (p => p.ActorNumber).ToList ();
 
 			if (sortedPlayers.Count < 2) {
-				TakiLogger.LogError ("Not enough players for hand assignment", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Not enough players for hand assignment!", TakiLogger.LogCategory.Network);
 				return;
 			}
 
-			Player player1 = sortedPlayers [0];
-			Player player2 = sortedPlayers [1];
-
-			bool isPlayer1 = (PhotonNetwork.LocalPlayer.ActorNumber == player1.ActorNumber);
-
+			// Direct assignment - no complex logic
+			bool isPlayer1 = (PhotonNetwork.LocalPlayer.ActorNumber == sortedPlayers [0].ActorNumber);
 			List<CardData> myHand = isPlayer1 ? player1Hand : player2Hand;
 			List<CardData> opponentHand = isPlayer1 ? player2Hand : player1Hand;
 
-			// CRITICAL VALIDATION only
-			if (myHand == null || myHand.Count == 0) {
-				TakiLogger.LogError ($"Empty hand assigned - using fallback", TakiLogger.LogCategory.Network);
-
-				if (player1Hand != null && player1Hand.Count > 0) {
-					myHand = player1Hand;
-					opponentHand = player2Hand ?? new List<CardData> ();
-				} else if (player2Hand != null && player2Hand.Count > 0) {
-					myHand = player2Hand;
-					opponentHand = player1Hand ?? new List<CardData> ();
-				} else {
-					TakiLogger.LogError ("Both hands empty - cannot proceed", TakiLogger.LogCategory.Network);
-					return;
-				}
+			// Simple validation - if my hand is empty, something is wrong with network data
+			if (myHand.Count == 0) {
+				TakiLogger.LogError ($"CRITICAL: My hand is empty after assignment! Network data problem.", TakiLogger.LogCategory.Network);
+				return;
 			}
 
-			// Setup hands in GameManager
+			TakiLogger.LogNetwork ($"Hand assignment: Local={myHand.Count} cards, Opponent={opponentHand.Count} cards");
+
+			// Setup GameManager with our hand - direct approach
 			if (gameManager != null) {
+				// Clear and add our cards
 				gameManager.playerHand.Clear ();
 				gameManager.playerHand.AddRange (myHand);
 
+				TakiLogger.LogNetwork ($"GameManager playerHand updated: {gameManager.playerHand.Count} cards");
+
+				// Setup local player hand display - use proven singleplayer method
 				if (gameManager.playerHandManager != null) {
 					gameManager.playerHandManager.SetNetworkMode (true);
 					gameManager.playerHandManager.UpdateHandDisplay (myHand);
+					TakiLogger.LogNetwork ($"Local player hand displayed: {myHand.Count} cards");
 				}
 
+				// Setup opponent hand display with privacy
 				if (gameManager.computerHandManager != null) {
-					gameManager.computerHandManager.SetNetworkModeEnhanced (true, true);
+					gameManager.computerHandManager.SetNetworkModeEnhanced (true, true); // Force opponent mode
 					gameManager.computerHandManager.InitializeNetworkHandsEnhanced (false, opponentHand);
+					TakiLogger.LogNetwork ($"Opponent hand setup with privacy: {opponentHand.Count} cards");
 				}
 
+				// Update UI
 				if (gameManager.gameplayUI != null) {
 					gameManager.gameplayUI.UpdateHandSizeDisplay (myHand.Count, opponentHand.Count);
 				}
 			}
 
+			TakiLogger.LogNetwork ("Multiplayer hands setup complete - simplified approach successful");
+		}
+
+		/// <summary>
+		/// DEBUG: Test serialization/deserialization process
+		/// Add this method to NetworkGameManager and call it before sending hands
+		/// </summary>
+		[ContextMenu ("Debug Serialization")]
+		void DebugSerialization () {
+			TakiLogger.LogNetwork ("=== DEBUGGING SERIALIZATION PROCESS ===");
+
+			// Test with a known hand
+			List<CardData> testHand = new List<CardData> ();
+
+			if (gameManager?.deckManager?.cardLoader?.allCardData != null) {
+				// Get first 3 cards for testing
+				for (int i = 0; i < 3 && i < gameManager.deckManager.cardLoader.allCardData.Count; i++) {
+					testHand.Add (gameManager.deckManager.cardLoader.allCardData [i]);
+				}
+
+				TakiLogger.LogNetwork ($"Created test hand with {testHand.Count} cards:");
+				foreach (CardData card in testHand) {
+					TakiLogger.LogNetwork ($"  Test card: {card.GetDisplayText ()}");
+				}
+
+				// Test serialization
+				string serialized = SerializeHand (testHand);
+				TakiLogger.LogNetwork ($"Serialized result: {serialized}");
+
+				// Test deserialization
+				List<CardData> deserialized = DeserializeHand (serialized);
+				TakiLogger.LogNetwork ($"Deserialized hand: {deserialized.Count} cards");
+
+				foreach (CardData card in deserialized) {
+					TakiLogger.LogNetwork ($"  Deserialized card: {card?.GetDisplayText () ?? "NULL"}");
+				}
+
+				// Compare
+				bool matches = testHand.Count == deserialized.Count;
+				for (int i = 0; i < testHand.Count && i < deserialized.Count && matches; i++) {
+					if (testHand [i].GetDisplayText () != deserialized [i]?.GetDisplayText ()) {
+						matches = false;
+					}
+				}
+
+				TakiLogger.LogNetwork ($"Serialization test result: {(matches ? "SUCCESS" : "FAILED")}");
+			} else {
+				TakiLogger.LogError ("Cannot test serialization: CardLoader not available", TakiLogger.LogCategory.Network);
+			}
 		}
 
 		/// <summary>
@@ -244,6 +306,7 @@ namespace TakiGame {
 		/// </summary>
 		void UpdateMultiplayerDeckDisplay () {
 			if (gameManager?.deckManager == null) {
+				TakiLogger.LogWarning ("Cannot update deck display: Missing components", TakiLogger.LogCategory.Network);
 				return;
 			}
 
@@ -252,6 +315,7 @@ namespace TakiGame {
 			int discardPileCount = gameManager.deckManager.DiscardPileCount;
 			CardData topDiscardCard = gameManager.deckManager.GetTopDiscardCard ();
 
+			TakiLogger.LogNetwork ($"Updating multiplayer deck display: Draw={drawPileCount}, Discard={discardPileCount}, Top={topDiscardCard?.GetDisplayText ()}");
 
 			// Update deck UI if available
 			if (gameManager.deckManager.deckUI != null) {
@@ -267,6 +331,7 @@ namespace TakiGame {
 				gameManager.gameplayUI.ShowDeckSyncStatus ($"Draw: {drawPileCount}, Discard: {discardPileCount}");
 			}
 
+			TakiLogger.LogNetwork ("Multiplayer deck display updated successfully");
 		}
 
 		/// <summary>
@@ -274,6 +339,7 @@ namespace TakiGame {
 		/// </summary>
 		string SerializeHand (List<CardData> hand) {
 			if (hand == null || hand.Count == 0) {
+				TakiLogger.LogNetwork ("SerializeHand: Empty hand being serialized");
 				return "";
 			}
 
@@ -282,12 +348,15 @@ namespace TakiGame {
 				if (card != null) {
 					string cardId = CardDataHelper.CreateCardIdentifier (card);
 					cardIds.Add (cardId);
+					TakiLogger.LogNetwork ($"Serializing card: {card.GetDisplayText ()} -> {cardId}", TakiLogger.LogLevel.Trace);
 				} else {
-					TakiLogger.LogWarning ("Null card in serialization", TakiLogger.LogCategory.Network);
+					TakiLogger.LogWarning ("Null card found during serialization", TakiLogger.LogCategory.Network);
 				}
 			}
 
-			return string.Join ("|", cardIds);
+			string serialized = string.Join ("|", cardIds);
+			TakiLogger.LogNetwork ($"Hand serialized: {hand.Count} cards -> {serialized.Length} characters");
+			return serialized;
 		}
 
 		/// <summary>
@@ -297,23 +366,28 @@ namespace TakiGame {
 			List<CardData> hand = new List<CardData> ();
 
 			if (string.IsNullOrEmpty (serializedHand)) {
+				TakiLogger.LogNetwork ("DeserializeHand: Empty serialized string received");
 				return hand;
 			}
 
+			TakiLogger.LogNetwork ($"Deserializing hand from: {serializedHand}");
 
 			string [] cardIds = serializedHand.Split ('|');
+			TakiLogger.LogNetwork ($"Split into {cardIds.Length} card IDs");
 
 			foreach (string cardId in cardIds) {
 				if (!string.IsNullOrEmpty (cardId)) {
 					CardData card = FindCardFromIdentifier (cardId);
 					if (card != null) {
 						hand.Add (card);
+						TakiLogger.LogNetwork ($"Deserialized card: {cardId} -> {card.GetDisplayText ()}", TakiLogger.LogLevel.Trace);
 					} else {
-						TakiLogger.LogWarning ($"Card not found: {cardId}", TakiLogger.LogCategory.Network);
+						TakiLogger.LogWarning ($"Could not find card for ID: {cardId}", TakiLogger.LogCategory.Network);
 					}
 				}
 			}
 
+			TakiLogger.LogNetwork ($"Deserialized hand: {hand.Count} cards from {cardIds.Length} IDs");
 			return hand;
 		}
 
@@ -327,7 +401,7 @@ namespace TakiGame {
 			// Get CardDataLoader to find matching card
 			CardDataLoader cardLoader = gameManager?.deckManager?.cardLoader;
 			if (cardLoader == null) {
-				TakiLogger.LogError ("CardDataLoader not available", TakiLogger.LogCategory.Network);
+				TakiLogger.LogError ("Cannot find card: CardDataLoader not available", TakiLogger.LogCategory.Network);
 				return null;
 			}
 
@@ -335,13 +409,15 @@ namespace TakiGame {
 			return CardDataHelper.ParseCardIdentifier (cardLoader, cardId);
 		}
 
-		// === IPunTurnManagerCallbacks ===
+		// === EXISTING METHODS PRESERVED ===
 
 		// IPunTurnManagerCallbacks implementation (following instructor's pattern)
 		public void OnTurnBegins (int turn) {
+			TakiLogger.LogNetwork ($"=== TURN {turn} BEGINS ===");
 
 			// Wait for deck initialization before processing turns
 			if (!_isDeckInitialized) {
+				TakiLogger.LogNetwork ("Turn begins but deck not initialized yet - waiting...");
 				return;
 			}
 
@@ -349,6 +425,7 @@ namespace TakiGame {
 			int expectedActor = GetExpectedActorForTurn (turn);
 			_isMyTurn = PhotonNetwork.LocalPlayer.ActorNumber == expectedActor;
 
+			TakiLogger.LogNetwork ($"Is my turn: {_isMyTurn}");
 
 			// Update GameManager turn state
 			if (gameManager != null && gameManager.gameState != null) {
@@ -363,10 +440,12 @@ namespace TakiGame {
 
 			if (_isFirstTurn) {
 				_isFirstTurn = false;
+				TakiLogger.LogNetwork ("First turn initialization complete");
 			}
 		}
 
 		public void OnPlayerFinished (Player player, int turn, object move) {
+			TakiLogger.LogNetwork ($"=== PLAYER {player.ActorNumber} FINISHED TURN {turn} ===");
 
 			// Process remote player action
 			if (player.ActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && move != null) {
@@ -416,6 +495,7 @@ namespace TakiGame {
 			};
 
 			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ($"Sent card play: {cardId}");
 		}
 
 		/// <summary>
@@ -430,6 +510,7 @@ namespace TakiGame {
 			};
 
 			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent card draw");
 		}
 
 		/// <summary>

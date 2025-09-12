@@ -28,7 +28,7 @@ namespace TakiGame {
 		/// <param name="allCards">Complete set of cards to use</param>
 		public void InitializeDeck (List<CardData> allCards) {
 			if (allCards == null || allCards.Count == 0) {
-				Debug.LogError ("Cannot initialize deck: No card data provided!");
+				TakiLogger.LogError ("Cannot initialize deck: No card data provided!", TakiLogger.LogCategory.Deck);
 				return;
 			}
 
@@ -42,7 +42,7 @@ namespace TakiGame {
 			// Shuffle the deck
 			ShuffleDeck ();
 
-			Debug.Log ($"Deck initialized with {drawPile.Count} cards");
+			TakiLogger.LogInfo ($"Initialized with {drawPile.Count} cards", TakiLogger.LogCategory.Deck);
 		}
 
 		/// <summary>
@@ -57,7 +57,7 @@ namespace TakiGame {
 			}
 
 			OnDeckShuffled?.Invoke ();
-			Debug.Log ("Deck shuffled");
+			TakiLogger.LogInfo ("Shuffled", TakiLogger.LogCategory.Deck);
 		}
 
 		/// <summary>
@@ -73,7 +73,7 @@ namespace TakiGame {
 
 			// Check if draw pile is still empty after potential reshuffle
 			if (drawPile.Count == 0) {
-				Debug.LogWarning ("Cannot draw card: No cards available anywhere!");
+				TakiLogger.LogWarning ("Cannot draw card: No cards available anywhere!", TakiLogger.LogCategory.Deck);
 				OnDeckEmpty?.Invoke ();
 				return null;
 			}
@@ -83,7 +83,7 @@ namespace TakiGame {
 			drawPile.RemoveAt (0);
 
 			OnCardDrawn?.Invoke (drawnCard);
-			Debug.Log ($"Drew card: {drawnCard.GetDisplayText ()}");
+			TakiLogger.LogInfo ($"Drew card: {drawnCard.GetDisplayText ()}", TakiLogger.LogCategory.Deck);
 
 			return drawnCard;
 		}
@@ -103,7 +103,7 @@ namespace TakiGame {
 				} else {
 					// Log if we couldn't draw all requested cards
 					if (drawnCards.Count < count) {
-						Debug.LogWarning ($"Could only draw {drawnCards.Count} out of {count} requested cards");
+						TakiLogger.LogWarning ($"Could only draw {drawnCards.Count} out of {count} requested cards", TakiLogger.LogCategory.Deck);
 					}
 					break; // Stop if we can't draw more cards
 				}
@@ -118,13 +118,13 @@ namespace TakiGame {
 		/// <param name="card">Card to discard</param>
 		public void DiscardCard (CardData card) {
 			if (card == null) {
-				Debug.LogWarning ("Cannot discard null card!");
+				TakiLogger.LogWarning ("Cannot discard null card!", TakiLogger.LogCategory.Deck);
 				return;
 			}
 
 			discardPile.Add (card);
 			OnCardDiscarded?.Invoke (card);
-			Debug.Log ($"Discarded card: {card.GetDisplayText ()}");
+			TakiLogger.LogInfo ($"Discarded card: {card.GetDisplayText ()}", TakiLogger.LogCategory.Deck);
 		}
 
 		/// <summary>
@@ -141,7 +141,7 @@ namespace TakiGame {
 		/// </summary>
 		void ReshuffleDiscardIntoDraw () {
 			if (discardPile.Count < 2) {
-				Debug.LogWarning ("Cannot reshuffle: Need at least 2 cards in discard pile");
+				TakiLogger.LogWarning ("Cannot reshuffle: Need at least 2 cards in discard pile", TakiLogger.LogCategory.Deck);
 				return;
 			}
 
@@ -158,7 +158,7 @@ namespace TakiGame {
 			ShuffleDeck ();
 
 			OnDeckReshuffled?.Invoke ();
-			Debug.Log ($"Reshuffled discard pile into draw pile. Draw pile now has {drawPile.Count} cards");
+			TakiLogger.LogInfo ($"Reshuffled discard pile into draw pile. Draw pile now has {drawPile.Count} cards", TakiLogger.LogCategory.Deck);
 		}
 
 		/// <summary>
@@ -167,7 +167,7 @@ namespace TakiGame {
 		public void ClearDeck () {
 			drawPile.Clear ();
 			discardPile.Clear ();
-			Debug.Log ("Deck cleared");
+			TakiLogger.LogInfo ("Cleared", TakiLogger.LogCategory.Deck);
 		}
 
 		// Properties for external access

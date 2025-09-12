@@ -1,609 +1,476 @@
-# TAKI Game Development Plan - Unity Engine
-## PART 1 Complete ✅ | PART 2 Planning Phase 🎯
+using System.Collections.Generic;
+using System.Linq;
+using Photon.Pun;
+using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
+using UnityEngine;
 
-### ⚠️ **CRITICAL NOTES**
-- **AVOID UNICODE**: No special characters in code, file names, text displays, or comments
-- **PART 1 STATUS**: ✅ **COMPLETE** - Full singleplayer TAKI game with all special cards
-- **PART 2 FOCUS**: 🎯 **MULTIPLAYER** - Human vs Human using Photon PUN2
-- **Target Platform**: PC/Desktop Unity Build
-- **Architecture**: Built for multiplayer expansion from foundation
+namespace TakiGame {
+	/// <summary>
+	/// MILESTONE 1: NetworkGameManager with MINIMAL LOGGING
+	/// Reduced log traffic while preserving essential debugging
+	/// </summary>
+	public class NetworkGameManager : MonoBehaviourPunCallbacks, IPunTurnManagerCallbacks {
 
----
+		[Header ("Network Turn Management")]
+		public PunTurnManager turnMgr;
 
-# 📊 **PART 1: SINGLEPLAYER ACHIEVEMENTS** ✅ **COMPLETE**
+		[Header ("Game Integration")]
+		public GameManager gameManager;
 
-## **🏆 What We Successfully Accomplished**
+		// Network state
+		private bool _isMyTurn = false;
+		private bool _isGameOver = false;
+		private bool _isFirstTurn = true;
+		private bool _isDeckInitialized = false;
 
-### **Complete Playable TAKI Game**:
-- ✅ **Full Singleplayer Experience**: Human vs Computer AI
-- ✅ **All Special Card Mechanics**: Including advanced PlusTwo chaining
-- ✅ **Professional Game Flow**: Pause, restart, exit validation
-- ✅ **Visual Polish**: Real card images, smooth interactions
-- ✅ **Robust Architecture**: 27+ scripts, event-driven, multiplayer-ready
+		// MILESTONE 1: Deck initialization state
+		private bool _waitingForDeckState = false;
+		private NetworkInitialGameState _pendingGameState;
 
----
+		void Awake () {
+			if (turnMgr != null) {
+				turnMgr.TurnManagerListener = this;
+			}
+		}
 
-## **🏗️ PART 1: Complete Architecture Overview**
+		/// <summary>
+		/// Start network game - ESSENTIAL LOG ONLY
+		/// </summary>
+		public void StartNetworkGame () {
+			TakiLogger.LogNetwork ("Starting network game");
 
-### **Scripts Organization (27+ Scripts)**:
-```
-Scripts/
-├── Controllers/
-├── Core/
-│   ├── AI/
-│   │   └── BasicComputerAI.cs 
-│   └── GameManager.cs  CENTRAL HUB
-├── Data/
-│   ├── CardData.cs 
-│   └── Enums.cs  MULTI-ENUM ARCHITECTURE
-├── Editor/
-│   └── TakiDeckGenerator.cs 
-├── Managers/
-│   ├── CardDataLoader.cs 
-│   ├── Deck.cs 
-│   ├── DeckManager.cs  COORDINATOR
-│   ├── DeckUIManager.cs 
-│   ├── DontDestroyOnLoad.cs 
-│   ├── ExitValidationManager.cs  SAFE EXIT
-│   ├── GameEndManager.cs  GAME END FLOW
-│   ├── GameSetupManager.cs 
-│   ├── GameStateManager.cs  RULES ENGINE
-│   ├── PauseManager.cs  PAUSE SYSTEM
-│   └── TurnManager.cs  TURN ORCHESTRATOR
-├── UI/
-│   ├── CardController.cs  VISUAL CARDS
-│   ├── DifficultySlider.cs 
-│   ├── GameplayUIManager.cs  GAMEPLAY UI
-│   ├── HandManager.cs  HAND DISPLAY
-│   ├── MenuNavigation.cs  MENU SYSTEM
-│   └── PileManager.cs  PILE VISUALS
-├── ButtonSFX.cs 
-├── MusicSlider.cs 
-├── SfxSlider.cs 
-├── TakiGameDiagnostics.cs  DEBUG TOOL
-└── TakiLogger.cs  LOGGING SYSTEM
-```
+			_isGameOver = false;
+			_isFirstTurn = true;
+			_isDeckInitialized = false;
 
-### **Scene Hierarchy (Established)**:
-```
-Scene_Menu 
-├── Main Camera
-├── Canvas
-│   ├── Screen_MainMenu 
-│   │   ├── Btn_SinglePlayer
-│   │   ├── Btn_MultiPlayer
-│   │   ├── Btn_StudentInfo
-│   │   ├── Btn_Settings
-│   │   └── Btn_Exit
-│   ├── Screen_StudentInfo 
-│   ├── Screen_SinglePlayer 
-│   ├── Screen_MultiPlayer 
-│   │   ├── Btn_PlayMultiPlayer (Tagged with 'UnityObject' tag)
-│   │   ├── Btn_Back
-│   │   ├── Btn_Settings
-│   │   ├── Btn_Exit
-│   │   └── Txt_Status (Tagged with 'UnityObject' tag)
-│   ├── Screen_SinglePlayerGame  FULLY FUNCTIONAL
-│   │   ├── Player1Panel (Human) 
-│   │   │   ├── Player1HandPanel - HandManager 
-│   │   │   └── Player1ActionPanel 
-│   │   │       ├── Btn_Player1PlayCard 
-│   │   │       ├── Btn_Player1DrawCard 
-│   │   │       ├── Btn_Player1EndTurn 
-│   │   │       └── Player1HandSizePanel 
-│   │   ├── Player2Panel (Computer) 
-│   │   │   ├── Player2HandPanel - HandManager 
-│   │   │   └── Player2ActionPanel 
-│   │   ├── GameBoardPanel 
-│   │   │   ├── DrawPilePanel 
-│   │   │   └── DiscardPilePanel 
-│   │   ├── GameInfoPanel 
-│   │   │   ├── TurnIndicatorText 
-│   │   │   ├── DeckMessageText 
-│   │   │   └── GameMessageText 
-│   │   ├── ColorSelectionPanel 
-│   │   ├── CurrentColorIndicator 
-│   │   ├── Btn_Exit  SAFE EXIT
-│   │   ├── Btn_Pause  FULL PAUSE SYSTEM
-│   │   └── Screen_GameEnd  PROFESSIONAL END
-│   ├── Screen_MultiPlayerGame (Tagged with 'UnityObject' tag)
-│   ├── Screen_Settings 
-│   ├── Screen_ExitValidation  COMPREHENSIVE CLEANUP
-│   ├── Screen_Paused  STATE PRESERVATION
-│   ├── Screen_GameEnd  WINNER ANNOUNCEMENT
-│   ├── Screen_Loading 
-│   └── Screen_Exiting 
-├── EventSystem 
-├── GameManager  FULLY INTEGRATED
-├── BackgroundMusic 
-├── SFXController 
-└── [All components properly connected] 
-```
+			InitializeSharedDeck ();
+		}
 
----
+		/// <summary>
+		/// Initialize shared deck - ESSENTIAL LOG ONLY
+		/// </summary>
+		void InitializeSharedDeck () {
+			if (PhotonNetwork.IsMasterClient) {
+				TakiLogger.LogNetwork ("Master: Setting up deck");
+				SetupMasterDeck ();
+			} else {
+				// REMOVED: Verbose waiting log
+				_waitingForDeckState = true;
+			}
+		}
 
-## **🎯 PART 1: Phase-by-Phase Achievements**
+		/// <summary>
+		/// Master client deck setup - MINIMAL LOGGING
+		/// </summary>
+		void SetupMasterDeck () {
+			if (gameManager?.deckManager == null) {
+				TakiLogger.LogError ("Missing components for master deck setup", TakiLogger.LogCategory.Network);
+				return;
+			}
 
-### **Phase 1: Foundation Setup** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **Complete Menu System**: All navigation working flawlessly
-- ✅ **Full UI Framework**: Professional hierarchy established
-- ✅ **Component Integration**: All GameObjects properly connected
+			// REMOVED: Verbose setup logging
+			var gameState = gameManager.deckManager.SetupInitialGame ();
 
-### **Phase 2: Core Card System** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **Multi-Enum Architecture**: Clean state management system
-  - `TurnState`: WHO is acting? (PlayerTurn, ComputerTurn, Neutral)
-  - `InteractionState`: WHAT interaction? (Normal, ColorSelection, TakiSequence, PlusTwoChain)
-  - `GameStatus`: WHAT status? (Active, Paused, GameOver)
-- ✅ **110-Card System**: Complete TAKI deck with automatic generation
-- ✅ **Single Responsibility Pattern**: Clean component separation
-- ✅ **Event-Driven Architecture**: Robust component communication
+			if (gameState.startingCard != null) {
+				NetworkGameState networkState = new NetworkGameState {
+					startingCardIdentifier = CardDataHelper.CreateCardIdentifier (gameState.startingCard),
+					drawPileCount = gameManager.deckManager.DrawPileCount,
+					player1Hand = gameState.player1Hand,
+					player2Hand = gameState.player2Hand,
+					masterClientActor = PhotonNetwork.LocalPlayer.ActorNumber
+				};
 
-### **Phase 3: Visual Card System** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **Interactive Visual Cards**: Real scanned images, selection feedback
-- ✅ **Dynamic Hand Management**: Adaptive spacing, instant updates
-- ✅ **Professional Layout**: Precise positioning, visual polish
-- ✅ **Pile Visual System**: Draw/discard pile representation
+				// Send complete game state to all clients
+				photonView.RPC ("ReceiveInitialGameState", RpcTarget.Others,
+					networkState.startingCardIdentifier,
+					networkState.drawPileCount,
+					SerializeHand (networkState.player1Hand),
+					SerializeHand (networkState.player2Hand),
+					networkState.masterClientActor);
 
-### **Phase 4: Strict Turn Flow System** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **Bulletproof Turn Flow**: ONE action → END TURN enforcement
-- ✅ **Enhanced Button Control**: Smart state management
-- ✅ **Rule Validation**: Complete card play validation
-- ✅ **Comprehensive Logging**: All actions properly documented
+				SetupLocalMultiplayerHands (gameState.player1Hand, gameState.player2Hand);
+				UpdateMultiplayerDeckDisplay ();
 
-### **Phase 5: Code Quality & Polish** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **TakiLogger System**: Centralized, categorized logging
-- ✅ **Performance Optimization**: Clean, efficient code
-- ✅ **Debug Tools**: Comprehensive diagnostic system
-- ✅ **Memory Management**: No leaks, proper cleanup
+				_isDeckInitialized = true;
 
-### **Phase 6: Game Flow Enhancement** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **Complete Pause System**: State preservation and restoration
-- ✅ **Professional Game End**: Winner announcement, restart flow
-- ✅ **Safe Exit Validation**: Comprehensive system cleanup
-- ✅ **Enhanced Menu Integration**: Seamless flow between all screens
+				if (turnMgr != null) {
+					turnMgr.BeginTurn ();
+				}
 
-### **Phase 7: Basic Special Cards** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **PLUS Card**: Additional action requirement system
-- ✅ **STOP Card**: Turn skipping mechanism
-- ✅ **ChangeDirection Card**: Direction reversal (2-player context)
-- ✅ **ChangeColor Card**: Full color selection integration
+				TakiLogger.LogNetwork ("Master deck setup complete");
+			} else {
+				TakiLogger.LogError ("Master deck setup failed - no starting card", TakiLogger.LogCategory.Network);
+			}
+		}
 
-### **Phase 8A: Advanced Special Cards** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **PlusTwo Chaining**: Complete chain stacking system
-- ✅ **Chain Mathematics**: Perfect calculation (2, 4, 6, 8+ cards)
-- ✅ **AI Chain Strategy**: Intelligent chain decisions
-- ✅ **State Management**: PlusTwoChain interaction state
+		/// <summary>
+		/// Receive initial game state - ESSENTIAL LOG ONLY
+		/// </summary>
+		[PunRPC]
+		void ReceiveInitialGameState (string startingCardId, int drawCount, string serializedPlayer1Hand, string serializedPlayer2Hand, int masterActor) {
+			// REMOVED: Verbose receive logging
 
-### **Phase 8B: Multi-Card Sequences** ✅ **COMPLETE**
-**Achievements**:
-- ✅ **TAKI Sequences**: Same-color multi-card play
-- ✅ **SuperTAKI Sequences**: Any-color multi-card play
-- ✅ **Sequence Management**: Complete state handling
-- ✅ **AI Sequence Strategy**: Optimal sequence length decisions
+			if (!_waitingForDeckState) {
+				TakiLogger.LogWarning ("Received unexpected game state", TakiLogger.LogCategory.Network);
+				return;
+			}
 
----
+			_waitingForDeckState = false;
 
-## **🤖 PART 1: AI System Achievements**
+			List<CardData> player1Hand = DeserializeHand (serializedPlayer1Hand);
+			List<CardData> player2Hand = DeserializeHand (serializedPlayer2Hand);
 
-### **BasicComputerAI.cs** - Complete AI Player:
-- ✅ **Strategic Decision Making**: Smart card selection
-- ✅ **Special Card Preference**: 70% preference for special cards
-- ✅ **Color Selection Strategy**: Intelligent color choice for ChangeColor cards
-- ✅ **Chain Management**: PlusTwo chain extending/breaking decisions
-- ✅ **Sequence Optimization**: TAKI/SuperTAKI sequence length strategy
-- ✅ **Pause State Handling**: Perfect pause/resume with state preservation
-- ✅ **Emergency Recovery**: Stuck state detection and recovery
+			ApplyReceivedGameState (startingCardId, drawCount, player1Hand, player2Hand, masterActor);
+			_isDeckInitialized = true;
 
----
+			TakiLogger.LogNetwork ("Client deck initialization complete");
+		}
 
-## **🎮 PART 1: Game Management Achievements**
+		/// <summary>
+		/// Apply received game state - MINIMAL LOGGING
+		/// </summary>
+		void ApplyReceivedGameState (string startingCardId, int drawCount, List<CardData> player1Hand, List<CardData> player2Hand, int masterActor) {
+			if (gameManager?.deckManager == null) {
+				TakiLogger.LogError ("Cannot apply game state: Missing components", TakiLogger.LogCategory.Network);
+				return;
+			}
 
-### **GameManager.cs** - Central Game Coordinator:
-- ✅ **Complete Special Card Implementation**: All effects working
-- ✅ **Strict Turn Flow System**: Bulletproof action enforcement
-- ✅ **Manager Integration**: Pause, End, Exit coordination
-- ✅ **State Preservation**: Complete game state snapshots
-- ✅ **Event Orchestration**: All components properly connected
+			gameManager.deckManager.InitializeDeck ();
 
-### **State Management Excellence**:
-- ✅ **GameStateManager**: Multi-enum architecture with rule validation
-- ✅ **TurnManager**: Pause-aware turn coordination
-- ✅ **PauseManager**: Comprehensive state preservation
-- ✅ **GameEndManager**: Professional game completion flow
-- ✅ **ExitValidationManager**: Safe application termination
+			CardData startingCard = FindCardFromIdentifier (startingCardId);
+			if (startingCard != null) {
+				gameManager.deckManager.DiscardCard (startingCard);
+				// REMOVED: Verbose card logging
+			} else {
+				TakiLogger.LogWarning ($"Could not find starting card: {startingCardId}", TakiLogger.LogCategory.Network);
+			}
 
----
+			SetupLocalMultiplayerHands (player1Hand, player2Hand);
+			UpdateMultiplayerDeckDisplay ();
 
-## **🎨 PART 1: Visual System Achievements**
+			if (gameManager.gameplayUI != null) {
+				gameManager.gameplayUI.ShowPlayerMessage ("Game synchronized - Ready to play!");
+			}
 
-### **Professional Visual Polish**:
-- ✅ **Real Card Images**: Scanned TAKI cards from Resources
-- ✅ **Dynamic Hand Layout**: Adaptive spacing algorithm
-- ✅ **Selection Feedback**: Visual tints and position offsets
-- ✅ **Pile Management**: Professional draw/discard representation
-- ✅ **UI Consistency**: Clean, organized interface design
+			// REMOVED: Verbose completion logging
+		}
 
-### **Performance Excellence**:
-- ✅ **Smooth Gameplay**: No lag with 8+ cards in hand
-- ✅ **Memory Efficiency**: Proper prefab management
-- ✅ **Instant Updates**: No animations, immediate responses
-- ✅ **Error Handling**: Robust against missing resources
+		/// <summary>
+		/// Setup local multiplayer hands - CRITICAL LOGS ONLY
+		/// </summary>
+		void SetupLocalMultiplayerHands (List<CardData> player1Hand, List<CardData> player2Hand) {
+			// REMOVED: All verbose hand debugging logs
+			
+			if (player1Hand == null || player2Hand == null) {
+				TakiLogger.LogError ("Null hands received", TakiLogger.LogCategory.Network);
+				return;
+			}
 
----
+			List<Player> sortedPlayers = PhotonNetwork.PlayerList.OrderBy (p => p.ActorNumber).ToList ();
 
-# 🎯 **PART 2: MULTIPLAYER PLANNING PHASE**
+			if (sortedPlayers.Count < 2) {
+				TakiLogger.LogError ("Not enough players for hand assignment", TakiLogger.LogCategory.Network);
+				return;
+			}
 
-## **🌐 Transition to Multiplayer (Human vs Human)**
+			Player player1 = sortedPlayers [0];
+			Player player2 = sortedPlayers [1];
 
-### **Foundation Status for PART 2**:
-- ✅ **Architecture Ready**: Event-driven, component-separated design
-- ✅ **UI Framework**: Screen_MultiPlayerGame ready for implementation
-- ✅ **Game Logic**: All rules and special cards working perfectly
-- ✅ **State Management**: Multi-enum system ready for network sync
-- ✅ **Component Integration**: Clean Unity component connections
+			bool isPlayer1 = (PhotonNetwork.LocalPlayer.ActorNumber == player1.ActorNumber);
 
-### **Instructor's Pattern Analysis** (From Tic-tac-toe):
-```
-INSTRUCTOR PATTERN ↔ OUR TAKI ADAPTATION
-MenuLogic.cs ↔ NEW MultiplayerMenuLogic.cs
-GameLogic.cs ↔ GameManager.cs + Network Integration
-GameBoard.cs ↔ GameStateManager.cs + Network Sync
-BoardStateCheck.cs ↔ Our rule validation (distributed)
-GameOver.cs ↔ GameEndManager.cs + Network End
-Slot.cs ↔ CardController.cs + Network Actions
-SpritesManager.cs ↔ Our resource system (existing)
-```
+			List<CardData> myHand = isPlayer1 ? player1Hand : player2Hand;
+			List<CardData> opponentHand = isPlayer1 ? player2Hand : player1Hand;
 
----
+			// CRITICAL VALIDATION only
+			if (myHand == null || myHand.Count == 0) {
+				TakiLogger.LogError ($"Empty hand assigned - using fallback", TakiLogger.LogCategory.Network);
 
-## **🎯 PART 2: Planned Implementation Phases**
+				if (player1Hand != null && player1Hand.Count > 0) {
+					myHand = player1Hand;
+					opponentHand = player2Hand ?? new List<CardData> ();
+				} else if (player2Hand != null && player2Hand.Count > 0) {
+					myHand = player2Hand;
+					opponentHand = player1Hand ?? new List<CardData> ();
+				} else {
+					TakiLogger.LogError ("Both hands empty - cannot proceed", TakiLogger.LogCategory.Network);
+					return;
+				}
+			}
 
-### **Phase 1: Network Foundation** 🎯 **NEXT FOCUS**
-**Objective**: Establish Photon PUN2 multiplayer foundation
-**Pattern**: Follow instructor's MenuLogic → GameLogic networking approach
+			// Setup hands in GameManager
+			if (gameManager != null) {
+				gameManager.playerHand.Clear ();
+				gameManager.playerHand.AddRange (myHand);
 
-#### **Milestone 1: Photon Integration**
-- **Create MultiplayerMenuLogic.cs**: Room management, matchmaking
-- **Enhance MenuNavigation.cs**: Multiplayer menu integration
-- **Add Photon Components**: PunTurnManager, NetworkManager setup
-- **Room Configuration**: TAKI-specific room properties
+				if (gameManager.playerHandManager != null) {
+					gameManager.playerHandManager.SetNetworkMode (true);
+					gameManager.playerHandManager.UpdateHandDisplay (myHand);
+					// REMOVED: Success logging
+				}
 
-#### **Milestone 2: Basic Network Game**
-- **Create NetworkGameManager.cs**: Multiplayer game coordination
-- **Network Turn System**: Adapt strict turn flow for multiplayer
-- **Basic Card Sync**: Simple card play/draw over network
-- **Player Identification**: Human vs Human setup
+				if (gameManager.computerHandManager != null) {
+					gameManager.computerHandManager.SetNetworkModeEnhanced (true, true);
+					gameManager.computerHandManager.InitializeNetworkHandsEnhanced (false, opponentHand);
+					// REMOVED: Success logging
+				}
 
-### **Phase 2: Core Multiplayer Mechanics** 
-**Objective**: Implement core TAKI multiplayer functionality
-**Pattern**: Adapt instructor's state synchronization for TAKI complexity
+				if (gameManager.gameplayUI != null) {
+					gameManager.gameplayUI.UpdateHandSizeDisplay (myHand.Count, opponentHand.Count);
+				}
+			}
 
-#### **Milestone 3: State Synchronization**
-- **Hand Synchronization**: Private hands, hidden from opponent
-- **Deck State Sync**: Shared draw/discard piles
-- **Game State Sync**: Turn state, active color, special effects
-- **Rule Validation**: Network-safe rule checking
+			// REMOVED: All completion logs
+		}
 
-#### **Milestone 4: Action Synchronization**
-- **Card Play Network**: Send card selection over network
-- **Card Draw Network**: Synchronized deck drawing
-- **Turn Management**: Photon turn manager integration
-- **Basic Error Handling**: Network disconnection, desync recovery
+		/// <summary>
+		/// Update multiplayer deck display - MINIMAL LOGGING
+		/// </summary>
+		void UpdateMultiplayerDeckDisplay () {
+			if (gameManager?.deckManager == null) {
+				return; // REMOVED: Warning log
+			}
 
-### **Phase 3: Special Cards Networking**
-**Objective**: Network synchronization of special card effects
-**Complexity**: Much higher than instructor's simple board state
+			int drawPileCount = gameManager.deckManager.DrawPileCount;
+			int discardPileCount = gameManager.deckManager.DiscardPileCount;
+			CardData topDiscardCard = gameManager.deckManager.GetTopDiscardCard ();
 
-#### **Milestone 5: Basic Special Cards**
-- **PLUS/STOP Cards**: Network special effects synchronization
-- **ChangeDirection/ChangeColor**: Network color selection coordination
-- **Effect Broadcasting**: Special card effects sent to all players
-- **State Consistency**: Ensure same special card state across clients
+			// REMOVED: Verbose deck status logging
 
-#### **Milestone 6: Advanced Special Cards**
-- **PlusTwo Chaining**: Network chain state synchronization
-- **TAKI/SuperTAKI Sequences**: Multi-card sequence over network
-- **Complex State Sync**: Advanced special card state management
-- **AI Integration**: Computer opponents in multiplayer context
+			if (gameManager.deckManager.deckUI != null) {
+				gameManager.deckManager.deckUI.UpdateDeckUI (drawPileCount, discardPileCount);
 
-### **Phase 4: Polish and Optimization**
-**Objective**: Professional multiplayer experience with robust networking
-**Focus**: Error handling, performance, user experience
+				if (topDiscardCard != null) {
+					gameManager.deckManager.deckUI.UpdateDiscardPileDisplay (topDiscardCard);
+				}
+			}
 
-#### **Milestone 7: Network Reliability**
-- **Disconnection Handling**: Graceful player disconnect management
-- **Reconnection System**: Player rejoin functionality
-- **Desync Recovery**: Automatic state synchronization repair
-- **Error Prevention**: Robust validation and error handling
+			if (gameManager.gameplayUI != null) {
+				gameManager.gameplayUI.ShowDeckSyncStatus ($"Draw: {drawPileCount}, Discard: {discardPileCount}");
+			}
 
-#### **Milestone 8: Multiplayer Polish**
-- **Spectator Mode**: Observer functionality (if needed)
-- **Match History**: Game result tracking
-- **Performance Optimization**: Network traffic optimization
-- **Testing and Validation**: Comprehensive multiplayer testing
+			// REMOVED: Success logging
+		}
 
----
+		/// <summary>
+		/// Serialize hand - MINIMAL LOGGING
+		/// </summary>
+		string SerializeHand (List<CardData> hand) {
+			if (hand == null || hand.Count == 0) {
+				return "";
+			}
 
-# 🔄 **PART 2: Networking Architecture Plan**
+			List<string> cardIds = new List<string> ();
+			foreach (CardData card in hand) {
+				if (card != null) {
+					string cardId = CardDataHelper.CreateCardIdentifier (card);
+					cardIds.Add (cardId);
+					// REMOVED: Per-card logging
+				} else {
+					TakiLogger.LogWarning ("Null card in serialization", TakiLogger.LogCategory.Network);
+				}
+			}
 
-## **📡 Network Communication Patterns**
+			// REMOVED: Serialization success logging
+			return string.Join ("|", cardIds);
+		}
 
-### **Room Management Pattern** (Following Instructor):
-```csharp
-// TAKI Room Configuration
-var roomProperties = new ExitGames.Client.Photon.Hashtable {
-    {"gameType", "TAKI"},
-    {"maxPlayers", 2},
-    {"gameVersion", "1.0"},
-    {"password", optionalPassword}
-};
+		/// <summary>
+		/// Deserialize hand - MINIMAL LOGGING
+		/// </summary>
+		List<CardData> DeserializeHand (string serializedHand) {
+			List<CardData> hand = new List<CardData> ();
 
-// Matchmaking System
-- Join existing TAKI rooms
-- Create new room if none available
-- Password protection for private games
-- Max 2 players for TAKI gameplay
-```
+			if (string.IsNullOrEmpty (serializedHand)) {
+				return hand; // REMOVED: Empty string log
+			}
 
-### **Turn Management Pattern** (Adapted from Instructor):
-```csharp
-// Instructor Pattern: SendMove(slotIndex)
-// TAKI Adaptation:
-SendCardPlay(CardData cardToPlay, TargetPile targetPile)
-SendCardDraw(SourcePile sourcePile)
-SendSpecialCardEffect(SpecialCardType effect, parameters)
-SendColorSelection(CardColor selectedColor)
-SendSequenceAction(SequenceAction action, CardData[] cards)
+			// REMOVED: Deserialization start logging
 
-// Turn Flow Adaptation:
-OnTurnBegins(turn) // Start player turn with TAKI rules
-OnPlayerFinished(player, turn, gameAction) // Process TAKI actions
-```
+			string [] cardIds = serializedHand.Split ('|');
+			// REMOVED: Split count logging
 
-### **State Synchronization Pattern** (Much More Complex than Instructor):
-```csharp
-// Instructor: Simple 3x3 board array
-private List<SlotState> board; // 9 slots
+			foreach (string cardId in cardIds) {
+				if (!string.IsNullOrEmpty (cardId)) {
+					CardData card = FindCardFromIdentifier (cardId);
+					if (card != null) {
+						hand.Add (card);
+						// REMOVED: Per-card deserialization logging
+					} else {
+						TakiLogger.LogWarning ($"Card not found: {cardId}", TakiLogger.LogCategory.Network);
+					}
+				}
+			}
 
-// TAKI Needs: Complex multi-state synchronization
-private GameStateSnapshot networkGameState {
-    List<CardData> drawPile;           // Shared deck
-    List<CardData> discardPile;        // Shared discard
-    Dictionary<PlayerType, List<CardData>> playerHands; // Private hands
-    CardColor activeColor;             // Current color
-    TurnState turnState;               // Whose turn
-    InteractionState interactionState; // Special interactions
-    SpecialCardEffectState specialCardState; // Active effects
-    PlusTwoChainState chainState;      // Chain information
-    TakiSequenceState sequenceState;   // Sequence information
+			// REMOVED: Deserialization complete logging
+			return hand;
+		}
+
+		/// <summary>
+		/// Find card from identifier - ERROR LOGGING ONLY
+		/// </summary>
+		CardData FindCardFromIdentifier (string cardId) {
+			if (string.IsNullOrEmpty (cardId)) return null;
+
+			CardDataLoader cardLoader = gameManager?.deckManager?.cardLoader;
+			if (cardLoader == null) {
+				TakiLogger.LogError ("CardDataLoader not available", TakiLogger.LogCategory.Network);
+				return null;
+			}
+
+			return CardDataHelper.ParseCardIdentifier (cardLoader, cardId);
+		}
+
+		// === IPunTurnManagerCallbacks - ESSENTIAL LOGS ONLY ===
+
+		public void OnTurnBegins (int turn) {
+			// REMOVED: Verbose turn logging
+			
+			if (!_isDeckInitialized) {
+				// REMOVED: Waiting log
+				return;
+			}
+
+			int expectedActor = GetExpectedActorForTurn (turn);
+			_isMyTurn = PhotonNetwork.LocalPlayer.ActorNumber == expectedActor;
+
+			// REMOVED: Turn determination logging
+
+			if (gameManager != null && gameManager.gameState != null) {
+				TurnState newTurnState = _isMyTurn ? TurnState.PlayerTurn : TurnState.ComputerTurn;
+				gameManager.gameState.ChangeTurnState (newTurnState);
+
+				if (gameManager.gameplayUI != null) {
+					gameManager.gameplayUI.UpdateTurnDisplayMultiplayer (_isMyTurn);
+				}
+			}
+
+			if (_isFirstTurn) {
+				_isFirstTurn = false;
+				// REMOVED: First turn log
+			}
+		}
+
+		public void OnPlayerFinished (Player player, int turn, object move) {
+			// REMOVED: Verbose player finished logging
+
+			if (player.ActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && move != null) {
+				ProcessRemoteAction (player, move);
+			}
+
+			if (PhotonNetwork.IsMasterClient && turnMgr != null) {
+				turnMgr.BeginTurn ();
+			}
+		}
+
+		public void OnTurnCompleted (int turn) { }
+		public void OnPlayerMove (Player player, int turn, object move) { }
+		public void OnTurnTimeEnds (int turn) { }
+
+		/// <summary>
+		/// Get expected actor for turn - NO LOGGING
+		/// </summary>
+		int GetExpectedActorForTurn (int turn) {
+			var room = PhotonNetwork.CurrentRoom;
+			if (room == null) return -1;
+
+			var list = new System.Collections.Generic.List<int> ();
+			foreach (var kvp in room.Players) {
+				list.Add (kvp.Key);
+			}
+			list.Sort ();
+
+			if (list.Count == 0) return -1;
+
+			int idx = (turn - 1) % list.Count;
+			return list [idx];
+		}
+
+		/// <summary>
+		/// Send card play - ESSENTIAL LOG ONLY
+		/// </summary>
+		public void SendCardPlay (CardData card) {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			string cardId = GetCardIdentifier (card);
+
+			var moveData = new NetworkMoveData {
+				actionType = "PLAY_CARD",
+				cardIdentifier = cardId
+			};
+
+			turnMgr.SendMove (moveData, true);
+			// REMOVED: Send confirmation logging
+		}
+
+		/// <summary>
+		/// Send card draw - NO LOGGING
+		/// </summary>
+		public void SendCardDraw () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "DRAW_CARD",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			// REMOVED: Send confirmation logging
+		}
+
+		/// <summary>
+		/// Process remote action - NO LOGGING
+		/// </summary>
+		void ProcessRemoteAction (Player player, object moveData) {
+			if (gameManager == null) return;
+
+			if (moveData is NetworkMoveData networkMove) {
+				switch (networkMove.actionType) {
+					case "PLAY_CARD":
+						gameManager.ProcessNetworkCardPlay (networkMove.cardIdentifier, player.ActorNumber);
+						break;
+					case "DRAW_CARD":
+						gameManager.ProcessNetworkCardDraw (player.ActorNumber);
+						break;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Get card identifier - NO LOGGING
+		/// </summary>
+		string GetCardIdentifier (CardData card) {
+			return CardDataHelper.CreateCardIdentifier (card);
+		}
+
+		// Properties
+		public bool IsMyTurn => _isMyTurn;
+		public bool IsNetworkGameActive => !_isGameOver;
+		public bool IsDeckInitialized => _isDeckInitialized;
+	}
+
+	// Support classes unchanged
+	[System.Serializable]
+	public class NetworkInitialGameState {
+		public string startingCardIdentifier;
+		public int drawPileCount;
+		public int player1HandSize;
+		public int player2HandSize;
+		public int masterClientActor;
+	}
+
+	[System.Serializable]
+	public class NetworkMoveData {
+		public string actionType;
+		public string cardIdentifier;
+	}
+
+	[System.Serializable]
+	public class NetworkGameState {
+		public string startingCardIdentifier;
+		public int drawPileCount;
+		public List<CardData> player1Hand;
+		public List<CardData> player2Hand;
+		public int masterClientActor;
+	}
 }
-```
-
-## **🔐 Privacy and Security Patterns**
-
-### **Hand Privacy Management**:
-```csharp
-// Challenge: Keep opponent hands hidden
-// Solution: Server-authoritative hand management
-- Each client only receives own hand data
-- Opponent hand shows card count only
-- Card validation done on master client
-- Hand synchronization on game events only
-```
-
-### **Deck State Management**:
-```csharp
-// Challenge: Shared deck but distributed clients  
-// Solution: Master client deck authority
-- Master client manages deck state
-- Shuffle synchronization across clients
-- Draw/discard actions validated by master
-- Deck state broadcast on changes
-```
-
-## **⚡ Performance Considerations**
-
-### **Network Traffic Optimization**:
-```csharp
-// Instructor: Small, simple state updates
-// TAKI: Much larger, more frequent updates
-
-// Optimization Strategies:
-- Delta updates (only changed data)
-- Batch similar actions
-- Compress large state transfers
-- Cache frequently used data
-```
-
-### **State Update Frequency**:
-```csharp
-// High Frequency: Turn actions, card plays
-// Medium Frequency: Hand updates, effect states  
-// Low Frequency: Deck shuffles, game setup
-// On-Demand: Special card effects, error recovery
-```
-
----
-
-# 🎯 **Key Adaptation Challenges**
-
-## **🔧 Technical Challenges**
-
-### **1. State Complexity**:
-- **Instructor**: 9-slot boolean array
-- **TAKI**: Multi-enum states, card collections, special effects
-- **Solution**: Structured state serialization, delta updates
-
-### **2. Action Variety**:
-- **Instructor**: Single action type (place X/O)
-- **TAKI**: Multiple action types (play, draw, special effects)
-- **Solution**: Action type enumeration, polymorphic action handling
-
-### **3. Private Information**:
-- **Instructor**: All information public (board visible to both)
-- **TAKI**: Private hands, hidden deck order
-- **Solution**: Client-side filtering, server-authoritative validation
-
-### **4. Special Card Effects**:
-- **Instructor**: No special mechanics
-- **TAKI**: Complex special card interactions, chains, sequences
-- **Solution**: Effect state machines, network effect broadcasting
-
-## **🎮 Gameplay Challenges**
-
-### **1. Turn Complexity**:
-- **Instructor**: Simple alternating turns
-- **TAKI**: Multiple actions per turn, special card effects, sequences
-- **Solution**: Enhanced turn state management, action queuing
-
-### **2. Error Recovery**:
-- **Instructor**: Simple state, easy to resync
-- **TAKI**: Complex state, harder to recover from desync
-- **Solution**: State validation, automatic recovery, graceful degradation
-
-### **3. AI Integration**:
-- **Instructor**: No AI in multiplayer
-- **TAKI**: Potential AI players in multiplayer context
-- **Solution**: Hybrid human/AI multiplayer support
-
----
-
-# 📋 **Implementation Strategy**
-
-## **🎯 Development Approach**
-
-### **1. Start Simple, Add Complexity**:
-```
-Phase 1: Basic card play/draw (like instructor's slot placement)
-Phase 2: Add hand management and deck synchronization
-Phase 3: Layer special card effects
-Phase 4: Advanced mechanics (chains, sequences)
-```
-
-### **2. Follow Instructor Pattern Closely**:
-- **Room Management**: Copy instructor's approach exactly
-- **Turn System**: Adapt PunTurnManager for TAKI rules
-- **State Sync**: Scale instructor's simple sync to TAKI complexity
-- **Error Handling**: Follow instructor's reliability patterns
-
-### **3. Preserve PART 1 Architecture**:
-- **Keep Existing Scripts**: Enhance rather than replace
-- **Maintain Component Separation**: Add network layer, keep single responsibility
-- **Preserve Event System**: Add network events alongside existing events
-- **Maintain UI Framework**: Adapt existing UI for multiplayer context
-
-## **🔧 Script Strategy Decisions**
-
-### **Create New vs Enhance Existing**:
-
-#### **CREATE NEW** (Network-Specific):
-- ✅ **MultiplayerMenuLogic.cs**: Photon connection and room management
-- ✅ **NetworkGameManager.cs**: Multiplayer game coordination
-- ✅ **NetworkStateManager.cs**: Network state synchronization
-- ✅ **MultiplayerTurnManager.cs**: Photon turn integration
-
-#### **ENHANCE EXISTING** (Add Network Layer):
-- 🔧 **MenuNavigation.cs**: Add multiplayer menu integration
-- 🔧 **GameManager.cs**: Add network action coordination
-- 🔧 **GameStateManager.cs**: Add network state sync
-- 🔧 **GameplayUIManager.cs**: Add multiplayer UI updates
-- 🔧 **CardController.cs**: Add network card actions
-- 🔧 **HandManager.cs**: Add network hand updates
-
-### **Component Integration Strategy**:
-```
-Existing Singleplayer Architecture
-├── Keep all existing functionality intact
-├── Add network layer as optional enhancement
-├── Maintain AI system for hybrid multiplayer
-└── Preserve all PART 1 polish and features
-
-New Multiplayer Layer
-├── NetworkGameManager (coordinates with GameManager)
-├── MultiplayerMenuLogic (works with MenuNavigation)  
-├── Network state sync (enhances GameStateManager)
-└── Photon integration (PunTurnManager, etc.)
-```
-
----
-
-# 📊 **Success Metrics for PART 2**
-
-## **🎯 Phase 1 Success Criteria** (Network Foundation):
-- ✅ **Photon Integration**: Connection, rooms, matchmaking working
-- ✅ **Basic Multiplayer**: Two players can join same game
-- ✅ **Simple Card Play**: Basic card play/draw over network
-- ✅ **Turn Synchronization**: Proper turn management with timeouts
-- ✅ **Menu Integration**: Multiplayer menus working smoothly
-
-## **🎯 Phase 2 Success Criteria** (Core Mechanics):
-- ✅ **Hand Synchronization**: Private hands working correctly
-- ✅ **Deck State Sync**: Shared deck operations synchronized
-- ✅ **Rule Validation**: Network-safe rule checking
-- ✅ **Basic Game Flow**: Complete TAKI game playable over network
-
-## **🎯 Phase 3 Success Criteria** (Special Cards):
-- ✅ **Basic Special Cards**: All PART 1 special cards working in multiplayer
-- ✅ **Advanced Special Cards**: PlusTwo chains, sequences working over network
-- ✅ **Effect Synchronization**: Special card effects properly synchronized
-- ✅ **State Consistency**: All clients maintain same game state
-
-## **🎯 Phase 4 Success Criteria** (Polish):
-- ✅ **Reliability**: Robust error handling and recovery
-- ✅ **Performance**: Smooth multiplayer experience
-- ✅ **User Experience**: Professional multiplayer polish
-- ✅ **Testing**: Comprehensive multiplayer validation
-
-## **🎯 Overall PART 2 Success**:
-- ✅ **Complete Multiplayer TAKI**: Human vs Human fully functional
-- ✅ **All PART 1 Features**: Preserve all singleplayer functionality
-- ✅ **Professional Network Experience**: Stable, reliable multiplayer
-- ✅ **Special Card Networking**: All advanced mechanics working over network
-- ✅ **Code Quality**: Clean, maintainable multiplayer architecture
-
----
-
-# 🔄 **Current Status Summary**
-
-## **✅ PART 1 - SINGLEPLAYER** (100% Complete):
-- **Foundation**: Menu system, UI framework, component integration
-- **Core Systems**: Card system, deck management, turn flow, AI
-- **Visual Polish**: Interactive cards, hand management, professional UI
-- **Game Flow**: Pause system, game end, exit validation
-- **Special Cards**: All cards implemented including advanced mechanics
-- **Code Quality**: Centralized logging, diagnostics, clean architecture
-
-## **🎯 PART 2 - MULTIPLAYER** (Planning Phase):
-- **Foundation Analysis**: Instructor's networking patterns documented
-- **Architecture Plan**: Network layer design completed
-- **Implementation Strategy**: Phase-by-phase approach defined
-- **Script Strategy**: Create new vs enhance existing decisions made
-
-## **📋 IMMEDIATE NEXT STEPS**:
-1. **Begin Phase 1**: Photon PUN2 integration and MultiplayerMenuLogic.cs
-2. **Room Management**: Implement TAKI room creation and matchmaking
-3. **Basic Network Game**: Simple card play/draw over network
-4. **Turn Synchronization**: Adapt strict turn flow for multiplayer
-
-## **🎮 ARCHITECTURE READINESS**:
-- ✅ **Event-Driven Design**: Perfect for network layer addition
-- ✅ **Component Separation**: Clean enhancement without breaking existing
-- ✅ **Multi-Enum States**: Ready for network state synchronization
-- ✅ **Special Card System**: Foundation ready for network special effects
-- ✅ **UI Framework**: Screen_MultiPlayerGame ready for implementation
-
-**The transition from PART 1 to PART 2 is strategically planned to preserve all existing functionality while adding comprehensive multiplayer capabilities following the instructor's proven networking patterns.**
-
----
-
-**📄 Document Status**: ✅ Complete - PART 1 consolidated, PART 2 planned  
-**🎯 Current Focus**: Begin PART 2 Phase 1 implementation  
-**📅 Next Update**: After Phase 1 completion

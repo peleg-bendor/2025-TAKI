@@ -187,7 +187,7 @@ namespace TakiGame {
 			}
 
 			if (topCard != null) {
-				TakiLogger.LogDeck ($"Top discard card updated: {topCard.GetDisplayText ()}", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogDeck ($"Top discard card updated: {topCard.GetDisplayText ()}", TakiLogger.LogLevel.Trace);
 			}
 		}
 

@@ -38,7 +38,7 @@ namespace TakiGame {
 		/// Comprehensive diagnostic check - run this first
 		/// </summary>
 		public void RunFullDiagnostics () {
-			Debug.Log ("=== TAKI GAME DIAGNOSTICS START ===");
+			TakiLogger.LogDebug ("=== TAKI GAME DIAGNOSTICS START ===", TakiLogger.LogCategory.Diagnostics);
 
 			// Test 1: Component References
 			CheckComponentReferences ();
@@ -58,108 +58,108 @@ namespace TakiGame {
 			// Test 6: AI State
 			CheckAIState ();
 
-			Debug.Log ("=== TAKI GAME DIAGNOSTICS END ===");
+			TakiLogger.LogDebug ("=== TAKI GAME DIAGNOSTICS END ===", TakiLogger.LogCategory.Diagnostics);
 		}
 
 		void CheckComponentReferences () {
-			Debug.Log ("--- COMPONENT REFERENCES CHECK ---");
+			TakiLogger.LogDebug ("--- COMPONENT REFERENCES CHECK ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (gameManager == null) {
 				gameManager = FindObjectOfType<GameManager> ();
-				Debug.LogError ("GameManager was null - attempting to find");
+				TakiLogger.LogError ("GameManager was null - attempting to find", TakiLogger.LogCategory.Diagnostics);
 			} else {
-				Debug.Log ("OK: GameManager reference OK");
+				TakiLogger.LogDebug ("GameManager reference OK", TakiLogger.LogCategory.Diagnostics);
 			}
 
 			if (gameManager != null) {
-				Debug.Log ("OK: GameManager.deckManager: " + (gameManager.deckManager != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.gameState: " + (gameManager.gameState != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.turnManager: " + (gameManager.turnManager != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.computerAI: " + (gameManager.computerAI != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.playerHandManager: " + (gameManager.playerHandManager != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.computerHandManager: " + (gameManager.computerHandManager != null ? "OK" : "NULL"));
-				Debug.Log ("OK: GameManager.gameplayUI: " + (gameManager.gameplayUI != null ? "OK" : "NULL"));
+				TakiLogger.LogDebug ("GameManager.deckManager: " + (gameManager.deckManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.gameState: " + (gameManager.gameState != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.turnManager: " + (gameManager.turnManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.computerAI: " + (gameManager.computerAI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.playerHandManager: " + (gameManager.playerHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.computerHandManager: " + (gameManager.computerHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.gameplayUI: " + (gameManager.gameplayUI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
 		void CheckDeckState () {
-			Debug.Log ("--- DECK STATE CHECK ---");
+			TakiLogger.LogDebug ("--- DECK STATE CHECK ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (deckManager == null) deckManager = gameManager?.deckManager;
 
 			if (deckManager != null) {
-				Debug.Log ("OK: Draw Pile Count: " + deckManager.DrawPileCount);
-				Debug.Log ("OK: Discard Pile Count: " + deckManager.DiscardPileCount);
+				TakiLogger.LogDebug ("Draw Pile Count: " + deckManager.DrawPileCount, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Discard Pile Count: " + deckManager.DiscardPileCount, TakiLogger.LogCategory.Diagnostics);
 
 				CardData topCard = deckManager.GetTopDiscardCard ();
 				if (topCard != null) {
-					Debug.Log ("OK: Top Discard Card: " + topCard.GetDisplayText ());
+					TakiLogger.LogDebug ("Top Discard Card: " + topCard.GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 				} else {
-					Debug.LogError ("ERROR: Top Discard Card is NULL - CRITICAL ISSUE");
+					TakiLogger.LogError ("Top Discard Card is NULL - CRITICAL ISSUE", TakiLogger.LogCategory.Diagnostics);
 				}
 
-				Debug.Log ("OK: Can Draw Cards: " + deckManager.CanDrawCards);
-				Debug.Log ("OK: Has Valid Deck: " + deckManager.HasValidDeck);
+				TakiLogger.LogDebug ("Can Draw Cards: " + deckManager.CanDrawCards, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Has Valid Deck: " + deckManager.HasValidDeck, TakiLogger.LogCategory.Diagnostics);
 			} else {
-				Debug.LogError ("ERROR: DeckManager is NULL - CRITICAL ISSUE");
+				TakiLogger.LogError ("DeckManager is NULL - CRITICAL ISSUE", TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
 		void CheckGameState () {
-			Debug.Log ("--- GAME STATE CHECK (WITH TAKI SEQUENCES) ---");
+			TakiLogger.LogDebug ("--- GAME STATE CHECK (WITH TAKI SEQUENCES) ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (gameState == null) gameState = gameManager?.gameState;
 
 			if (gameState != null) {
-				Debug.Log ("OK: Turn State: " + gameState.turnState);
-				Debug.Log ("OK: Interaction State: " + gameState.interactionState);
-				Debug.Log ("OK: Game Status: " + gameState.gameStatus);
-				Debug.Log ("OK: Active Color: " + gameState.activeColor);
-				Debug.Log ("OK: Can Player Act: " + gameState.CanPlayerAct ());
-				Debug.Log ("OK: Can Computer Act: " + gameState.CanComputerAct ());
+				TakiLogger.LogDebug ("Turn State: " + gameState.turnState, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Interaction State: " + gameState.interactionState, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Game Status: " + gameState.gameStatus, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Active Color: " + gameState.activeColor, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Can Player Act: " + gameState.CanPlayerAct (), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Can Computer Act: " + gameState.CanComputerAct (), TakiLogger.LogCategory.Diagnostics);
 
 				// PHASE 8B: TAKI sequence diagnostics 
-				Debug.Log ("OK: TAKI Sequence Active: " + gameState.IsInTakiSequence);
+				TakiLogger.LogDebug ("TAKI Sequence Active: " + gameState.IsInTakiSequence, TakiLogger.LogCategory.Diagnostics);
 				if (gameState.IsInTakiSequence) {
-					Debug.Log ("OK: Sequence Color: " + gameState.TakiSequenceColor);
-					Debug.Log ("OK: Sequence Cards: " + gameState.NumberOfSequenceCards);
-					Debug.Log ("OK: Sequence Initiator: " + gameState.TakiSequenceInitiator);
+					TakiLogger.LogDebug ("Sequence Color: " + gameState.TakiSequenceColor, TakiLogger.LogCategory.Diagnostics);
+					TakiLogger.LogDebug ("Sequence Cards: " + gameState.NumberOfSequenceCards, TakiLogger.LogCategory.Diagnostics);
+					TakiLogger.LogDebug ("Sequence Initiator: " + gameState.TakiSequenceInitiator, TakiLogger.LogCategory.Diagnostics);
 				}
 			} else {
-				Debug.LogError ("ERROR: GameState is NULL - CRITICAL ISSUE");
+				TakiLogger.LogError ("GameState is NULL - CRITICAL ISSUE", TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
 		void CheckTurnManagement () {
-			Debug.Log ("--- TURN MANAGEMENT CHECK ---");
+			TakiLogger.LogDebug ("--- TURN MANAGEMENT CHECK ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (turnManager == null) turnManager = gameManager?.turnManager;
 
 			if (turnManager != null) {
-				Debug.Log ("OK: Current Player: " + turnManager.CurrentPlayer);
-				Debug.Log ("OK: Is Human Turn: " + turnManager.IsHumanTurn);
-				Debug.Log ("OK: Is Computer Turn: " + turnManager.IsComputerTurn);
-				Debug.Log ("OK: Turns Active: " + turnManager.AreTurnsActive ());
-				Debug.Log ("OK: Computer Turn Pending: " + turnManager.IsComputerTurnPending);
+				TakiLogger.LogDebug ("Current Player: " + turnManager.CurrentPlayer, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Is Human Turn: " + turnManager.IsHumanTurn, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Is Computer Turn: " + turnManager.IsComputerTurn, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Turns Active: " + turnManager.AreTurnsActive (), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Computer Turn Pending: " + turnManager.IsComputerTurnPending, TakiLogger.LogCategory.Diagnostics);
 
 				if (turnManager.TurnTimeRemaining > 0) {
-					Debug.Log ("OK: Turn Time Remaining: " + turnManager.TurnTimeRemaining.ToString ("F1") + "s");
+					TakiLogger.LogDebug ("Turn Time Remaining: " + turnManager.TurnTimeRemaining.ToString ("F1") + "s", TakiLogger.LogCategory.Diagnostics);
 				}
 			} else {
-				Debug.LogError ("ERROR: TurnManager is NULL - CRITICAL ISSUE");
+				TakiLogger.LogError ("TurnManager is NULL - CRITICAL ISSUE", TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
 		void CheckPlayerHand () {
-			Debug.Log ("--- PLAYER HAND CHECK ---");
+			TakiLogger.LogDebug ("--- PLAYER HAND CHECK ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (gameManager != null) {
-				Debug.Log ("OK: Player Hand Size: " + gameManager.PlayerHandSize);
-				Debug.Log ("OK: Computer Hand Size: " + gameManager.ComputerHandSize);
+				TakiLogger.LogDebug ("Player Hand Size: " + gameManager.PlayerHandSize, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("Computer Hand Size: " + gameManager.ComputerHandSize, TakiLogger.LogCategory.Diagnostics);
 
 				List<CardData> playerHand = gameManager.GetPlayerHand ();
 				if (playerHand.Count > 0) {
-					Debug.Log ("OK: First card in player hand: " + playerHand [0].GetDisplayText ());
+					TakiLogger.LogDebug ("First card in player hand: " + playerHand [0].GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 
 					// Test if any cards are playable
 					CardData topCard = deckManager?.GetTopDiscardCard ();
@@ -170,36 +170,36 @@ namespace TakiGame {
 								playableCount++;
 							}
 						}
-						Debug.Log ("OK: Playable cards in hand: " + playableCount);
+						TakiLogger.LogDebug ("Playable cards in hand: " + playableCount, TakiLogger.LogCategory.Diagnostics);
 					}
 				} else {
-					Debug.LogWarning ("WARNING: Player hand is empty");
+					TakiLogger.LogWarning ("Player hand is empty", TakiLogger.LogCategory.Diagnostics);
 				}
 
 				// Check selected card
 				CardData selectedCard = gameManager.playerHandManager?.GetSelectedCard ();
 				if (selectedCard != null) {
-					Debug.Log ("OK: Selected card: " + selectedCard.GetDisplayText ());
+					TakiLogger.LogDebug ("Selected card: " + selectedCard.GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 				} else {
-					Debug.Log ("OK: No card currently selected");
+					TakiLogger.LogDebug ("No card currently selected", TakiLogger.LogCategory.Diagnostics);
 				}
 			}
 		}
 
 		void CheckAIState () {
-			Debug.Log ("--- AI STATE CHECK ---");
+			TakiLogger.LogDebug ("--- AI STATE CHECK ---", TakiLogger.LogCategory.Diagnostics);
 
 			if (computerAI == null) computerAI = gameManager?.computerAI;
 
 			if (computerAI != null) {
-				Debug.Log ("OK: AI Hand Size: " + computerAI.HandSize);
-				Debug.Log ("OK: AI Has Cards: " + computerAI.HasCards);
+				TakiLogger.LogDebug ("AI Hand Size: " + computerAI.HandSize, TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("AI Has Cards: " + computerAI.HasCards, TakiLogger.LogCategory.Diagnostics);
 
 				if (computerAI.Hand.Count > 0) {
-					Debug.Log ("OK: First card in AI hand: " + computerAI.Hand [0].GetDisplayText ());
+					TakiLogger.LogDebug ("First card in AI hand: " + computerAI.Hand [0].GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 				}
 			} else {
-				Debug.LogError ("ERROR: ComputerAI is NULL - CRITICAL ISSUE");
+				TakiLogger.LogError ("ComputerAI is NULL - CRITICAL ISSUE", TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
@@ -207,26 +207,26 @@ namespace TakiGame {
 		/// Test rule validation with specific cards
 		/// </summary>
 		void TestRuleValidation () {
-			Debug.Log ("=== RULE VALIDATION TEST ===");
+			TakiLogger.LogDebug ("=== RULE VALIDATION TEST ===", TakiLogger.LogCategory.Diagnostics);
 
 			CardData topCard = deckManager?.GetTopDiscardCard ();
 			if (topCard == null) {
-				Debug.LogError ("Cannot test rules - no top discard card");
+				TakiLogger.LogError ("Cannot test rules - no top discard card", TakiLogger.LogCategory.Diagnostics);
 				return;
 			}
 
-			Debug.Log ("Testing against top card: " + topCard.GetDisplayText ());
+			TakiLogger.LogDebug ("Testing against top card: " + topCard.GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 
 			List<CardData> playerHand = gameManager?.GetPlayerHand ();
 			if (playerHand != null) {
 				foreach (CardData card in playerHand) {
 					bool canPlay = gameState?.IsValidMove (card, topCard) ?? false;
-					Debug.Log ("Card: " + card.GetDisplayText () + " - Can Play: " + canPlay);
+					TakiLogger.LogDebug ("Card: " + card.GetDisplayText () + " - Can Play: " + canPlay, TakiLogger.LogCategory.Diagnostics);
 
 					// Also test the underlying rule
 					bool cardRuleResult = card.CanPlayOn (topCard, gameState.activeColor);
 					if (canPlay != cardRuleResult) {
-						Debug.LogError ("RULE MISMATCH for " + card.GetDisplayText () + ": GameState says " + canPlay + ", CardData says " + cardRuleResult);
+						TakiLogger.LogError ("RULE MISMATCH for " + card.GetDisplayText () + ": GameState says " + canPlay + ", CardData says " + cardRuleResult, TakiLogger.LogCategory.Diagnostics);
 					}
 				}
 			}
@@ -236,20 +236,20 @@ namespace TakiGame {
 		/// Test turn sequence manually
 		/// </summary>
 		void TestTurnSequence () {
-			Debug.Log ("=== TURN SEQUENCE TEST ===");
+			TakiLogger.LogDebug ("=== TURN SEQUENCE TEST ===", TakiLogger.LogCategory.Diagnostics);
 
 			if (turnManager != null && gameState != null) {
-				Debug.Log ("Current turn: " + turnManager.CurrentPlayer);
+				TakiLogger.LogDebug ("Current turn: " + turnManager.CurrentPlayer, TakiLogger.LogCategory.Diagnostics);
 
 				if (turnManager.IsHumanTurn) {
-					Debug.Log ("Ending human turn manually...");
+					TakiLogger.LogDebug ("Ending human turn manually...", TakiLogger.LogCategory.Diagnostics);
 					turnManager.EndTurn ();
 				} else if (turnManager.IsComputerTurn) {
-					Debug.Log ("Computer turn - triggering AI decision...");
+					TakiLogger.LogDebug ("Computer turn - triggering AI decision...", TakiLogger.LogCategory.Diagnostics);
 					CardData topCard = deckManager?.GetTopDiscardCard ();
 					computerAI?.MakeDecision (topCard);
 				} else {
-					Debug.Log ("Game in neutral state - initializing turns...");
+					TakiLogger.LogDebug ("Game in neutral state - initializing turns...", TakiLogger.LogCategory.Diagnostics);
 					turnManager.InitializeTurns (PlayerType.Human);
 				}
 			}
@@ -266,7 +266,7 @@ namespace TakiGame {
 			if (turnManager == null) turnManager = FindObjectOfType<TurnManager> ();
 			if (computerAI == null) computerAI = FindObjectOfType<BasicComputerAI> ();
 
-			Debug.Log ("TakiGameDiagnostics ready. Press F1 for full diagnostics, F2 for rule validation, F3 for turn sequence test.");
+			TakiLogger.LogDebug ("TakiGameDiagnostics ready. Press F1 for full diagnostics, F2 for rule validation, F3 for turn sequence test.", TakiLogger.LogCategory.Diagnostics);
 		}
 	}
 }

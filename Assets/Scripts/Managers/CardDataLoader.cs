@@ -34,7 +34,7 @@ namespace TakiGame {
 
 			if (loadedCards.Length == 0) {
 				string errorMsg = "No CardData found in Resources/Data/Cards! Make sure cards are in Resources folder.";
-				Debug.LogError (errorMsg);
+				TakiLogger.LogError (errorMsg, TakiLogger.LogCategory.System);
 				OnLoadError?.Invoke (errorMsg);
 				return new List<CardData> ();
 			}
@@ -42,17 +42,17 @@ namespace TakiGame {
 			allCardData.Clear ();
 			allCardData.AddRange (loadedCards);
 
-			Debug.Log ($"Loaded {allCardData.Count} cards from Resources/Data/Cards");
+			TakiLogger.LogInfo ($"Loaded {allCardData.Count} cards from Resources/Data/Cards", TakiLogger.LogCategory.System);
 
 			// Validate deck composition
 			bool isValid = ValidateDeckComposition ();
 
 			if (isValid) {
-				Debug.Log ("Deck composition verified: All cards loaded successfully");
+				TakiLogger.LogInfo ("Deck composition verified: All cards loaded successfully", TakiLogger.LogCategory.System);
 				OnCardsLoaded?.Invoke (allCardData);
 			} else {
 				string errorMsg = $"Deck composition invalid! Expected {EXPECTED_DECK_SIZE} cards, loaded {allCardData.Count}";
-				Debug.LogWarning (errorMsg);
+				TakiLogger.LogWarning (errorMsg, TakiLogger.LogCategory.System);
 				OnLoadError?.Invoke (errorMsg);
 			}
 
@@ -65,7 +65,7 @@ namespace TakiGame {
 		/// <returns>True if deck composition is correct</returns>
 		public bool ValidateDeckComposition () {
 			if (allCardData.Count != EXPECTED_DECK_SIZE) {
-				Debug.LogWarning ($"Expected {EXPECTED_DECK_SIZE} cards, but loaded {allCardData.Count}");
+				TakiLogger.LogWarning ($"Expected {EXPECTED_DECK_SIZE} cards, but loaded {allCardData.Count}", TakiLogger.LogCategory.System);
 				return false;
 			}
 

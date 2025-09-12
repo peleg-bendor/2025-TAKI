@@ -55,7 +55,7 @@ namespace TakiGame {
 			if (gameManager == null) {
 				gameManager = FindObjectOfType<GameManager> ();
 				if (gameManager == null) {
-					Debug.LogWarning ("MenuNavigation: GameManager not found!");
+					TakiLogger.LogWarning ("GameManager not found!", TakiLogger.LogCategory.System);
 				}
 			}
 
@@ -63,7 +63,7 @@ namespace TakiGame {
 			if (multiplayerMenuLogic == null) {
 				multiplayerMenuLogic = FindObjectOfType<MultiplayerMenuLogic> ();
 				if (multiplayerMenuLogic == null) {
-					Debug.LogWarning ("MenuNavigation: MultiplayerMenuLogic not found! Creating one...");
+					TakiLogger.LogWarning ("MultiplayerMenuLogic not found! Creating one...", TakiLogger.LogCategory.Multiplayer);
 					// Create MultiplayerMenuLogic GameObject if not found
 					GameObject multiplayerLogicGO = new GameObject ("MultiplayerMenuLogic");
 					multiplayerMenuLogic = multiplayerLogicGO.AddComponent<MultiplayerMenuLogic> ();
@@ -100,7 +100,7 @@ namespace TakiGame {
 		/// Handle multiplayer game ready event (following instructor's pattern)
 		/// </summary>
 		void OnMultiplayerGameReady () {
-			Debug.Log ("MenuNavigation: Multiplayer game ready - transitioning to game screen");
+			TakiLogger.LogInfo ("Multiplayer game ready - transitioning to game screen", TakiLogger.LogCategory.Multiplayer);
 
 			// Go directly to multiplayer game screen
 			SetScreenAndClearStack (MultiPlayerGameScreen);
@@ -115,7 +115,7 @@ namespace TakiGame {
 		void FindScreenReferencesIfMissing () {
 			GameObject canvas = GameObject.Find ("Canvas");
 			if (canvas == null) {
-				Debug.LogError ("MenuNavigation: Canvas not found!");
+				TakiLogger.LogError ("Canvas not found!", TakiLogger.LogCategory.UI);
 				return;
 			}
 
@@ -124,9 +124,9 @@ namespace TakiGame {
 				Transform pausedTransform = canvas.transform.Find ("Screen_Paused");
 				if (pausedTransform != null) {
 					Screen_Paused = pausedTransform.gameObject;
-					Debug.Log ("MenuNavigation: Screen_Paused found automatically");
+					TakiLogger.LogInfo ("Screen_Paused found automatically", TakiLogger.LogCategory.UI);
 				} else {
-					Debug.LogWarning ("MenuNavigation: Screen_Paused not found!");
+					TakiLogger.LogWarning ("Screen_Paused not found!", TakiLogger.LogCategory.UI);
 				}
 			}
 
@@ -135,13 +135,13 @@ namespace TakiGame {
 				Transform gameEndTransform = canvas.transform.Find ("Screen_GameEnd");
 				if (gameEndTransform != null) {
 					Screen_GameEnd = gameEndTransform.gameObject;
-					Debug.Log ("MenuNavigation: Screen_GameEnd found automatically");
+					TakiLogger.LogInfo ("Screen_GameEnd found automatically", TakiLogger.LogCategory.UI);
 				} else {
-					Debug.LogWarning ("MenuNavigation: Screen_GameEnd not found!");
+					TakiLogger.LogWarning ("Screen_GameEnd not found!", TakiLogger.LogCategory.UI);
 				}
 			}
 
-			Debug.Log ("MenuNavigation: Screen references resolved");
+			TakiLogger.LogInfo ("Screen references resolved", TakiLogger.LogCategory.UI);
 		}
 
 		/// <summary>
@@ -217,11 +217,11 @@ namespace TakiGame {
 		/// </summary>
 		private void StartSinglePlayerGame () {
 			if (gameManager != null) {
-				Debug.Log ("MenuNavigation: Starting single player game...");
+				TakiLogger.LogInfo ("Starting single player game...", TakiLogger.LogCategory.GameState);
 				// CHANGED: Call the new single player specific method
 				gameManager.StartNewSinglePlayerGame ();
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot start game - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot start game - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -231,11 +231,11 @@ namespace TakiGame {
 		/// </summary>
 		private void StartMultiPlayerGame () {
 			if (gameManager != null) {
-				Debug.Log ("MenuNavigation: Initializing multiplayer systems...");
+				TakiLogger.LogInfo ("Initializing multiplayer systems...", TakiLogger.LogCategory.Multiplayer);
 				// FUTURE: This will call proper multiplayer initialization
 				gameManager.InitializeMultiPlayerSystems ();
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot start multiplayer - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot start multiplayer - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -244,7 +244,7 @@ namespace TakiGame {
 		/// </summary>
 		private void GoBack () {
 			if (screenStack.Count <= 1) {
-				Debug.LogWarning ("MenuNavigation: Cannot go back - already at base screen!");
+				TakiLogger.LogWarning ("Cannot go back - already at base screen!", TakiLogger.LogCategory.UI);
 				return;
 			}
 
@@ -284,7 +284,7 @@ namespace TakiGame {
 		/// </summary>
 		public void Btn_MultiPlayerLogic () {
 			if (MultiPlayerScreen == null) {
-				Debug.LogError ("MenuNavigation: MultiPlayerScreen is NULL! Cannot navigate.");
+				TakiLogger.LogError ("MultiPlayerScreen is NULL! Cannot navigate.", TakiLogger.LogCategory.UI);
 				return;
 			}
 
@@ -312,7 +312,7 @@ namespace TakiGame {
 		public void Btn_PlayMultiPlayerLogic () {
 			if (multiplayerMenuLogic != null) {
 				if (multiplayerMenuLogic.IsConnectedToPhoton) {
-					Debug.Log ("MenuNavigation: Starting matchmaking...");
+					TakiLogger.LogInfo ("Starting matchmaking...", TakiLogger.LogCategory.Multiplayer);
 					// Start matchmaking process
 					multiplayerMenuLogic.StartMatchmaking ();
 
@@ -320,10 +320,10 @@ namespace TakiGame {
 					// Game will start automatically when room is ready via OnMultiplayerGameReady event
 					StartCoroutine (ShowLoadingScreenForMatchmaking ());
 				} else {
-					Debug.LogWarning ("MenuNavigation: Not connected to Photon - cannot start matchmaking");
+					TakiLogger.LogWarning ("Not connected to Photon - cannot start matchmaking", TakiLogger.LogCategory.Multiplayer);
 				}
 			} else {
-				Debug.LogError ("MenuNavigation: MultiplayerMenuLogic not found - cannot start multiplayer matchmaking");
+				TakiLogger.LogError ("MultiplayerMenuLogic not found - cannot start multiplayer matchmaking", TakiLogger.LogCategory.Multiplayer);
 
 				// Fallback to old behavior for now
 				StartCoroutine (ShowScreenTemporarily (LoadingScreen, MultiPlayerGameScreen, clearStack: true));
@@ -335,7 +335,7 @@ namespace TakiGame {
 		/// Will be interrupted by OnMultiplayerGameReady event when room is found
 		/// </summary>
 		private IEnumerator ShowLoadingScreenForMatchmaking () {
-			Debug.Log ("MenuNavigation: Showing loading screen for matchmaking...");
+			TakiLogger.LogInfo ("Showing loading screen for matchmaking...", TakiLogger.LogCategory.Multiplayer);
 
 			SetScreen (LoadingScreen);
 
@@ -346,7 +346,7 @@ namespace TakiGame {
 			while (elapsed < timeout) {
 				// Check if we've successfully entered a game
 				if (MultiPlayerGameScreen.activeSelf) {
-					Debug.Log ("MenuNavigation: Matchmaking successful - game screen active");
+					TakiLogger.LogInfo ("Matchmaking successful - game screen active", TakiLogger.LogCategory.Multiplayer);
 					yield break;
 				}
 
@@ -355,7 +355,7 @@ namespace TakiGame {
 			}
 
 			// Timeout - go back to multiplayer menu
-			Debug.LogWarning ("MenuNavigation: Matchmaking timeout - returning to multiplayer menu");
+			TakiLogger.LogWarning ("Matchmaking timeout - returning to multiplayer menu", TakiLogger.LogCategory.Multiplayer);
 			SetScreen (MultiPlayerScreen);
 		}
 
@@ -367,12 +367,12 @@ namespace TakiGame {
 		/// Handle Btn_Pause click - pause current game
 		/// </summary>
 		public void Btn_PauseLogic () {
-			Debug.Log ("MenuNavigation: Pause button clicked");
+			TakiLogger.LogInfo ("Pause button clicked", TakiLogger.LogCategory.UI);
 
 			if (gameManager != null) {
 				gameManager.RequestPauseGame ();
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot pause - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot pause - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}
 
 			// Show pause screen as OVERLAY (don't hide the game screen)
@@ -384,7 +384,7 @@ namespace TakiGame {
 		/// </summary>
 		private void ShowPauseScreenOverlay () {
 			if (Screen_Paused == null) {
-				Debug.LogError ("MenuNavigation: Screen_Paused not assigned!");
+				TakiLogger.LogError ("Screen_Paused not assigned!", TakiLogger.LogCategory.UI);
 				return;
 			}
 
@@ -392,19 +392,19 @@ namespace TakiGame {
 			// This keeps Screen_SinglePlayerGame visible underneath
 			Screen_Paused.SetActive (true);
 
-			Debug.Log ("MenuNavigation: Pause screen shown as overlay");
+			TakiLogger.LogInfo ("Pause screen shown as overlay", TakiLogger.LogCategory.UI);
 		}
 
 		/// <summary>
 		/// Handle Btn_Continue click - resume paused game and hide overlay
 		/// </summary>
 		public void Btn_ContinueLogic () {
-			Debug.Log ("MenuNavigation: Continue button clicked");
+			TakiLogger.LogInfo ("Continue button clicked", TakiLogger.LogCategory.UI);
 
 			if (gameManager != null) {
 				gameManager.RequestResumeGame ();
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot resume - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot resume - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}
 
 			// Hide pause screen overlay
@@ -417,7 +417,7 @@ namespace TakiGame {
 		private void HidePauseScreenOverlay () {
 			if (Screen_Paused != null) {
 				Screen_Paused.SetActive (false);
-				Debug.Log ("MenuNavigation: Pause screen overlay hidden");
+				TakiLogger.LogInfo ("Pause screen overlay hidden", TakiLogger.LogCategory.UI);
 			}
 		}
 
@@ -425,17 +425,17 @@ namespace TakiGame {
 		/// Handle Btn_Restart click - restart current game - ENHANCED with AI state verification
 		/// </summary>
 		public void Btn_RestartLogic () {
-			Debug.Log ("MenuNavigation: Restart button clicked FROM PAUSE");
+			TakiLogger.LogInfo ("Restart button clicked FROM PAUSE", TakiLogger.LogCategory.UI);
 
 			// Hide pause screen first
 			HidePauseScreenOverlay ();
 
 			if (gameManager != null) {
 				// ENHANCED: Pre-emptively fix AI state before restart
-				Debug.Log ("MenuNavigation: Pre-emptive AI state fix before restart...");
+				TakiLogger.LogInfo ("Pre-emptive AI state fix before restart...", TakiLogger.LogCategory.GameState);
 
 				if (gameManager.computerAI != null && gameManager.computerAI.IsAIPaused) {
-					Debug.Log ("MenuNavigation: AI is paused - applying pre-emptive fix");
+					TakiLogger.LogInfo ("AI is paused - applying pre-emptive fix", TakiLogger.LogCategory.GameState);
 					gameManager.computerAI.ForceCompleteReset ();
 				}
 
@@ -445,7 +445,7 @@ namespace TakiGame {
 				// Verify after restart
 				StartCoroutine (VerifyAIStateAfterRestart ());
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot restart - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot restart - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}
 		}
 
@@ -453,13 +453,13 @@ namespace TakiGame {
 		/// Restart game specifically from pause state (not from game end)
 		/// </summary> 
 		private void RestartGameFromPause () {
-			Debug.Log ("MenuNavigation: Restarting game from pause state");
+			TakiLogger.LogInfo ("Restarting game from pause state", TakiLogger.LogCategory.GameState);
 
 			// Directly start a new single player game
 			// This bypasses the GameEndManager which expects a game-end state
 			if (gameManager != null) {
 				gameManager.StartNewSinglePlayerGame ();
-				Debug.Log ("MenuNavigation: New game started from pause restart");
+				TakiLogger.LogInfo ("New game started from pause restart", TakiLogger.LogCategory.GameState);
 			}
 		}
 
@@ -470,19 +470,19 @@ namespace TakiGame {
 			// Wait a moment for restart to complete
 			yield return new WaitForSeconds (0.5f);
 
-			Debug.Log ("MenuNavigation: Verifying AI state after restart...");
+			TakiLogger.LogInfo ("Verifying AI state after restart...", TakiLogger.LogCategory.GameState);
 
 			if (gameManager != null && gameManager.computerAI != null) {
 				bool aiIsPaused = gameManager.computerAI.IsAIPaused;
 				bool gameIsActive = gameManager.IsGameActive;
 
-				Debug.Log ($"MenuNavigation: Post-restart verification - AI Paused: {aiIsPaused}, Game Active: {gameIsActive}");
+				TakiLogger.LogInfo ($"Post-restart verification - AI Paused: {aiIsPaused}, Game Active: {gameIsActive}", TakiLogger.LogCategory.GameState);
 
 				if (aiIsPaused && gameIsActive) {
-					Debug.LogError ("MenuNavigation: PROBLEM DETECTED - AI still paused after restart!");
+					TakiLogger.LogError ("PROBLEM DETECTED - AI still paused after restart!", TakiLogger.LogCategory.GameState);
 
 					// IMPROVED Emergency fix - try multiple approaches
-					Debug.Log ("MenuNavigation: Applying comprehensive emergency AI fix...");
+					TakiLogger.LogInfo ("Applying comprehensive emergency AI fix...", TakiLogger.LogCategory.GameState);
 
 					// Approach 1: Force complete reset
 					gameManager.computerAI.ForceCompleteReset ();
@@ -492,7 +492,7 @@ namespace TakiGame {
 
 					// Check if that worked
 					if (gameManager.computerAI.IsAIPaused) {
-						Debug.LogError ("MenuNavigation: Force reset failed - trying additional fixes...");
+						TakiLogger.LogError ("Force reset failed - trying additional fixes...", TakiLogger.LogCategory.GameState);
 
 						// Approach 2: Try resume then clear
 						gameManager.computerAI.ResumeAI ();
@@ -501,17 +501,17 @@ namespace TakiGame {
 
 						// Approach 3: Final check and manual field reset if needed
 						if (gameManager.computerAI.IsAIPaused) {
-							Debug.LogError ("MenuNavigation: All fixes failed - AI may be permanently stuck");
-							Debug.LogError ("MenuNavigation: Please restart the game completely");
+							TakiLogger.LogError ("All fixes failed - AI may be permanently stuck", TakiLogger.LogCategory.GameState);
+							TakiLogger.LogError ("Please restart the game completely", TakiLogger.LogCategory.GameState);
 						} else {
-							Debug.Log ("MenuNavigation: AI unstuck with approach 2");
+							TakiLogger.LogInfo ("AI unstuck with approach 2", TakiLogger.LogCategory.GameState);
 						}
 					} else {
-						Debug.Log ("MenuNavigation: AI unstuck with force reset");
+						TakiLogger.LogInfo ("AI unstuck with force reset", TakiLogger.LogCategory.GameState);
 					}
 
 				} else {
-					Debug.Log ("MenuNavigation: AI state verification passed - restart successful");
+					TakiLogger.LogInfo ("AI state verification passed - restart successful", TakiLogger.LogCategory.GameState);
 				}
 			}
 		}
@@ -521,14 +521,14 @@ namespace TakiGame {
 		/// ENHANCED: Disconnect from Photon if in multiplayer
 		/// </summary>
 		public void Btn_GoHomeFromPauseLogic () {
-			Debug.Log ("MenuNavigation: Go Home button clicked FROM PAUSE");
+			TakiLogger.LogInfo ("Go Home button clicked FROM PAUSE", TakiLogger.LogCategory.UI);
 
 			// Hide pause screen first
 			HidePauseScreenOverlay ();
 
 			// Disconnect from Photon if connected
 			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
-				Debug.Log ("MenuNavigation: Disconnecting from Photon...");
+				TakiLogger.LogInfo ("Disconnecting from Photon...", TakiLogger.LogCategory.Multiplayer);
 				multiplayerMenuLogic.DisconnectFromPhoton ();
 			}
 
@@ -541,7 +541,7 @@ namespace TakiGame {
 		/// ENHANCED: Disconnect from Photon if in multiplayer
 		/// </summary>
 		public void Btn_GoHomeLogic () {
-			Debug.Log ("MenuNavigation: Go Home button clicked");
+			TakiLogger.LogInfo ("Go Home button clicked", TakiLogger.LogCategory.UI);
 
 			// Check if we're coming from pause screen
 			if (Screen_Paused != null && Screen_Paused.activeSelf) {
@@ -551,7 +551,7 @@ namespace TakiGame {
 
 				// Disconnect from Photon if connected
 				if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
-					Debug.Log ("MenuNavigation: Disconnecting from Photon...");
+					TakiLogger.LogInfo ("Disconnecting from Photon...", TakiLogger.LogCategory.Multiplayer);
 					multiplayerMenuLogic.DisconnectFromPhoton ();
 				}
 
@@ -563,7 +563,7 @@ namespace TakiGame {
 		/// Go to main menu with loading screen transition - COROUTINE VERSION
 		/// </summary>
 		private IEnumerator GoToMainMenuWithLoadingCoroutine () {
-			Debug.Log ("MenuNavigation: Transitioning to main menu with loading screen");
+			TakiLogger.LogInfo ("Transitioning to main menu with loading screen", TakiLogger.LogCategory.UI);
 			yield return StartCoroutine (ShowScreenTemporarily (LoadingScreen, MainMenuScreen, clearStack: true));
 		}
 
@@ -571,7 +571,7 @@ namespace TakiGame {
 		/// Go to main menu with loading screen transition - PUBLIC METHOD for external use
 		/// </summary>
 		public void GoToMainMenuWithLoading () {
-			Debug.Log ("MenuNavigation: Go to main menu with loading screen requested");
+			TakiLogger.LogInfo ("Go to main menu with loading screen requested", TakiLogger.LogCategory.UI);
 			StartCoroutine (GoToMainMenuWithLoadingCoroutine ());
 		}
 
@@ -584,11 +584,11 @@ namespace TakiGame {
 		/// ENHANCED: Disconnect from Photon before exit
 		/// </summary>
 		public void Btn_ExitLogic () {
-			Debug.Log ("MenuNavigation: Exit button clicked - showing validation");
+			TakiLogger.LogInfo ("Exit button clicked - showing validation", TakiLogger.LogCategory.UI);
 
 			// Disconnect from Photon if connected
 			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
-				Debug.Log ("MenuNavigation: Disconnecting from Photon before exit...");
+				TakiLogger.LogInfo ("Disconnecting from Photon before exit...", TakiLogger.LogCategory.Multiplayer);
 				multiplayerMenuLogic.DisconnectFromPhoton ();
 			}
 
@@ -596,7 +596,7 @@ namespace TakiGame {
 			if (gameManager != null) {
 				gameManager.RequestExitConfirmation ();
 			} else {
-				Debug.LogError ("MenuNavigation: Cannot show exit confirmation - GameManager not assigned!");
+				TakiLogger.LogError ("Cannot show exit confirmation - GameManager not assigned!", TakiLogger.LogCategory.System);
 				// Fallback to direct validation screen
 				SetScreen (ExitValidationScreen);
 			}
@@ -607,26 +607,26 @@ namespace TakiGame {
 		/// </summary>
 		private void ShowExitValidationOverlay () {
 			if (ExitValidationScreen == null) {
-				Debug.LogError ("MenuNavigation: ExitValidationScreen not assigned!");
+				TakiLogger.LogError ("ExitValidationScreen not assigned!", TakiLogger.LogCategory.UI);
 				return;
 			}
 
 			// Show as overlay, keeping the game screen visible underneath
 			ExitValidationScreen.SetActive (true);
-			Debug.Log ("MenuNavigation: Exit validation screen shown as overlay");
+			TakiLogger.LogInfo ("Exit validation screen shown as overlay", TakiLogger.LogCategory.UI);
 		}
 
 		/// <summary>
 		/// Handle Btn_ExitCancel click - treat as continue/resume
 		/// </summary>
 		public void Btn_ExitCancelLogic () {
-			Debug.Log ("MenuNavigation: Exit cancelled - treating as continue");
+			TakiLogger.LogInfo ("Exit cancelled - treating as continue", TakiLogger.LogCategory.UI);
 
 			// Let ExitValidationManager handle the cancellation logic
 			if (gameManager != null && gameManager.exitValidationManager != null) {
 				gameManager.exitValidationManager.CancelExit ();
 			} else {
-				Debug.LogWarning ("MenuNavigation: ExitValidationManager not available - using fallback");
+				TakiLogger.LogWarning ("ExitValidationManager not available - using fallback", TakiLogger.LogCategory.System);
 
 				// Fallback: hide exit validation screen
 				if (ExitValidationScreen != null) {
@@ -644,20 +644,20 @@ namespace TakiGame {
 		/// Handle Btn_ExitConfirm click - confirm application exit
 		/// </summary>
 		public void Btn_ExitConfirmLogic () {
-			Debug.Log ("MenuNavigation: Exit confirmed - application will close");
+			TakiLogger.LogInfo ("Exit confirmed - application will close", TakiLogger.LogCategory.UI);
 
 			// Let ExitValidationManager handle the confirmation
 			if (gameManager != null && gameManager.exitValidationManager != null) {
 				gameManager.exitValidationManager.ConfirmExit ();
 			} else {
-				Debug.LogWarning ("MenuNavigation: ExitValidationManager not available - using direct exit");
+				TakiLogger.LogWarning ("ExitValidationManager not available - using direct exit", TakiLogger.LogCategory.System);
 				// Existing exit logic will run
 				StartCoroutine (ShowExitingScreenAndQuit ());
 			}
 		}
 
 		public void StartExitSequence () {
-			Debug.Log ("MenuNavigation: Starting exit sequence");
+			TakiLogger.LogInfo ("Starting exit sequence", TakiLogger.LogCategory.UI);
 			StartCoroutine (ShowExitingScreenAndQuit ());
 		}
 
@@ -683,11 +683,11 @@ namespace TakiGame {
 #if UNITY_EDITOR
 			// Stop play mode in editor since we can't actually quit Unity
 			UnityEditor.EditorApplication.isPlaying = false;
-			Debug.Log ("MenuNavigation: Exiting application (Editor mode)");
+			TakiLogger.LogInfo ("Exiting application (Editor mode)", TakiLogger.LogCategory.System);
 #else
             // Close the application in builds
             Application.Quit();
-            Debug.Log("MenuNavigation: Exiting application");
+            TakiLogger.LogInfo("Exiting application", TakiLogger.LogCategory.System);
 #endif
 		}
 
@@ -708,9 +708,9 @@ namespace TakiGame {
 		/// </summary>
 		[System.Diagnostics.Conditional ("UNITY_EDITOR")]
 		public void LogStackState () {
-			Debug.Log ($"MenuNavigation Stack Count: {screenStack.Count}");
+			TakiLogger.LogInfo ($"Stack Count: {screenStack.Count}", TakiLogger.LogCategory.UI);
 			if (screenStack.Count > 0) {
-				Debug.Log ($"Current Screen: {screenStack.Peek ().name}");
+				TakiLogger.LogInfo ($"Current Screen: {screenStack.Peek ().name}", TakiLogger.LogCategory.UI);
 			}
 		}
 
@@ -720,10 +720,10 @@ namespace TakiGame {
 		[System.Diagnostics.Conditional ("UNITY_EDITOR")]
 		public void LogMultiplayerStatus () {
 			if (multiplayerMenuLogic != null) {
-				Debug.Log ($"MenuNavigation: Photon Connected: {multiplayerMenuLogic.IsConnectedToPhoton}");
-				Debug.Log ($"MenuNavigation: Room Status: {multiplayerMenuLogic.GetRoomStatus ()}");
+				TakiLogger.LogInfo ($"Photon Connected: {multiplayerMenuLogic.IsConnectedToPhoton}", TakiLogger.LogCategory.Multiplayer);
+				TakiLogger.LogInfo ($"Room Status: {multiplayerMenuLogic.GetRoomStatus ()}", TakiLogger.LogCategory.Multiplayer);
 			} else {
-				Debug.Log ("MenuNavigation: MultiplayerMenuLogic not found");
+				TakiLogger.LogInfo ("MultiplayerMenuLogic not found", TakiLogger.LogCategory.Multiplayer);
 			}
 		}
 
@@ -732,15 +732,15 @@ namespace TakiGame {
 		// Also add this debug method to check screen references
 		[ContextMenu ("Debug Screen References")]
 		public void DebugScreenReferences () {
-			Debug.Log ("=== MenuNavigation Screen References ===");
-			Debug.Log ($"MainMenuScreen: {(MainMenuScreen != null ? MainMenuScreen.name : "NULL")}");
-			Debug.Log ($"SinglePlayerScreen: {(SinglePlayerScreen != null ? SinglePlayerScreen.name : "NULL")}");
-			Debug.Log ($"MultiPlayerScreen: {(MultiPlayerScreen != null ? MultiPlayerScreen.name : "NULL")}");
-			Debug.Log ($"SinglePlayerGameScreen: {(SinglePlayerGameScreen != null ? SinglePlayerGameScreen.name : "NULL")}");
-			Debug.Log ($"MultiPlayerGameScreen: {(MultiPlayerGameScreen != null ? MultiPlayerGameScreen.name : "NULL")}");
-			Debug.Log ($"LoadingScreen: {(LoadingScreen != null ? LoadingScreen.name : "NULL")}");
-			Debug.Log ($"multiplayerMenuLogic: {(multiplayerMenuLogic != null ? "FOUND" : "NULL")}");
-			Debug.Log ("========================================");
+			TakiLogger.LogInfo ("=== Screen References ===", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"MainMenuScreen: {(MainMenuScreen != null ? MainMenuScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"SinglePlayerScreen: {(SinglePlayerScreen != null ? SinglePlayerScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"MultiPlayerScreen: {(MultiPlayerScreen != null ? MultiPlayerScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"SinglePlayerGameScreen: {(SinglePlayerGameScreen != null ? SinglePlayerGameScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"MultiPlayerGameScreen: {(MultiPlayerGameScreen != null ? MultiPlayerGameScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"LoadingScreen: {(LoadingScreen != null ? LoadingScreen.name : "NULL")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo ($"multiplayerMenuLogic: {(multiplayerMenuLogic != null ? "FOUND" : "NULL")}", TakiLogger.LogCategory.Multiplayer);
+			TakiLogger.LogInfo ("========================================", TakiLogger.LogCategory.UI);
 		}
 	}
 }

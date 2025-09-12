@@ -105,8 +105,8 @@ namespace TakiGame {
 			if (playCardButton != null) {
 				playCardButton.onClick.AddListener (() => {
 					TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED ===");
-					TakiLogger.LogTurnFlow ($"Button enabled state: {playButtonEnabled}", TakiLogger.LogLevel.Verbose);
-					TakiLogger.LogTurnFlow ($"Button interactable: {playCardButton.interactable}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button enabled state: {playButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {playCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
 					if (!playButtonEnabled) {
 						TakiLogger.LogWarning ("PLAY CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
@@ -124,8 +124,8 @@ namespace TakiGame {
 			if (drawCardButton != null) {
 				drawCardButton.onClick.AddListener (() => {
 					TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED ===");
-					TakiLogger.LogTurnFlow ($"Button enabled state: {drawButtonEnabled}", TakiLogger.LogLevel.Verbose);
-					TakiLogger.LogTurnFlow ($"Button interactable: {drawCardButton.interactable}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button enabled state: {drawButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {drawCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
 					if (!drawButtonEnabled) {
 						TakiLogger.LogWarning ("DRAW CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
@@ -143,8 +143,8 @@ namespace TakiGame {
 			if (endTurnButton != null) {
 				endTurnButton.onClick.AddListener (() => {
 					TakiLogger.LogTurnFlow ("=== END TURN BUTTON CLICKED ===");
-					TakiLogger.LogTurnFlow ($"Button enabled state: {endTurnButtonEnabled}", TakiLogger.LogLevel.Verbose);
-					TakiLogger.LogTurnFlow ($"Button interactable: {endTurnButton.interactable}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button enabled state: {endTurnButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {endTurnButton.interactable}", TakiLogger.LogLevel.Trace);
 
 					if (!endTurnButtonEnabled) {
 						TakiLogger.LogWarning ("END TURN clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
@@ -167,7 +167,7 @@ namespace TakiGame {
 			if (Btn_Player1EndTakiSequence != null) {
 				Btn_Player1EndTakiSequence.onClick.AddListener (() => {
 					TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED ===");
-					TakiLogger.LogTurnFlow ($"Button interactable: {Btn_Player1EndTakiSequence.interactable}", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogTurnFlow ($"Button interactable: {Btn_Player1EndTakiSequence.interactable}", TakiLogger.LogLevel.Trace);
 
 					if (!Btn_Player1EndTakiSequence.interactable) {
 						TakiLogger.LogWarning ("END TAKI SEQUENCE clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
@@ -237,17 +237,17 @@ namespace TakiGame {
 			// Update actual button states
 			if (playCardButton != null) {
 				playCardButton.interactable = enablePlay;
-				TakiLogger.LogTurnFlow ($"Play Card button updated: {(enablePlay ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogTurnFlow ($"Play Card button updated: {(enablePlay ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
 			}
 
 			if (drawCardButton != null) {
 				drawCardButton.interactable = enableDraw;
-				TakiLogger.LogTurnFlow ($"Draw Card button updated: {(enableDraw ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogTurnFlow ($"Draw Card button updated: {(enableDraw ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
 			}
 
 			if (endTurnButton != null) {
 				endTurnButton.interactable = enableEndTurn;
-				TakiLogger.LogTurnFlow ($"End Turn button updated: {(enableEndTurn ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogTurnFlow ($"End Turn button updated: {(enableEndTurn ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
 			}
 
 			// Pause button should always be available (when implemented)
@@ -267,7 +267,7 @@ namespace TakiGame {
 			if (turnIndicatorText != null) {
 				string turnMessage = GetTurnMessage (turnState);
 				turnIndicatorText.text = turnMessage;
-				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Verbose);
+				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Trace);
 			}
 
 			// Button states are controlled by GameManager's strict flow system
@@ -1207,7 +1207,7 @@ namespace TakiGame {
 		/// <summary>
 		/// Show immediate action feedback (short duration, high priority)
 		/// </summary>
-		/// <param name="message">Urgent message to show</param>
+		/// <param name="message">Urgent message to show</param> 
 		/// <param name="toPlayer">If true, show to player; if false, show to computer area</param>
 		public void ShowImmediateFeedback (string message, bool toPlayer = true) {
 			if (toPlayer) {
@@ -1218,5 +1218,252 @@ namespace TakiGame {
 
 			TakiLogger.LogUI ($"Immediate feedback: '{message}' -> {(toPlayer ? "Player" : "Computer")}");
 		}
+
+		#region MILESTONE 1: Enhanced Multiplayer UI Support
+
+		/// <summary>
+		/// PHASE 2: Update turn display for multiplayer
+		/// MILESTONE 1: Enhanced UpdateTurnDisplayMultiplayer with deck status
+		/// Preserves existing method while adding deck readiness feedback
+		/// </summary>
+		public void UpdateTurnDisplayMultiplayer (bool isLocalPlayerTurn) {
+			if (turnIndicatorText != null) {
+				if (isLocalPlayerTurn) {
+					turnIndicatorText.text = "Your Turn";
+				} else {
+					turnIndicatorText.text = "Opponent's Turn";
+				}
+			}
+
+			// MILESTONE 1: Enhanced button state management for multiplayer
+			if (isLocalPlayerTurn) {
+				// Check if game is ready for actions
+				GameManager gameManager = FindObjectOfType<GameManager> ();
+				bool gameReady = gameManager != null && gameManager.IsNetworkReady;
+
+				if (gameReady) {
+					UpdateStrictButtonStates (true, true, false); // Can play/draw
+					ShowPlayerMessage ("Your turn - play a card or draw");
+				} else {
+					UpdateStrictButtonStates (false, false, false); // Wait for game ready
+					ShowPlayerMessage ("Setting up game...");
+				}
+			} else {
+				UpdateStrictButtonStates (false, false, false); // Wait for opponent
+				ShowPlayerMessage ("Waiting for opponent...");
+			}
+
+			TakiLogger.LogNetwork ($"Multiplayer turn display updated: LocalTurn={isLocalPlayerTurn}");
+		}
+
+		/// <summary>
+		/// PHASE 2: Show opponent action feedback
+		/// MILESTONE 1: Enhanced opponent action feedback
+		/// </summary>
+		public void ShowOpponentAction (string action) {
+			ShowComputerMessage ($"Opponent {action}");
+			TakiLogger.LogNetwork ($"Opponent action displayed: {action}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced hand size display for multiplayer
+		/// Shows proper labels for local vs opponent hands
+		/// </summary>
+		public void UpdateHandSizeDisplayMultiplayer (int localHandSize, int opponentHandSize) {
+			if (player1HandSizeText != null) {
+				player1HandSizeText.text = $"Your Cards: {localHandSize}";
+			}
+
+			if (player2HandSizeText != null) {
+				player2HandSizeText.text = $"Opponent Cards: {opponentHandSize}";
+			}
+
+			TakiLogger.LogNetwork ($"Multiplayer hand sizes updated: Local={localHandSize}, Opponent={opponentHandSize}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show network connection status
+		/// </summary>
+		public void ShowNetworkStatus (string status) {
+			ShowPlayerMessageTimed ($"Network: {status}", 3.0f);
+			TakiLogger.LogNetwork ($"Network status displayed: {status}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show deck synchronization status
+		/// </summary>
+		public void ShowDeckSyncStatus (string message) {
+			ShowComputerMessageTimed ($"Deck: {message}", 2.0f);
+			TakiLogger.LogNetwork ($"Deck sync status: {message}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer game ready feedback
+		/// </summary>
+		public void ShowMultiplayerGameReady () {
+			ShowPlayerMessage ("Game ready - waiting for your turn...");
+			ShowComputerMessage ("Both players connected");
+			TakiLogger.LogNetwork ("Multiplayer game ready UI displayed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show opponent hand privacy feedback
+		/// </summary>
+		public void ShowOpponentHandPrivacy (int cardCount) {
+			ShowComputerMessageTimed ($"Opponent has {cardCount} cards (hidden)", 2.0f);
+			TakiLogger.LogNetwork ($"Opponent hand privacy feedback: {cardCount} cards");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced turn transition feedback for multiplayer
+		/// </summary>
+		public void ShowTurnTransitionMultiplayer (bool nowMyTurn, string previousAction = "") {
+			if (nowMyTurn) {
+				if (!string.IsNullOrEmpty (previousAction)) {
+					ShowPlayerMessage ($"Opponent {previousAction} - now your turn!");
+				} else {
+					ShowPlayerMessage ("Your turn!");
+				}
+				ShowComputerMessage ("Waiting for your action...");
+			} else {
+				ShowPlayerMessage ("Turn sent - waiting for opponent...");
+				ShowComputerMessage ("Opponent is thinking...");
+			}
+
+			TakiLogger.LogNetwork ($"Turn transition displayed: MyTurn={nowMyTurn}, PreviousAction={previousAction}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show network error with recovery options
+		/// </summary>
+		public void ShowNetworkError (string error, bool canRecover = false) {
+			ShowPlayerMessage ($"Network Error: {error}");
+
+			if (canRecover) {
+				ShowComputerMessage ("Attempting to reconnect...");
+			} else {
+				ShowComputerMessage ("Please check connection and restart");
+			}
+
+			TakiLogger.LogNetwork ($"Network error displayed: {error}, CanRecover={canRecover}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced UpdateAllDisplays with network awareness
+		/// Preserves existing method while adding multiplayer support
+		/// </summary>
+		public void UpdateAllDisplaysWithNetwork (TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor, bool isMultiplayerMode = false) {
+			// Call existing UpdateAllDisplays first
+			UpdateAllDisplays (turnState, gameStatus, interactionState, activeColor);
+
+			// MILESTONE 1: Additional multiplayer-specific updates
+			if (isMultiplayerMode) {
+				// Update for multiplayer context
+				GameManager gameManager = FindObjectOfType<GameManager> ();
+				if (gameManager != null && gameManager.networkGameManager != null) {
+					bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
+					UpdateTurnDisplayMultiplayer (isMyTurn);
+				}
+			}
+
+			TakiLogger.LogNetwork ($"All displays updated with network support: Multiplayer={isMultiplayerMode}");
+		}
+
+		#endregion
+
+		#region MILESTONE 1: Network Game State Display
+
+		/// <summary>
+		/// MILESTONE 1: Show game initialization progress
+		/// </summary>
+		public void ShowGameInitProgress (string step) {
+			ShowPlayerMessage ($"Setting up: {step}");
+			TakiLogger.LogNetwork ($"Game init progress: {step}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show deck initialization complete
+		/// </summary>
+		public void ShowDeckInitialized (int drawCount, int discardCount, string startingCard) {
+			ShowPlayerMessage ("Game ready - deck initialized!");
+			ShowComputerMessage ($"Draw: {drawCount}, Discard: {discardCount}, Start: {startingCard}");
+			TakiLogger.LogNetwork ($"Deck initialized display: Draw={drawCount}, Discard={discardCount}, Start={startingCard}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Show hands initialized for multiplayer
+		/// </summary>
+		public void ShowHandsInitialized (int myHandSize, int opponentHandSize) {
+			ShowPlayerMessage ($"Hands dealt - you have {myHandSize} cards");
+			ShowComputerMessage ($"Opponent has {opponentHandSize} cards (hidden)");
+			TakiLogger.LogNetwork ($"Hands initialized display: My={myHandSize}, Opponent={opponentHandSize}");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced waiting for opponent feedback
+		/// </summary>
+		public void ShowWaitingForOpponent (string action = "to play") {
+			ShowPlayerMessage ($"Waiting for opponent {action}...");
+			ShowComputerMessage ("Opponent's turn");
+			TakiLogger.LogNetwork ($"Waiting for opponent: {action}");
+		}
+
+		#endregion
+
+		#region MILESTONE 1: Debug and Diagnostics
+
+		/// <summary>
+		/// MILESTONE 1: Debug multiplayer UI state
+		/// </summary>
+		[ContextMenu ("Debug Multiplayer UI State")]
+		public void DebugMultiplayerUIState () {
+			TakiLogger.LogDiagnostics ("=== MULTIPLAYER UI STATE DEBUG ===");
+
+			// Check all UI components
+			TakiLogger.LogDiagnostics ($"Turn Indicator: {(turnIndicatorText != null ? turnIndicatorText.text : "NULL")}");
+			TakiLogger.LogDiagnostics ($"Player Message: {(playerMessageText != null ? playerMessageText.text : "NULL")}");
+			TakiLogger.LogDiagnostics ($"Computer Message: {(computerMessageText != null ? computerMessageText.text : "NULL")}");
+
+			// Check button states
+			TakiLogger.LogDiagnostics ($"Button States: {GetButtonStateSummary ()}");
+
+			// Check hand size displays
+			if (player1HandSizeText != null) {
+				TakiLogger.LogDiagnostics ($"Local Hand Display: {player1HandSizeText.text}");
+			}
+			if (player2HandSizeText != null) {
+				TakiLogger.LogDiagnostics ($"Opponent Hand Display: {player2HandSizeText.text}");
+			}
+
+			TakiLogger.LogDiagnostics ("=== END MULTIPLAYER UI DEBUG ===");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Test multiplayer UI feedback
+		/// </summary>
+		[ContextMenu ("Test Multiplayer UI Feedback")]
+		public void TestMultiplayerUIFeedback () {
+			TakiLogger.LogDiagnostics ("=== TESTING MULTIPLAYER UI FEEDBACK ===");
+
+			// Test various multiplayer messages
+			ShowNetworkStatus ("Connected to opponent");
+			Invoke (nameof (TestOpponentAction), 1f);
+			Invoke (nameof (TestTurnTransition), 2f);
+			Invoke (nameof (TestHandPrivacy), 3f);
+		}
+
+		void TestOpponentAction () {
+			ShowOpponentAction ("played Red 5");
+		}
+
+		void TestTurnTransition () {
+			ShowTurnTransitionMultiplayer (true, "drew a card");
+		}
+
+		void TestHandPrivacy () {
+			ShowOpponentHandPrivacy (6);
+		}
+
+		#endregion
 	}
 }

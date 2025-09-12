@@ -31,18 +31,18 @@ namespace TakiGame {
 		/// </summary>
 		public void InitializeNewGame () {
 			if (cardLoader == null) {
-				Debug.LogError ("CardDataLoader reference is missing!");
+				TakiLogger.LogError ("CardDataLoader reference is missing!", TakiLogger.LogCategory.GameState);
 				return;
 			}
 
 			if (deck == null) {
-				Debug.LogError ("Deck reference is missing!");
+				TakiLogger.LogError ("Deck reference is missing!", TakiLogger.LogCategory.GameState);
 				return;
 			}
 
 			// Make sure we have valid card data
 			if (!cardLoader.HasValidDeck) {
-				Debug.LogError ("Cannot initialize game: Invalid or missing card data!");
+				TakiLogger.LogError ("Cannot initialize game: Invalid or missing card data!", TakiLogger.LogCategory.GameState);
 				return;
 			}
 
@@ -53,7 +53,7 @@ namespace TakiGame {
 			deck.InitializeDeck (allCards);
 
 			OnGameInitialized?.Invoke ();
-			Debug.Log ("New game initialized successfully");
+			TakiLogger.LogInfo ("New game initialized successfully", TakiLogger.LogCategory.GameState);
 		}
 
 		/// <summary>
@@ -74,12 +74,12 @@ namespace TakiGame {
 			// Place starting card in discard pile if we found one
 			if (startingCard != null) {
 				deck.DiscardCard (startingCard);
-				Debug.Log ($"Starting card: {startingCard.GetDisplayText ()}");
+				TakiLogger.LogInfo ($"Starting card: {startingCard.GetDisplayText ()}", TakiLogger.LogCategory.GameState);
 			} else {
-				Debug.LogError ("Could not find a suitable starting card!");
+				TakiLogger.LogError ("Could not find a suitable starting card!", TakiLogger.LogCategory.GameState);
 			}
 
-			Debug.Log ($"Initial setup complete. Player 1: {player1Hand.Count} cards, Player 2: {player2Hand.Count} cards");
+			TakiLogger.LogInfo ($"Initial setup complete. Player 1: {player1Hand.Count} cards, Player 2: {player2Hand.Count} cards", TakiLogger.LogCategory.GameState);
 
 			OnInitialGameSetup?.Invoke (player1Hand, player2Hand, startingCard);
 
@@ -93,14 +93,14 @@ namespace TakiGame {
 		/// <returns>List of cards for the hand</returns>
 		public List<CardData> DrawInitialHand (int handSize) {
 			if (deck == null) {
-				Debug.LogError ("Deck reference is missing!");
+				TakiLogger.LogError ("Deck reference is missing!", TakiLogger.LogCategory.GameState);
 				return new List<CardData> ();
 			}
 
 			List<CardData> hand = deck.DrawCards (handSize);
 
 			if (hand.Count < handSize) {
-				Debug.LogWarning ($"Could only draw {hand.Count} out of {handSize} requested cards for initial hand");
+				TakiLogger.LogWarning ($"Could only draw {hand.Count} out of {handSize} requested cards for initial hand", TakiLogger.LogCategory.GameState);
 			}
 
 			return hand;
@@ -112,7 +112,7 @@ namespace TakiGame {
 		/// <returns>Starting card, or null if none found</returns>
 		public CardData SelectStartingCard () {
 			if (deck == null) {
-				Debug.LogError ("Deck reference is missing!");
+				TakiLogger.LogError ("Deck reference is missing!", TakiLogger.LogCategory.GameState);
 				return null;
 			}
 
@@ -171,17 +171,17 @@ namespace TakiGame {
 			bool isValid = true;
 
 			if (cardLoader == null) {
-				Debug.LogError ("GameSetupManager: CardDataLoader reference is missing!");
+				TakiLogger.LogError ("CardDataLoader reference is missing!", TakiLogger.LogCategory.GameState);
 				isValid = false;
 			}
 
 			if (deck == null) {
-				Debug.LogError ("GameSetupManager: Deck reference is missing!");
+				TakiLogger.LogError ("Deck reference is missing!", TakiLogger.LogCategory.GameState);
 				isValid = false;
 			}
 
 			if (initialHandSize <= 0) {
-				Debug.LogError ("GameSetupManager: Initial hand size must be greater than 0!");
+				TakiLogger.LogError ("Initial hand size must be greater than 0!", TakiLogger.LogCategory.GameState);
 				isValid = false;
 			}
 

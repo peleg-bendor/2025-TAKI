@@ -79,6 +79,10 @@ namespace TakiGame {
 		[Tooltip ("Manages exit confirmation")]
 		public ExitValidationManager exitValidationManager;
 
+		[Header ("PHASE 2: Network Multiplayer")]
+		[Tooltip ("Network game manager for multiplayer coordination")]
+		public NetworkGameManager networkGameManager;
+
 		// ENHANCED: Turn flow control state
 		[Header ("Turn Flow Control")]
 		private bool hasPlayerTakenAction = false;
@@ -96,6 +100,8 @@ namespace TakiGame {
 		private bool areComponentsValidated = false;
 		private bool areSystemsInitialized = false;
 		private bool isGameActive = false;
+
+		private bool isMultiplayerMode = false;
 
 		void Start () {
 			// Configure logging system
@@ -181,13 +187,392 @@ namespace TakiGame {
 			deckManager.SetupInitialGame ();
 		}
 
+		#region MILESTONE 1: Enhanced Network Integration
+
 		/// <summary>
-		/// PUBLIC METHOD: Initialize multiplayer systems - Future implementation
+		/// MILESTONE 1: Enhanced multiplayer system initialization with deck coordination
+		/// Replaces the basic InitializeMultiPlayerSystems() method
 		/// </summary>
 		public void InitializeMultiPlayerSystems () {
-			// TODO: Implement multiplayer system initialization
-			TakiLogger.LogSystem ("Multiplayer systems initialization - Not yet implemented");
+			TakiLogger.LogNetwork ("=== INITIALIZING MULTIPLAYER SYSTEMS (MILESTONE 1) ===");
+
+			if (networkGameManager == null) {
+				TakiLogger.LogError ("NetworkGameManager not assigned!", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			// Set multiplayer mode
+			isMultiplayerMode = true;
+			TakiLogger.LogNetwork ("Multiplayer mode enabled");
+
+			// Disable AI (remote human replaces AI)
+			if (computerAI != null) {
+				computerAI.enabled = false;
+				TakiLogger.LogNetwork ("Computer AI disabled for multiplayer");
+			}
+
+			// MILESTONE 1: Initialize systems for multiplayer if not already done
+			if (!areSystemsInitialized) {
+				ConnectEvents ();
+				InitializeVisualCardSystem ();
+				if (gameplayUI != null) {
+					gameplayUI.ResetUIForNewGame ();
+				}
+				areSystemsInitialized = true;
+			}
+
+			// MILESTONE 1: Configure deck manager for network mode
+			if (deckManager != null) {
+				deckManager.SetNetworkMode (true);
+				TakiLogger.LogNetwork ("DeckManager configured for network mode");
+			}
+
+			// MILESTONE 1: Configure hand managers for network privacy
+			InitializeNetworkHandManagers ();
+
+			// Start network game coordination
+			networkGameManager.StartNetworkGame ();
+
+			TakiLogger.LogNetwork ("Multiplayer systems initialized successfully (MILESTONE 1)");
 		}
+
+		/// <summary>
+		/// MILESTONE 1: Initialize hand managers for network privacy system
+		/// </summary>
+		void InitializeNetworkHandManagers () {
+			TakiLogger.LogNetwork ("Initializing hand managers for network privacy");
+
+			// Configure player hand manager (local player - face up)
+			if (playerHandManager != null) {
+				playerHandManager.SetNetworkMode (true);
+				playerHandManager.InitializeNetworkHands (true); // Local player hand
+				TakiLogger.LogNetwork ("Player hand manager configured for local player");
+			}
+
+			// Configure computer hand manager (opponent - face down with count)
+			if (computerHandManager != null) {
+				computerHandManager.SetNetworkMode (true);
+				computerHandManager.InitializeNetworkHands (false); // Opponent hand
+				TakiLogger.LogNetwork ("Computer hand manager configured for opponent display");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced network card play processing
+		/// Replaces the basic ProcessNetworkCardPlay() method
+		/// </summary>
+		public void ProcessNetworkCardPlay (string cardIdentifier, int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote card play: {cardIdentifier} from actor {remotePlayerActor}");
+
+			// Enhanced feedback for milestone 1
+			if (gameplayUI != null) {
+				gameplayUI.ShowOpponentAction ($"played {cardIdentifier}");
+				gameplayUI.ShowComputerMessage ($"Opponent played {cardIdentifier}");
+			}
+
+			// MILESTONE 1: Update opponent hand count (simulate card removal)
+			if (computerHandManager != null && computerHandManager.IsOpponentHand) {
+				int currentCount = computerHandManager.NetworkOpponentHandCount;
+				if (currentCount > 0) {
+					computerHandManager.UpdateNetworkOpponentHandCount (currentCount - 1);
+					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount - 1}");
+				}
+			}
+
+			// MILESTONE 1: Simulate discard pile update
+			// TODO: In next milestone, parse cardIdentifier and update actual discard pile
+			if (deckManager != null && deckManager.deckUI != null) {
+				deckManager.ShowMessage ($"Opponent played {cardIdentifier}", true);
+			}
+
+			// Update UI for both players
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote card play processed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced network card draw processing  
+		/// Replaces the basic ProcessNetworkCardDraw() method
+		/// </summary>
+		public void ProcessNetworkCardDraw (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote card draw from actor {remotePlayerActor}");
+
+			// Enhanced feedback for milestone 1
+			if (gameplayUI != null) {
+				gameplayUI.ShowOpponentAction ("drew a card");
+				gameplayUI.ShowComputerMessage ("Opponent drew a card");
+			}
+
+			// MILESTONE 1: Update opponent hand count (simulate card addition)
+			if (computerHandManager != null && computerHandManager.IsOpponentHand) {
+				int currentCount = computerHandManager.NetworkOpponentHandCount;
+				computerHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
+				TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
+			}
+
+			// MILESTONE 1: Simulate deck count update
+			// TODO: In next milestone, update actual deck counts
+			if (deckManager != null && deckManager.deckUI != null) {
+				deckManager.ShowMessage ("Opponent drew a card", true);
+			}
+
+			// Update UI for both players
+			UpdateAllUI ();
+
+			TakiLogger.LogNetwork ("Remote card draw processed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced send local card play to network
+		/// Includes hand count synchronization
+		/// </summary>
+		public void SendLocalCardPlayToNetwork (CardData cardToPlay) {
+			if (networkGameManager != null && cardToPlay != null) {
+				networkGameManager.SendCardPlay (cardToPlay);
+				TakiLogger.LogNetwork ($"Sent card play to network: {cardToPlay.GetDisplayText ()}");
+
+				// MILESTONE 1: Show immediate local feedback
+				if (gameplayUI != null) {
+					gameplayUI.ShowPlayerMessage ($"You played {cardToPlay.GetDisplayText ()}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced send local card draw to network
+		/// Includes hand count synchronization
+		/// </summary>
+		public void SendLocalCardDrawToNetwork () {
+			if (networkGameManager != null) {
+				networkGameManager.SendCardDraw ();
+				TakiLogger.LogNetwork ("Sent card draw to network");
+
+				// MILESTONE 1: Show immediate local feedback
+				if (gameplayUI != null) {
+					gameplayUI.ShowPlayerMessage ("You drew a card");
+				}
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer play card handler
+		/// Includes network hand synchronization
+		/// </summary>
+		void OnPlayCardButtonClickedMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER PLAY CARD CLICKED ===");
+
+			// Check if it's our turn
+			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// Get selected card
+			CardData cardToPlay = playerHandManager?.GetSelectedCard ();
+			if (cardToPlay != null) {
+				// Send to network first
+				SendLocalCardPlayToNetwork (cardToPlay);
+
+				// Process locally using existing singleplayer logic
+				// MILESTONE 1: This preserves all game rules and special card logic
+				PlayCardWithStrictFlow (cardToPlay);
+
+				TakiLogger.LogNetwork ($"Multiplayer card play completed: {cardToPlay.GetDisplayText ()}");
+			} else {
+				gameplayUI?.ShowPlayerMessage ("Please select a card!");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer draw card handler
+		/// Includes network hand synchronization
+		/// </summary>
+		void OnDrawCardButtonClickedMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER DRAW CARD CLICKED ===");
+
+			// Check if it's our turn
+			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
+				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// Send to network first
+			SendLocalCardDrawToNetwork ();
+
+			// Process locally using existing singleplayer logic
+			// MILESTONE 1: This preserves all game rules and flow
+			DrawCardWithStrictFlow ();
+
+			TakiLogger.LogNetwork ("Multiplayer card draw completed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced UpdateAllUI with network hand synchronization
+		/// FIXED: Respects network privacy when updating UI
+		/// </summary>
+		public void UpdateAllUIWithNetworkSupport () {
+			TakiLogger.LogNetwork ("Updating all UI with network support");
+
+			// MILESTONE 1 FIX: Respect network privacy when updating UI
+			if (isMultiplayerMode && computerHandManager != null && computerHandManager.IsOpponentHand) {
+				// For opponent hands in multiplayer, don't override the privacy display
+				// Only update UI elements that don't conflict with card back display
+				TakiLogger.LogNetwork ("Network mode: Updating UI while preserving opponent hand privacy");
+
+				if (gameplayUI != null) {
+					// Safe UI updates that don't interfere with hand displays
+					// FIXED: Get TurnState from gameState, not from turnManager.CurrentPlayer
+					TurnState currentTurnState = gameState?.turnState ?? TurnState.Neutral;
+					gameplayUI.UpdateTurnDisplay (currentTurnState);
+					gameplayUI.UpdateActiveColorDisplay (gameState?.activeColor ?? CardColor.Wild);
+
+					// Update hand size displays without touching hand cards
+					int localHandSize = playerHand?.Count ?? 0;
+					int opponentHandSize = computerHandManager?.NetworkOpponentHandCount ?? 0;
+					gameplayUI.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
+
+					TakiLogger.LogNetwork ($"UI updated safely: Local={localHandSize}, Opponent={opponentHandSize}");
+				}
+
+				// Don't call UpdateAllUI() - it would override the privacy system
+			} else {
+				// Normal UI updates for singleplayer or own hand
+				TakiLogger.LogNetwork ("Standard mode: Full UI update");
+				UpdateAllUI ();
+			}
+
+			// MILESTONE 1: Additional network-specific UI updates
+			if (isMultiplayerMode && networkGameManager != null) {
+				// Update turn display for multiplayer
+				if (gameplayUI != null) {
+					gameplayUI.UpdateTurnDisplayMultiplayer (networkGameManager.IsMyTurn);
+				}
+
+				// Sync hand counts for network display (already done above)
+				SynchronizeNetworkHandCounts ();
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Synchronize hand counts for network display
+		/// </summary>
+		void SynchronizeNetworkHandCounts () {
+			if (!isMultiplayerMode) return;
+
+			// Update local player hand count display
+			if (playerHandManager != null && gameplayUI != null) {
+				int localHandSize = playerHand.Count;
+				gameplayUI.UpdateHandSizeDisplay (localHandSize, computerHandManager?.NetworkOpponentHandCount ?? 0);
+			}
+
+			// Ensure opponent hand count is properly displayed
+			if (computerHandManager != null && computerHandManager.IsOpponentHand) {
+				// Hand count should already be updated by NetworkGameManager
+				// This ensures UI consistency
+				TakiLogger.LogNetwork ($"Network hand count sync: Local={playerHand.Count}, Opponent={computerHandManager.NetworkOpponentHandCount}");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Check if multiplayer game is ready for actions
+		/// </summary>
+		public bool IsMultiplayerGameReady () {
+			if (!isMultiplayerMode || networkGameManager == null) {
+				return false;
+			}
+
+			return networkGameManager.IsDeckInitialized && networkGameManager.IsNetworkGameActive;
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Get network game status for debugging
+		/// </summary>
+		public string GetNetworkGameStatus () {
+			if (!isMultiplayerMode || networkGameManager == null) {
+				return "Not in multiplayer mode";
+			}
+
+			return $"Network Game - MyTurn: {networkGameManager.IsMyTurn}, DeckReady: {networkGameManager.IsDeckInitialized}, Active: {networkGameManager.IsNetworkGameActive}";
+		}
+
+		#endregion
+
+		#region MILESTONE 1: Enhanced Properties
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer mode property
+		/// </summary>
+		public bool IsMultiplayerMode => isMultiplayerMode;
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced network readiness check
+		/// </summary>
+		public bool IsNetworkReady => isMultiplayerMode && networkGameManager != null && networkGameManager.IsDeckInitialized;
+
+		/// <summary>
+		/// MILESTONE 1: Check if it's local player's turn in network game
+		/// </summary>
+		public bool IsMyNetworkTurn => isMultiplayerMode && networkGameManager != null && networkGameManager.IsMyTurn;
+
+		#endregion
+
+		#region MILESTONE 1: Debug Methods
+
+		/// <summary>
+		/// MILESTONE 1: Debug network hand state
+		/// </summary>
+		[ContextMenu ("Debug Network Hand State")]
+		public void DebugNetworkHandState () {
+			TakiLogger.LogDiagnostics ("=== NETWORK HAND STATE DEBUG ===");
+			TakiLogger.LogDiagnostics ($"Multiplayer Mode: {isMultiplayerMode}");
+			TakiLogger.LogDiagnostics ($"Local Hand Size: {playerHand.Count}");
+
+			if (playerHandManager != null) {
+				TakiLogger.LogDiagnostics ($"Player Hand Manager - Network: {playerHandManager.IsNetworkGame}, Size: {playerHandManager.HandSize}");
+			}
+
+			if (computerHandManager != null) {
+				TakiLogger.LogDiagnostics ($"Computer Hand Manager - Network: {computerHandManager.IsNetworkGame}, Opponent: {computerHandManager.IsOpponentHand}");
+				TakiLogger.LogDiagnostics ($"Opponent Hand Count: {computerHandManager.NetworkOpponentHandCount}");
+			}
+
+			if (networkGameManager != null) {
+				TakiLogger.LogDiagnostics ($"Network Game - MyTurn: {networkGameManager.IsMyTurn}, Ready: {networkGameManager.IsDeckInitialized}");
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Debug deck state in network mode
+		/// </summary>
+		[ContextMenu ("Debug Network Deck State")]
+		public void DebugNetworkDeckState () {
+			TakiLogger.LogDiagnostics ("=== NETWORK DECK STATE DEBUG ===");
+
+			if (deckManager != null) {
+				TakiLogger.LogDiagnostics ($"Deck Manager - Network Mode: {deckManager.IsNetworkMode}");
+				TakiLogger.LogDiagnostics ($"Draw Pile: {deckManager.DrawPileCount}, Discard Pile: {deckManager.DiscardPileCount}");
+
+				CardData topCard = deckManager.GetTopDiscardCard ();
+				TakiLogger.LogDiagnostics ($"Top Discard Card: {topCard?.GetDisplayText () ?? "None"}");
+			}
+
+			if (networkGameManager != null) {
+				TakiLogger.LogDiagnostics (GetNetworkGameStatus ());
+			}
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Force network hand synchronization for debugging
+		/// </summary>
+		[ContextMenu ("Force Network Hand Sync")]
+		public void ForceNetworkHandSync () {
+			TakiLogger.LogDiagnostics ("=== FORCING NETWORK HAND SYNC ===");
+			SynchronizeNetworkHandCounts ();
+			UpdateAllUIWithNetworkSupport ();
+		}
+
+		#endregion
 
 		/// <summary>
 		/// Connect references between components (lightweight)
@@ -465,9 +850,16 @@ namespace TakiGame {
 		/// Handle play card button clicked (No Auto-Play)
 		/// Play Card button only works with explicit selection
 		/// Handle play card with strict flow control
+		/// ENHANCED: Play card button handler with multiplayer support
 		/// </summary>
 		void OnPlayCardButtonClicked () {
-			TakiLogger.LogTurnFlow ("PLAY CARD BUTTON CLICKED - STRICT FLOW");
+			TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED ===");
+
+			// PHASE 2: Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				OnPlayCardButtonClickedMultiplayer ();
+				return;
+			}
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
 				TakiLogger.LogWarning ("Cannot play card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
@@ -536,10 +928,17 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Handle draw card button clicked
-		/// ENHANCED: Handle draw card with strict flow control
+		/// ENHANCED: Handle draw card with strict flow control0
+		/// ENHANCED: Draw card button handler with multiplayer support
 		/// </summary>
 		void OnDrawCardButtonClicked () {
-			TakiLogger.LogTurnFlow ("DRAW CARD BUTTON CLICKED - CHECKING FOR PLSTWO CHAIN");
+			TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED ===");
+
+			// PHASE 2: Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				OnDrawCardButtonClickedMultiplayer ();
+				return;
+			}
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
 				TakiLogger.LogWarning ("Cannot draw card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
@@ -2568,14 +2967,14 @@ namespace TakiGame {
 				// Update player hand visual
 				if (playerHandManager != null && playerHand != null) {
 					playerHandManager.UpdateHandDisplay (playerHand);
-					TakiLogger.LogUI ($"Updated player hand display: {playerHand.Count} cards", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogUI ($"Updated player hand display: {playerHand.Count} cards", TakiLogger.LogLevel.Trace);
 				}
 
 				// Update computer hand visual
 				if (computerHandManager != null && computerAI != null) {
 					List<CardData> computerHand = computerAI.GetHandCopy ();
 					computerHandManager.UpdateHandDisplay (computerHand);
-					TakiLogger.LogUI ($"Updated computer hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Verbose);
+					TakiLogger.LogUI ($"Updated computer hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Trace);
 				}
 			} catch (System.Exception e) {
 				TakiLogger.LogError ($"Error updating visual hands: {e.Message}", TakiLogger.LogCategory.UI);

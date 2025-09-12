@@ -130,7 +130,7 @@ namespace TakiGame {
 		/// </summary>
 		private void CreateRoom () {
 			if (enableNetworkLogs) {
-				Debug.Log ("[Network] Creating TAKI room...");
+				TakiLogger.LogInfo ("Creating TAKI room...", TakiLogger.LogCategory.Multiplayer);
 			}
 
 			var roomProperties = new ExitGames.Client.Photon.Hashtable
@@ -152,6 +152,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Start multiplayer game ensuring ALL players transition to game screen
+		/// FIXED: Always require 2 players for proper multiplayer testing
 		/// </summary>
 		private void StartGame () {
 			var room = PhotonNetwork.CurrentRoom;
@@ -163,12 +164,9 @@ namespace TakiGame {
 			int max = room.MaxPlayers;
 			bool reachMax = (max > 0) && (players == max);
 
-			// TESTING MODE: Allow single player for development in editor
-#if UNITY_EDITOR
-			bool canStart = (players >= 1);
-#else
+			// FIXED: Always require 2 players for proper multiplayer coordination
+			// Removed conditional compilation that was causing single-player mode in editor
 			bool canStart = reachMax;
-#endif
 
 			if (!canStart) {
 				UpdateStatus ($"Waiting for players... ({players}/{max})");
@@ -180,7 +178,7 @@ namespace TakiGame {
 
 			// Essential network log
 			if (enableNetworkLogs) {
-				Debug.Log ($"[Network] Game starting - Players: {players}/{max}, IsMasterClient: {PhotonNetwork.IsMasterClient}");
+				TakiLogger.LogInfo ($"Game starting - Players: {players}/{max}, IsMasterClient: {PhotonNetwork.IsMasterClient}", TakiLogger.LogCategory.Multiplayer);
 			}
 
 			if (PhotonNetwork.IsMasterClient) {
@@ -201,7 +199,7 @@ namespace TakiGame {
 
 			// Essential network log only
 			if (enableNetworkLogs) {
-				Debug.Log ($"[Network] Room check - {room.PlayerCount} players connected");
+				TakiLogger.LogInfo ($"Room check - {room.PlayerCount} players connected", TakiLogger.LogCategory.Multiplayer);
 			}
 
 			StartGame ();
@@ -265,7 +263,7 @@ namespace TakiGame {
 
 			// Essential network log
 			if (enableNetworkLogs) {
-				Debug.Log ($"[Network] Player joined: {newPlayer.ActorNumber} - Room now has {PhotonNetwork.CurrentRoom.PlayerCount} players");
+				TakiLogger.LogInfo ($"Player joined: {newPlayer.ActorNumber} - Room now has {PhotonNetwork.CurrentRoom.PlayerCount} players", TakiLogger.LogCategory.Multiplayer);
 			}
 
 			CheckAndStartGame ();
@@ -357,7 +355,7 @@ namespace TakiGame {
 		[ContextMenu ("Toggle Network Logs")]
 		public void ToggleNetworkLogs () {
 			enableNetworkLogs = !enableNetworkLogs;
-			Debug.Log ($"[Network] Debug logging: {(enableNetworkLogs ? "ENABLED" : "DISABLED")}");
+			TakiLogger.LogInfo ($"Debug logging: {(enableNetworkLogs ? "ENABLED" : "DISABLED")}", TakiLogger.LogCategory.Multiplayer);
 		}
 
 		/// <summary>
@@ -365,16 +363,16 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Check Network State")]
 		public void CheckNetworkState () {
-			Debug.Log ("=== Network State ===");
-			Debug.Log ($"Connected: {PhotonNetwork.IsConnected}");
-			Debug.Log ($"In Room: {PhotonNetwork.InRoom}");
-			Debug.Log ($"Game Started: {hasGameStarted}");
+			TakiLogger.LogInfo ("=== Network State ===", TakiLogger.LogCategory.Multiplayer);
+			TakiLogger.LogInfo ($"Connected: {PhotonNetwork.IsConnected}", TakiLogger.LogCategory.Multiplayer);
+			TakiLogger.LogInfo ($"In Room: {PhotonNetwork.InRoom}", TakiLogger.LogCategory.Multiplayer);
+			TakiLogger.LogInfo ($"Game Started: {hasGameStarted}", TakiLogger.LogCategory.Multiplayer);
 
 			if (PhotonNetwork.CurrentRoom != null) {
 				var room = PhotonNetwork.CurrentRoom;
-				Debug.Log ($"Room: {room.Name}, Players: {room.PlayerCount}/{room.MaxPlayers}");
+				TakiLogger.LogInfo ($"Room: {room.Name}, Players: {room.PlayerCount}/{room.MaxPlayers}", TakiLogger.LogCategory.Multiplayer);
 			}
-			Debug.Log ("===================");
+			TakiLogger.LogInfo ("===================", TakiLogger.LogCategory.Multiplayer);
 		}
 
 		/// <summary>
@@ -382,7 +380,7 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Force Game Start (Debug)")]
 		public void ForceGameStart () {
-			Debug.Log ("[Network] FORCE GAME START - DEBUG ONLY");
+			TakiLogger.LogInfo ("FORCE GAME START - DEBUG ONLY", TakiLogger.LogCategory.Multiplayer);
 			hasGameStarted = false;
 			StartGame ();
 		}
