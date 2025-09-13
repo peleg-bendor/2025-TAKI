@@ -246,18 +246,24 @@ namespace TakiGame {
 
 				TakiLogger.LogNetwork ($"GameManager playerHand updated: {gameManager.playerHand.Count} cards");
 
-				// Setup local player hand display - use proven singleplayer method
-				if (gameManager.playerHandManager != null) {
-					gameManager.playerHandManager.SetNetworkMode (true);
-					gameManager.playerHandManager.UpdateHandDisplay (myHand);
-					TakiLogger.LogNetwork ($"Local player hand displayed: {myHand.Count} cards");
+				// Setup local player hand display using per-screen architecture
+				HandManager activePlayerHandManager = gameManager.GetActivePlayerHandManager();
+				if (activePlayerHandManager != null) {
+					activePlayerHandManager.SetNetworkMode (true);
+					activePlayerHandManager.UpdateHandDisplay (myHand);
+					TakiLogger.LogNetwork ($"Local player hand displayed: {myHand.Count} cards (per-screen architecture)");
+				} else {
+					TakiLogger.LogError ("Active player HandManager not found - check per-screen architecture setup", TakiLogger.LogCategory.Network);
 				}
 
-				// Setup opponent hand display with privacy
-				if (gameManager.computerHandManager != null) {
-					gameManager.computerHandManager.SetNetworkModeEnhanced (true, true); // Force opponent mode
-					gameManager.computerHandManager.InitializeNetworkHandsEnhanced (false, opponentHand);
-					TakiLogger.LogNetwork ($"Opponent hand setup with privacy: {opponentHand.Count} cards");
+				// Setup opponent hand display with REAL CARDS and privacy
+				HandManager activeOpponentHandManager = gameManager.GetActiveOpponentHandManager();
+				if (activeOpponentHandManager != null) {
+					activeOpponentHandManager.SetNetworkModeEnhanced (true, true); // Force opponent mode
+					activeOpponentHandManager.InitializeNetworkHandsEnhanced (false, opponentHand);
+					TakiLogger.LogNetwork ($"Opponent hand setup with REAL CARDS and privacy: {opponentHand.Count} cards (per-screen architecture)");
+				} else {
+					TakiLogger.LogError ("Active opponent HandManager not found - check per-screen architecture setup", TakiLogger.LogCategory.Network);
 				}
 
 				// Update UI

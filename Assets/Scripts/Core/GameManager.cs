@@ -35,7 +35,7 @@ namespace TakiGame {
 		public MultiPlayerUIManager multiPlayerUI;
 
 		[Tooltip ("Enable new UI architecture (set to true after Inspector assignments complete)")]
-		public bool useNewUIArchitecture = false;
+		public bool useNewUIArchitecture = true;
 
 		[Tooltip ("Deck management system")]
 		public DeckManager deckManager;
@@ -47,12 +47,28 @@ namespace TakiGame {
 		[Tooltip ("Player's hand of cards (Player1 = Human)")]
 		public List<CardData> playerHand = new List<CardData> ();
 
-		[Header ("Visual Card System")]
-		[Tooltip ("Hand manager for player cards (Player1HandPanel)")]
+		[Header ("Visual Card System - Legacy (Single Screen)")]
+		[Tooltip ("LEGACY: Hand manager for player cards - use for SinglePlayer only")]
 		public HandManager playerHandManager;
 
-		[Tooltip ("Hand manager for computer cards (Player2HandPanel)")]
+		[Tooltip ("LEGACY: Hand manager for computer cards - use for SinglePlayer only")]
 		public HandManager computerHandManager;
+
+		[Header ("Visual Card System - Per-Screen Architecture")]
+		[Tooltip ("Player hand manager for Screen_SinglePlayerGame")]
+		public HandManager singlePlayerPlayerHandManager;
+		
+		[Tooltip ("Computer hand manager for Screen_SinglePlayerGame")]
+		public HandManager singlePlayerComputerHandManager;
+		
+		[Tooltip ("Player 1 hand manager for Screen_MultiPlayerGame")]
+		public HandManager multiPlayerPlayer1HandManager;
+		
+		[Tooltip ("Player 2 hand manager for Screen_MultiPlayerGame")]
+		public HandManager multiPlayerPlayer2HandManager;
+		
+		[Tooltip ("Enable per-screen HandManager architecture (set to true after Inspector assignments)")]
+		public bool usePerScreenHandManagers = true;
 
 		[Header ("Phase 7: Special Card State")]
 		[Tooltip ("Track if player is waiting for additional action after Plus card")]
@@ -120,20 +136,27 @@ namespace TakiGame {
 		/// Falls back to legacy gameplayUI if new architecture is disabled
 		/// </summary>
 		public BaseGameplayUIManager GetActiveUI() {
+			// DIAGNOSTIC: Log every call to help debug
+			TakiLogger.LogSystem($"GetActiveUI() called - useNewUIArchitecture: {useNewUIArchitecture}, isMultiplayerMode: {isMultiplayerMode}");
+			TakiLogger.LogSystem($"  - singlePlayerUI: {(singlePlayerUI != null ? $"ASSIGNED ({singlePlayerUI.GetType().Name})" : "NULL")}");
+			TakiLogger.LogSystem($"  - multiPlayerUI: {(multiPlayerUI != null ? $"ASSIGNED ({multiPlayerUI.GetType().Name})" : "NULL")}");
+
 			if (!useNewUIArchitecture || (singlePlayerUI == null && multiPlayerUI == null)) {
 				// Fallback to legacy system - return null since GameplayUIManager doesn't inherit from BaseGameplayUIManager
-				TakiLogger.LogWarning("Using legacy GameplayUIManager - new UI architecture disabled", TakiLogger.LogCategory.UI);
+				TakiLogger.LogWarning("GetActiveUI() returning NULL - Using legacy GameplayUIManager (new UI architecture disabled or no UI managers assigned)", TakiLogger.LogCategory.UI);
 				return null;
 			}
 
 			if (isMultiplayerMode && multiPlayerUI != null) {
+				TakiLogger.LogSystem($"GetActiveUI() returning multiPlayerUI: {multiPlayerUI.GetType().Name}");
 				return multiPlayerUI;
 			} else if (!isMultiplayerMode && singlePlayerUI != null) {
+				TakiLogger.LogSystem($"GetActiveUI() returning singlePlayerUI: {singlePlayerUI.GetType().Name}");
 				return singlePlayerUI;
 			}
 
 			// Final fallback
-			TakiLogger.LogWarning($"No UI manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogWarning($"GetActiveUI() returning NULL - No UI manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}", TakiLogger.LogCategory.UI);
 			return null;
 		}
 
@@ -143,6 +166,58 @@ namespace TakiGame {
 		/// Usage: GetActiveUI()?.Method() instead of gameplayUI?.Method()
 		/// </summary>
 		public BaseGameplayUIManager GetUI() => GetActiveUI();
+
+		#endregion
+
+		#region Hand Manager Architecture
+
+		/// <summary>
+		/// Get the active player hand manager based on current game mode
+		/// Falls back to legacy playerHandManager if per-screen architecture is disabled
+		/// </summary>
+		public HandManager GetActivePlayerHandManager() {
+			if (!usePerScreenHandManagers) {
+				// Fallback to legacy system
+				return playerHandManager;
+			}
+
+			if (isMultiplayerMode && multiPlayerPlayer1HandManager != null) {
+				return multiPlayerPlayer1HandManager;
+			} else if (!isMultiplayerMode && singlePlayerPlayerHandManager != null) {
+				return singlePlayerPlayerHandManager;
+			}
+
+			// Final fallback to legacy
+			TakiLogger.LogWarning($"No player hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
+			return playerHandManager;
+		}
+
+		/// <summary>
+		/// Get the active opponent/computer hand manager based on current game mode
+		/// Falls back to legacy computerHandManager if per-screen architecture is disabled
+		/// </summary>
+		public HandManager GetActiveOpponentHandManager() {
+			if (!usePerScreenHandManagers) {
+				// Fallback to legacy system
+				return computerHandManager;
+			}
+
+			if (isMultiplayerMode && multiPlayerPlayer2HandManager != null) {
+				return multiPlayerPlayer2HandManager;
+			} else if (!isMultiplayerMode && singlePlayerComputerHandManager != null) {
+				return singlePlayerComputerHandManager;
+			}
+
+			// Final fallback to legacy
+			TakiLogger.LogWarning($"No opponent hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
+			return computerHandManager;
+		}
+
+		/// <summary>
+		/// Helper methods for cleaner code migration
+		/// </summary>
+		public HandManager GetPlayerHandManager() => GetActivePlayerHandManager();
+		public HandManager GetOpponentHandManager() => GetActiveOpponentHandManager();
 
 		#endregion
 
@@ -281,22 +356,33 @@ namespace TakiGame {
 
 		/// <summary>
 		/// MILESTONE 1: Initialize hand managers for network privacy system
+		/// ENHANCED: Uses per-screen HandManager architecture when enabled
 		/// </summary>
 		void InitializeNetworkHandManagers () {
 			TakiLogger.LogNetwork ("Initializing hand managers for network privacy");
 
+			// Get active hand managers (supports both legacy and per-screen architecture)
+			HandManager activePlayerHandManager = GetActivePlayerHandManager();
+			HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+
 			// Configure player hand manager (local player - face up)
-			if (playerHandManager != null) {
-				playerHandManager.SetNetworkMode (true);
-				playerHandManager.InitializeNetworkHands (true); // Local player hand
+			if (activePlayerHandManager != null) {
+				activePlayerHandManager.SetNetworkMode (true);
+				activePlayerHandManager.InitializeNetworkHands (true); // Local player hand
 				TakiLogger.LogNetwork ("Player hand manager configured for local player");
 			}
 
-			// Configure computer hand manager (opponent - face down with count)
-			if (computerHandManager != null) {
-				computerHandManager.SetNetworkMode (true);
-				computerHandManager.InitializeNetworkHands (false); // Opponent hand
-				TakiLogger.LogNetwork ("Computer hand manager configured for opponent display");
+			// Configure opponent hand manager (opponent - face down with count)
+			if (activeOpponentHandManager != null) {
+				activeOpponentHandManager.SetNetworkMode (true);
+				activeOpponentHandManager.InitializeNetworkHands (false); // Opponent hand
+				TakiLogger.LogNetwork ("Opponent hand manager configured for opponent display");
+			}
+
+			if (usePerScreenHandManagers) {
+				TakiLogger.LogNetwork ($"Network hand managers initialized with per-screen architecture - Mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}");
+			} else {
+				TakiLogger.LogNetwork ("Network hand managers initialized with legacy architecture");
 			}
 		}
 
@@ -411,8 +497,8 @@ namespace TakiGame {
 				return;
 			}
 
-			// Get selected card
-			CardData cardToPlay = playerHandManager?.GetSelectedCard ();
+			// Get selected card using active hand manager
+			CardData cardToPlay = GetActivePlayerHandManager()?.GetSelectedCard ();
 			if (cardToPlay != null) {
 				// Send to network first
 				SendLocalCardPlayToNetwork (cardToPlay);
@@ -916,8 +1002,8 @@ namespace TakiGame {
 				return;
 			}
 
-			// Get selected card
-			CardData cardToPlay = playerHandManager?.GetSelectedCard ();
+			// Get selected card using active hand manager
+			CardData cardToPlay = GetActivePlayerHandManager()?.GetSelectedCard ();
 
 			if (cardToPlay != null) {
 				TakiLogger.LogCardPlay ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
@@ -1068,7 +1154,7 @@ namespace TakiGame {
 			}
 
 			// Clear selection
-			playerHandManager?.ClearSelection ();
+			GetActivePlayerHandManager()?.ClearSelection ();
 
 			// Discard the card
 			deckManager?.DiscardCard (card);
@@ -1399,7 +1485,7 @@ namespace TakiGame {
 			}
 
 			// Clear any selected cards
-			playerHandManager?.ClearSelection ();
+			GetActivePlayerHandManager()?.ClearSelection ();
 
 			// Reset turn flow state for next turn (includes special card state)
 			ResetTurnFlowState ();
@@ -1478,7 +1564,7 @@ namespace TakiGame {
 			TakiLogger.LogTurnFlow ($"STOP effect: {skippedPlayer} turn skipped, {benefitPlayer} gets another turn");
 
 			// Clear any selected cards from previous action
-			playerHandManager?.ClearSelection ();
+			GetActivePlayerHandManager()?.ClearSelection ();
 
 			// Reset turn flow state for the new turn
 			ResetTurnFlowState ();
@@ -2957,19 +3043,29 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Initialize visual card system
+		/// ENHANCED: Uses per-screen HandManager architecture when enabled
 		/// </summary>
 		void InitializeVisualCardSystem () {
 			TakiLogger.LogSystem ("Initializing visual card system...");
 
-			if (playerHandManager == null || computerHandManager == null) {
-				TakiLogger.LogError ("HandManager references missing!", TakiLogger.LogCategory.System);
+			// Get active hand managers (supports both legacy and per-screen architecture)
+			HandManager activePlayerHandManager = GetActivePlayerHandManager();
+			HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+
+			if (activePlayerHandManager == null || activeOpponentHandManager == null) {
+				TakiLogger.LogError ($"HandManager references missing! Player: {activePlayerHandManager != null}, Opponent: {activeOpponentHandManager != null}", TakiLogger.LogCategory.System);
 				return;
 			}
 
-			playerHandManager.OnCardSelected += OnPlayerCardSelected;
-			computerHandManager.OnCardSelected += OnComputerCardSelected;
+			// Connect events using active managers
+			activePlayerHandManager.OnCardSelected += OnPlayerCardSelected;
+			activeOpponentHandManager.OnCardSelected += OnComputerCardSelected;
 
-			TakiLogger.LogSystem ("Visual card system initialized");
+			if (usePerScreenHandManagers) {
+				TakiLogger.LogSystem ($"Visual card system initialized with per-screen architecture - Mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}");
+			} else {
+				TakiLogger.LogSystem ("Visual card system initialized with legacy architecture");
+			}
 		}
 
 		/// <summary>
@@ -3004,20 +3100,25 @@ namespace TakiGame {
 
 		/// <summary>
 		/// Update visual hands with error checking
+		/// ENHANCED: Uses per-screen HandManager architecture when enabled
 		/// </summary>
 		void UpdateVisualHands () {
 			try {
+				// Get active hand managers (supports both legacy and per-screen architecture)
+				HandManager activePlayerHandManager = GetActivePlayerHandManager();
+				HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+
 				// Update player hand visual
-				if (playerHandManager != null && playerHand != null) {
-					playerHandManager.UpdateHandDisplay (playerHand);
+				if (activePlayerHandManager != null && playerHand != null) {
+					activePlayerHandManager.UpdateHandDisplay (playerHand);
 					TakiLogger.LogUI ($"Updated player hand display: {playerHand.Count} cards", TakiLogger.LogLevel.Trace);
 				}
 
-				// Update computer hand visual
-				if (computerHandManager != null && computerAI != null) {
+				// Update opponent hand visual
+				if (activeOpponentHandManager != null && computerAI != null) {
 					List<CardData> computerHand = computerAI.GetHandCopy ();
-					computerHandManager.UpdateHandDisplay (computerHand);
-					TakiLogger.LogUI ($"Updated computer hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Trace);
+					activeOpponentHandManager.UpdateHandDisplay (computerHand);
+					TakiLogger.LogUI ($"Updated opponent hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Trace);
 				}
 			} catch (System.Exception e) {
 				TakiLogger.LogError ($"Error updating visual hands: {e.Message}", TakiLogger.LogCategory.UI);
@@ -3067,6 +3168,46 @@ namespace TakiGame {
 
 			if (pauseManager == null) {
 				TakiLogger.LogWarning ("GameManager: PauseManager not assigned - pause functionality will be disabled", TakiLogger.LogCategory.System);
+			}
+
+			// Validate new UI architecture if enabled
+			if (useNewUIArchitecture) {
+				if (singlePlayerUI == null) {
+					TakiLogger.LogError ("GameManager: SinglePlayerUIManager not assigned but new UI architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				if (multiPlayerUI == null) {
+					TakiLogger.LogError ("GameManager: MultiPlayerUIManager not assigned but new UI architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				TakiLogger.LogSystem ("New UI architecture validation complete - both UI managers assigned");
+			}
+
+			// Validate per-screen HandManager architecture if enabled
+			if (usePerScreenHandManagers) {
+				if (singlePlayerPlayerHandManager == null) {
+					TakiLogger.LogError ("GameManager: SinglePlayerPlayerHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				if (singlePlayerComputerHandManager == null) {
+					TakiLogger.LogError ("GameManager: SinglePlayerComputerHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				if (multiPlayerPlayer1HandManager == null) {
+					TakiLogger.LogError ("GameManager: MultiPlayerPlayer1HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				if (multiPlayerPlayer2HandManager == null) {
+					TakiLogger.LogError ("GameManager: MultiPlayerPlayer2HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+					isValid = false;
+				}
+				
+				TakiLogger.LogSystem ("Per-screen HandManager architecture validation complete - all HandManagers assigned");
 			}
 
 			if (gameEndManager == null) {
@@ -3436,8 +3577,9 @@ namespace TakiGame {
 		void RefreshPlayerHandStates () {
 			TakiLogger.LogUI ("REFRESHING PLAYER HAND STATES");
 
-			if (playerHandManager != null) {
-				playerHandManager.RefreshPlayableStates ();
+			HandManager activePlayerHandManager = GetActivePlayerHandManager();
+			if (activePlayerHandManager != null) {
+				activePlayerHandManager.RefreshPlayableStates ();
 			}
 		}
 

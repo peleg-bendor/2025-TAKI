@@ -937,3 +937,56 @@ Scene_Menu ✅ COMPLETE + MULTIPLAYER ENHANCED
   3. Clear Ownership - Each manager handles one screen only
   4. Better Performance - No cross-screen reference checks
   5. Easier Maintenance - Isolated, focused responsibilities
+
+
+---
+
+
+
+Right, but I'm a little confused about this:
+In `Game Manager (Script)` in inspector:
+```
+Visual Card System
+Player Hand Manager   [None (Hand Manager)]
+Computer Hand Manager   [None (Hand Manager)]
+```
+What are we supposed to put/drag into these [None (Hand Manager)]? Do you understand my question?
+
+
+
+---
+
+Browsing the logs (not commenting on them all, just some):
+- `[NET] Master client setting up deck - simplified approach` - Looks good
+- A few `[DECK] Drew card: ...` - Nice, accurate too, from what I can see
+- `[STATE] Initial setup complete. Player 1: 8 cards, Player 2: 8 cards` - Perfect
+- `[NET] Opponent count updated via centralized UI: 8` - that's nice, but the UI (`Player2HandSizeText`) is not updating (both for player and opponent), I don't think we should dwell on it now, tho
+- Aha! I think I found something:
+  - We see `[NET] Showing 8 card backs for opponent hand
+UnityEngine.Debug:Log (object)`
+  - Which appears in `ShowOpponentHandAsCardBacks` in `HandManager.cs`
+  - And in there I see a very very problematic line: `cardBacks.Add (null); // null = card back in our system (now properly handled by CardController)`!
+- After that we can see: 
+  - `[NET] CardController: Card back initialized for opponent display` x 8
+  - And then `[NET] Opponent hand displayed as 8 card backs`
+  - Which probably explains the white cards
+
+  ---
+
+Perfect! No more warning! 
+Here is what I'm seeing visually:
+Screen 1 (master):
+- `Player1HandPanel` is empty (even in inspector, which is interesting for sure)
+- `Player2HandPanel` has 8 cards, as card backs, as is supposed to be (in inspector I can see `OpponentCard_0` - `OpponentCard_7`)
+- `DrawPilePanel` is empty (even in inspector)
+- `DiscardPilePanel` is empty (even in inspector)
+Screen 2 (not master):
+- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be
+- `Player2HandPanel` has 8 cards, as cardbacks, as is supposed to be 
+- `DrawPilePanel` is empty 
+- `DiscardPilePanel` is empty 
+
+Browsing the logs (not commenting on them all, just some):
+- `[NET] Setting up multiplayer hands - simplified approach`
+- `[NET] Hand assignment: Local=8 cards, Opponent=8 cards`
+- `[NET] GameManager playerHand updated: 0 cards` <- A problem!

@@ -54,6 +54,9 @@ namespace TakiGame {
 		private BaseGameplayUIManager activeUI;
 
 		void Awake () {
+			// DIAGNOSTIC: Log that HandManager is initializing
+			TakiLogger.LogSystem ($"HandManager {gameObject.name}: Awake() called - HandManager initializing...");
+
 			// Validate components
 			if (handContainer == null) {
 				handContainer = transform;
@@ -65,6 +68,9 @@ namespace TakiGame {
 		}
 
 		void Start () {
+			// DIAGNOSTIC: Log that Start is being called
+			TakiLogger.LogSystem ($"HandManager {gameObject.name}: Start() called - Looking for GameManager...");
+
 			// Find GameManager reference
 			gameManager = FindObjectOfType<GameManager> ();
 			if (gameManager == null) {
@@ -72,12 +78,56 @@ namespace TakiGame {
 				return;
 			}
 
+			// DIAGNOSTIC: Check GameManager UI architecture setup
+			TakiLogger.LogSystem ($"HandManager {gameObject.name}: DIAGNOSTIC - GameManager found, checking UI architecture...");
+			TakiLogger.LogSystem ($"  - useNewUIArchitecture: {gameManager.useNewUIArchitecture}");
+			TakiLogger.LogSystem ($"  - singlePlayerUI: {(gameManager.singlePlayerUI != null ? "ASSIGNED" : "NULL")}");
+			TakiLogger.LogSystem ($"  - multiPlayerUI: {(gameManager.multiPlayerUI != null ? "ASSIGNED" : "NULL")}");
+
 			// Get active UI manager from GameManager (fixes screen hierarchy issue)
 			activeUI = gameManager.GetActiveUI();
 			if (activeUI == null) {
 				TakiLogger.LogWarning ($"HandManager {gameObject.name}: No active UI manager available from GameManager!", TakiLogger.LogCategory.System);
+				TakiLogger.LogWarning ($"  DIAGNOSTIC: This means GetActiveUI() returned null - check the diagnostic info above!", TakiLogger.LogCategory.System);
 			} else {
 				TakiLogger.LogUI ($"HandManager {gameObject.name}: Connected to active UI manager: {activeUI.GetType().Name}");
+			}
+		}
+
+		/// <summary>
+		/// Ensure activeUI connection is established (called on-demand)
+		/// Fixes issue where HandManager is used before Start() runs
+		/// </summary>
+		void EnsureUIManagerConnection () {
+			// Only initialize if not already done
+			if (activeUI != null) {
+				return;
+			}
+
+			TakiLogger.LogSystem ($"HandManager {gameObject.name}: EnsureUIManagerConnection() - On-demand UI manager setup...");
+
+			// Find GameManager if not already found
+			if (gameManager == null) {
+				gameManager = FindObjectOfType<GameManager> ();
+				if (gameManager == null) {
+					TakiLogger.LogWarning ($"HandManager {gameObject.name}: GameManager not found during on-demand setup!", TakiLogger.LogCategory.System);
+					return;
+				}
+			}
+
+			// DIAGNOSTIC: Check GameManager UI architecture setup
+			TakiLogger.LogSystem ($"HandManager {gameObject.name}: DIAGNOSTIC - GameManager found, checking UI architecture...");
+			TakiLogger.LogSystem ($"  - useNewUIArchitecture: {gameManager.useNewUIArchitecture}");
+			TakiLogger.LogSystem ($"  - singlePlayerUI: {(gameManager.singlePlayerUI != null ? "ASSIGNED" : "NULL")}");
+			TakiLogger.LogSystem ($"  - multiPlayerUI: {(gameManager.multiPlayerUI != null ? "ASSIGNED" : "NULL")}");
+
+			// Get active UI manager from GameManager
+			activeUI = gameManager.GetActiveUI();
+			if (activeUI == null) {
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: No active UI manager available from GameManager during on-demand setup!", TakiLogger.LogCategory.System);
+				TakiLogger.LogWarning ($"  DIAGNOSTIC: This means GetActiveUI() returned null - check the diagnostic info above!", TakiLogger.LogCategory.System);
+			} else {
+				TakiLogger.LogUI ($"HandManager {gameObject.name}: Connected to active UI manager on-demand: {activeUI.GetType().Name}");
 			}
 		}
 
@@ -108,6 +158,9 @@ namespace TakiGame {
 		public void UpdateNetworkOpponentHandCount (int opponentCount) {
 			networkOpponentHandCount = opponentCount;
 
+			// Ensure activeUI is initialized (in case Start() hasn't run yet)
+			EnsureUIManagerConnection ();
+
 			// Use centralized UI manager for hand size updates
 			if (activeUI != null) {
 				// Get local hand count from GameManager or assume this is opponent hand
@@ -115,7 +168,7 @@ namespace TakiGame {
 				activeUI.UpdateHandSizeDisplay (localHandCount, opponentCount);
 				TakiLogger.LogNetwork ($"Opponent count updated via centralized UI: {opponentCount}");
 			} else {
-				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Cannot update UI - Active UI manager not found", TakiLogger.LogCategory.System);
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Cannot update UI - Active UI manager not found (even after EnsureUIManagerConnection)", TakiLogger.LogCategory.System);
 			}
 
 			// FIXED: Only update card backs if we're actually displaying opponent hand AND count changed
