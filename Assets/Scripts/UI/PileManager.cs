@@ -19,6 +19,21 @@ namespace TakiGame {
 		[Tooltip ("Discard pile container - shows top card face-up")]
 		public Transform discardPileContainer;
 
+		[Header ("MILESTONE: Per-Screen Architecture Support")]
+		[Header ("Singleplayer Pile Containers")]
+		[Tooltip ("Singleplayer Draw pile container - optional, falls back to drawPileContainer")]
+		public Transform singlePlayerDrawPileContainer;
+
+		[Tooltip ("Singleplayer Discard pile container - optional, falls back to discardPileContainer")]
+		public Transform singlePlayerDiscardPileContainer;
+
+		[Header ("Multiplayer Pile Containers")]
+		[Tooltip ("Multiplayer Draw pile container - required for multiplayer mode")]
+		public Transform multiPlayerDrawPileContainer;
+
+		[Tooltip ("Multiplayer Discard pile container - required for multiplayer mode")]
+		public Transform multiPlayerDiscardPileContainer;
+
 
 		// Internal references
 		private CardController drawPileCardController;
@@ -26,6 +41,48 @@ namespace TakiGame {
 
 		// For draw pile visual
 		private static CardData drawPileVisualCard;
+
+		// MILESTONE: Mode-aware container selection
+		/// <summary>
+		/// Get the appropriate draw pile container based on current game mode
+		/// </summary>
+		private Transform GetActiveDrawPileContainer() {
+			bool isMultiplayer = IsMultiplayerMode();
+
+			if (isMultiplayer && multiPlayerDrawPileContainer != null) {
+				return multiPlayerDrawPileContainer;
+			} else if (!isMultiplayer && singlePlayerDrawPileContainer != null) {
+				return singlePlayerDrawPileContainer;
+			}
+
+			// Fallback to legacy reference
+			return drawPileContainer;
+		}
+
+		/// <summary>
+		/// Get the appropriate discard pile container based on current game mode
+		/// </summary>
+		private Transform GetActiveDiscardPileContainer() {
+			bool isMultiplayer = IsMultiplayerMode();
+
+			if (isMultiplayer && multiPlayerDiscardPileContainer != null) {
+				return multiPlayerDiscardPileContainer;
+			} else if (!isMultiplayer && singlePlayerDiscardPileContainer != null) {
+				return singlePlayerDiscardPileContainer;
+			}
+
+			// Fallback to legacy reference
+			return discardPileContainer;
+		}
+
+		/// <summary>
+		/// Detect if we're in multiplayer mode by checking GameManager
+		/// </summary>
+		private bool IsMultiplayerMode() {
+			// Try to find GameManager in the scene
+			GameManager gameManager = FindObjectOfType<GameManager>();
+			return gameManager != null && gameManager.IsMultiplayerMode;
+		}
 
 		void Start () {
 			CreateDrawPileVisual ();
@@ -88,7 +145,10 @@ namespace TakiGame {
 		/// Create visual card for draw pile (face-down card back)
 		/// </summary>
 		void CreateDrawPileVisual () {
-			if (cardPrefab == null || drawPileContainer == null) {
+			// MILESTONE: Use mode-aware container selection
+			Transform activeDrawPileContainer = GetActiveDrawPileContainer();
+
+			if (cardPrefab == null || activeDrawPileContainer == null) {
 				TakiLogger.LogWarning ("PileManager: Cannot create draw pile visual - missing prefab or container", TakiLogger.LogCategory.System);
 				return;
 			}
@@ -102,8 +162,8 @@ namespace TakiGame {
 				drawPileVisualCard.number = 1; // Valid number to prevent path errors
 			}
 
-			// Instantiate prefab
-			GameObject cardObj = Instantiate (cardPrefab, drawPileContainer);
+			// Instantiate prefab using mode-aware container
+			GameObject cardObj = Instantiate (cardPrefab, activeDrawPileContainer);
 			cardObj.name = "DrawPileCard";
 
 			// Get controller and initialize
@@ -121,13 +181,16 @@ namespace TakiGame {
 		/// Create visual card for discard pile
 		/// </summary>
 		void CreateDiscardPileVisual () {
-			if (cardPrefab == null || discardPileContainer == null) {
+			// MILESTONE: Use mode-aware container selection
+			Transform activeDiscardPileContainer = GetActiveDiscardPileContainer();
+
+			if (cardPrefab == null || activeDiscardPileContainer == null) {
 				TakiLogger.LogWarning ("PileManager: Cannot create discard pile visual - missing prefab or container", TakiLogger.LogCategory.System);
 				return;
 			}
 
-			// Instantiate prefab
-			GameObject cardObj = Instantiate (cardPrefab, discardPileContainer);
+			// Instantiate prefab using mode-aware container
+			GameObject cardObj = Instantiate (cardPrefab, activeDiscardPileContainer);
 			cardObj.name = "DiscardPileCard";
 
 			// Get controller (will be initialized when UpdateDiscardPileDisplay is called)

@@ -27,7 +27,7 @@ namespace TakiGame {
 		[Tooltip ("LEGACY - Gameplay UI updates (being replaced by screen-specific managers)")]
 		public GameplayUIManager gameplayUI;
 
-		[Header("New UI Architecture - Screen-Specific Managers")]
+		[Header ("New UI Architecture - Screen-Specific Managers")]
 		[Tooltip ("UI manager for Screen_SinglePlayerGame")]
 		public SinglePlayerUIManager singlePlayerUI;
 
@@ -57,16 +57,16 @@ namespace TakiGame {
 		[Header ("Visual Card System - Per-Screen Architecture")]
 		[Tooltip ("Player hand manager for Screen_SinglePlayerGame")]
 		public HandManager singlePlayerPlayerHandManager;
-		
+
 		[Tooltip ("Computer hand manager for Screen_SinglePlayerGame")]
 		public HandManager singlePlayerComputerHandManager;
-		
+
 		[Tooltip ("Player 1 hand manager for Screen_MultiPlayerGame")]
 		public HandManager multiPlayerPlayer1HandManager;
-		
+
 		[Tooltip ("Player 2 hand manager for Screen_MultiPlayerGame")]
 		public HandManager multiPlayerPlayer2HandManager;
-		
+
 		[Tooltip ("Enable per-screen HandManager architecture (set to true after Inspector assignments)")]
 		public bool usePerScreenHandManagers = true;
 
@@ -135,28 +135,28 @@ namespace TakiGame {
 		/// Get the active UI manager based on current game mode
 		/// Falls back to legacy gameplayUI if new architecture is disabled
 		/// </summary>
-		public BaseGameplayUIManager GetActiveUI() {
+		public BaseGameplayUIManager GetActiveUI () {
 			// DIAGNOSTIC: Log every call to help debug
-			TakiLogger.LogSystem($"GetActiveUI() called - useNewUIArchitecture: {useNewUIArchitecture}, isMultiplayerMode: {isMultiplayerMode}");
-			TakiLogger.LogSystem($"  - singlePlayerUI: {(singlePlayerUI != null ? $"ASSIGNED ({singlePlayerUI.GetType().Name})" : "NULL")}");
-			TakiLogger.LogSystem($"  - multiPlayerUI: {(multiPlayerUI != null ? $"ASSIGNED ({multiPlayerUI.GetType().Name})" : "NULL")}");
+			TakiLogger.LogSystem ($"GetActiveUI() called - useNewUIArchitecture: {useNewUIArchitecture}, isMultiplayerMode: {isMultiplayerMode}");
+			TakiLogger.LogSystem ($"  - singlePlayerUI: {(singlePlayerUI != null ? $"ASSIGNED ({singlePlayerUI.GetType ().Name})" : "NULL")}");
+			TakiLogger.LogSystem ($"  - multiPlayerUI: {(multiPlayerUI != null ? $"ASSIGNED ({multiPlayerUI.GetType ().Name})" : "NULL")}");
 
 			if (!useNewUIArchitecture || (singlePlayerUI == null && multiPlayerUI == null)) {
 				// Fallback to legacy system - return null since GameplayUIManager doesn't inherit from BaseGameplayUIManager
-				TakiLogger.LogWarning("GetActiveUI() returning NULL - Using legacy GameplayUIManager (new UI architecture disabled or no UI managers assigned)", TakiLogger.LogCategory.UI);
+				TakiLogger.LogWarning ("GetActiveUI() returning NULL - Using legacy GameplayUIManager (new UI architecture disabled or no UI managers assigned)", TakiLogger.LogCategory.UI);
 				return null;
 			}
 
 			if (isMultiplayerMode && multiPlayerUI != null) {
-				TakiLogger.LogSystem($"GetActiveUI() returning multiPlayerUI: {multiPlayerUI.GetType().Name}");
+				TakiLogger.LogSystem ($"GetActiveUI() returning multiPlayerUI: {multiPlayerUI.GetType ().Name}");
 				return multiPlayerUI;
 			} else if (!isMultiplayerMode && singlePlayerUI != null) {
-				TakiLogger.LogSystem($"GetActiveUI() returning singlePlayerUI: {singlePlayerUI.GetType().Name}");
+				TakiLogger.LogSystem ($"GetActiveUI() returning singlePlayerUI: {singlePlayerUI.GetType ().Name}");
 				return singlePlayerUI;
 			}
 
 			// Final fallback
-			TakiLogger.LogWarning($"GetActiveUI() returning NULL - No UI manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}", TakiLogger.LogCategory.UI);
+			TakiLogger.LogWarning ($"GetActiveUI() returning NULL - No UI manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}", TakiLogger.LogCategory.UI);
 			return null;
 		}
 
@@ -165,7 +165,7 @@ namespace TakiGame {
 		/// Helper method for migrating gameplayUI?.Method() calls
 		/// Usage: GetActiveUI()?.Method() instead of gameplayUI?.Method()
 		/// </summary>
-		public BaseGameplayUIManager GetUI() => GetActiveUI();
+		public BaseGameplayUIManager GetUI () => GetActiveUI ();
 
 		#endregion
 
@@ -175,7 +175,7 @@ namespace TakiGame {
 		/// Get the active player hand manager based on current game mode
 		/// Falls back to legacy playerHandManager if per-screen architecture is disabled
 		/// </summary>
-		public HandManager GetActivePlayerHandManager() {
+		public HandManager GetActivePlayerHandManager () {
 			if (!usePerScreenHandManagers) {
 				// Fallback to legacy system
 				return playerHandManager;
@@ -188,7 +188,7 @@ namespace TakiGame {
 			}
 
 			// Final fallback to legacy
-			TakiLogger.LogWarning($"No player hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
+			TakiLogger.LogWarning ($"No player hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
 			return playerHandManager;
 		}
 
@@ -196,7 +196,7 @@ namespace TakiGame {
 		/// Get the active opponent/computer hand manager based on current game mode
 		/// Falls back to legacy computerHandManager if per-screen architecture is disabled
 		/// </summary>
-		public HandManager GetActiveOpponentHandManager() {
+		public HandManager GetActiveOpponentHandManager () {
 			if (!usePerScreenHandManagers) {
 				// Fallback to legacy system
 				return computerHandManager;
@@ -209,15 +209,15 @@ namespace TakiGame {
 			}
 
 			// Final fallback to legacy
-			TakiLogger.LogWarning($"No opponent hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
+			TakiLogger.LogWarning ($"No opponent hand manager available for mode: {(isMultiplayerMode ? "Multiplayer" : "SinglePlayer")}, using legacy", TakiLogger.LogCategory.UI);
 			return computerHandManager;
 		}
 
 		/// <summary>
 		/// Helper methods for cleaner code migration
 		/// </summary>
-		public HandManager GetPlayerHandManager() => GetActivePlayerHandManager();
-		public HandManager GetOpponentHandManager() => GetActiveOpponentHandManager();
+		public HandManager GetPlayerHandManager () => GetActivePlayerHandManager ();
+		public HandManager GetOpponentHandManager () => GetActiveOpponentHandManager ();
 
 		#endregion
 
@@ -233,7 +233,7 @@ namespace TakiGame {
 		/// Configure TakiLogger system
 		/// </summary>
 		void ConfigureLogging () {
-			TakiLogger.SetLogLevel (logLevel);
+			//			TakiLogger.SetLogLevel (logLevel);
 			TakiLogger.SetProductionMode (productionMode);
 			TakiLogger.LogSystem ("TakiLogger configured: " + TakiLogger.GetLoggerInfo ());
 		}
@@ -275,7 +275,7 @@ namespace TakiGame {
 
 			// Initialize UI for gameplay
 			if (gameplayUI != null) {
-				gameplayUI.ResetUIForNewGame ();
+				GetActiveUI ()?.ResetUIForNewGame ();
 			}
 
 			areSystemsInitialized = true;
@@ -331,10 +331,13 @@ namespace TakiGame {
 
 			// MILESTONE 1: Initialize systems for multiplayer if not already done
 			if (!areSystemsInitialized) {
+				TakiLogger.LogInfo ("In `if (!areSystemsInitialized)` loop, about to call `ConnectEvents ()`", TakiLogger.LogCategory.Investigation);
 				ConnectEvents ();
+				TakiLogger.LogInfo ("Still in `if (!areSystemsInitialized)` loop, about to call `InitializeVisualCardSystem ()`", TakiLogger.LogCategory.Investigation);
 				InitializeVisualCardSystem ();
+				TakiLogger.LogInfo ("Still in `if (!areSystemsInitialized)` loop, after called to `InitializeVisualCardSystem ()`", TakiLogger.LogCategory.Investigation);
 				if (gameplayUI != null) {
-					gameplayUI.ResetUIForNewGame ();
+					GetActiveUI ()?.ResetUIForNewGame ();
 				}
 				areSystemsInitialized = true;
 			}
@@ -355,6 +358,30 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// PUBLIC METHOD: Start a new multiplayer game - Called by MenuNavigation
+		/// ENHANCED: Unified structure with single-player (initialize → reset → start)
+		/// </summary>
+		public void StartNewMultiPlayerGame () {
+			// Initialize systems if not already done
+			if (!areSystemsInitialized) {
+				InitializeMultiPlayerSystems ();
+			}
+
+			TakiLogger.LogSystem ("Starting new multiplayer game...");
+
+			if (networkGameManager == null) {
+				TakiLogger.LogError ("Cannot start multiplayer game: MultiplayerGameManager not assigned!", TakiLogger.LogCategory.System);
+				return;
+			}
+
+			// Reset all systems for new game (mode-aware - won't clear hands in multiplayer)
+			ResetGameSystems ();
+
+			// Start network game coordination (hands will be populated via network)
+			networkGameManager.StartNetworkGame ();
+		}
+
+		/// <summary>
 		/// MILESTONE 1: Initialize hand managers for network privacy system
 		/// ENHANCED: Uses per-screen HandManager architecture when enabled
 		/// </summary>
@@ -362,8 +389,8 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ("Initializing hand managers for network privacy");
 
 			// Get active hand managers (supports both legacy and per-screen architecture)
-			HandManager activePlayerHandManager = GetActivePlayerHandManager();
-			HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+			HandManager activePlayerHandManager = GetActivePlayerHandManager ();
+			HandManager activeOpponentHandManager = GetActiveOpponentHandManager ();
 
 			// Configure player hand manager (local player - face up)
 			if (activePlayerHandManager != null) {
@@ -395,8 +422,8 @@ namespace TakiGame {
 
 			// Enhanced feedback for milestone 1
 			if (gameplayUI != null) {
-				gameplayUI.ShowOpponentAction ($"played {cardIdentifier}");
-				gameplayUI.ShowComputerMessage ($"Opponent played {cardIdentifier}");
+				GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
+				GetActiveUI ()?.ShowComputerMessage ($"Opponent played {cardIdentifier}");
 			}
 
 			// MILESTONE 1: Update opponent hand count (simulate card removal)
@@ -429,8 +456,8 @@ namespace TakiGame {
 
 			// Enhanced feedback for milestone 1
 			if (gameplayUI != null) {
-				gameplayUI.ShowOpponentAction ("drew a card");
-				gameplayUI.ShowComputerMessage ("Opponent drew a card");
+				GetActiveUI ()?.ShowOpponentAction ("drew a card");
+				GetActiveUI ()?.ShowComputerMessage ("Opponent drew a card");
 			}
 
 			// MILESTONE 1: Update opponent hand count (simulate card addition)
@@ -463,7 +490,7 @@ namespace TakiGame {
 
 				// MILESTONE 1: Show immediate local feedback
 				if (gameplayUI != null) {
-					gameplayUI.ShowPlayerMessage ($"You played {cardToPlay.GetDisplayText ()}");
+					GetActiveUI ()?.ShowPlayerMessage ($"You played {cardToPlay.GetDisplayText ()}");
 				}
 			}
 		}
@@ -479,7 +506,7 @@ namespace TakiGame {
 
 				// MILESTONE 1: Show immediate local feedback
 				if (gameplayUI != null) {
-					gameplayUI.ShowPlayerMessage ("You drew a card");
+					GetActiveUI ()?.ShowPlayerMessage ("You drew a card");
 				}
 			}
 		}
@@ -493,12 +520,12 @@ namespace TakiGame {
 
 			// Check if it's our turn
 			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
-				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
 			// Get selected card using active hand manager
-			CardData cardToPlay = GetActivePlayerHandManager()?.GetSelectedCard ();
+			CardData cardToPlay = GetActivePlayerHandManager ()?.GetSelectedCard ();
 			if (cardToPlay != null) {
 				// Send to network first
 				SendLocalCardPlayToNetwork (cardToPlay);
@@ -509,7 +536,7 @@ namespace TakiGame {
 
 				TakiLogger.LogNetwork ($"Multiplayer card play completed: {cardToPlay.GetDisplayText ()}");
 			} else {
-				gameplayUI?.ShowPlayerMessage ("Please select a card!");
+				GetActiveUI ()?.ShowPlayerMessage ("Please select a card!");
 			}
 		}
 
@@ -522,7 +549,7 @@ namespace TakiGame {
 
 			// Check if it's our turn
 			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
-				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
@@ -553,13 +580,13 @@ namespace TakiGame {
 					// Safe UI updates that don't interfere with hand displays
 					// FIXED: Get TurnState from gameState, not from turnManager.CurrentPlayer
 					TurnState currentTurnState = gameState?.turnState ?? TurnState.Neutral;
-					gameplayUI.UpdateTurnDisplay (currentTurnState);
-					gameplayUI.UpdateActiveColorDisplay (gameState?.activeColor ?? CardColor.Wild);
+					GetActiveUI ()?.UpdateTurnDisplay (currentTurnState);
+					GetActiveUI ()?.UpdateActiveColorDisplay (gameState?.activeColor ?? CardColor.Wild);
 
 					// Update hand size displays without touching hand cards
 					int localHandSize = playerHand?.Count ?? 0;
 					int opponentHandSize = computerHandManager?.NetworkOpponentHandCount ?? 0;
-					gameplayUI.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
+					GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
 
 					TakiLogger.LogNetwork ($"UI updated safely: Local={localHandSize}, Opponent={opponentHandSize}");
 				}
@@ -575,7 +602,7 @@ namespace TakiGame {
 			if (isMultiplayerMode && networkGameManager != null) {
 				// Update turn display for multiplayer
 				if (gameplayUI != null) {
-					gameplayUI.UpdateTurnDisplayMultiplayer (networkGameManager.IsMyTurn);
+					GetActiveUI ()?.UpdateTurnDisplayMultiplayer (networkGameManager.IsMyTurn);
 				}
 
 				// Sync hand counts for network display (already done above)
@@ -592,7 +619,7 @@ namespace TakiGame {
 			// Update local player hand count display
 			if (playerHandManager != null && gameplayUI != null) {
 				int localHandSize = playerHand.Count;
-				gameplayUI.UpdateHandSizeDisplay (localHandSize, computerHandManager?.NetworkOpponentHandCount ?? 0);
+				GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, computerHandManager?.NetworkOpponentHandCount ?? 0);
 			}
 
 			// Ensure opponent hand count is properly displayed
@@ -746,6 +773,8 @@ namespace TakiGame {
 		/// PHASE 8B: Enhanced with TAKI sequence event connection
 		/// </summary>
 		void ConnectEvents () {
+			TakiLogger.LogInfo ("ConnectEvents called!", TakiLogger.LogCategory.Investigation);
+
 			// Deck Manager events
 			if (deckManager != null) {
 				deckManager.OnInitialGameSetup += OnInitialGameSetupComplete;
@@ -782,8 +811,11 @@ namespace TakiGame {
 				computerAI.OnAISequenceComplete += OnAISequenceComplete;
 			}
 
-			// GameplayUI events
-			if (gameplayUI != null) {
+			// Connect to active UI manager events (new architecture)
+			ConnectActiveUIManagerEvents ();
+
+			// Keep legacy connection as fallback
+			if (!useNewUIArchitecture && gameplayUI != null) {
 				gameplayUI.OnPlayCardClicked += OnPlayCardButtonClicked;
 				gameplayUI.OnDrawCardClicked += OnDrawCardButtonClicked;
 				gameplayUI.OnEndTurnClicked += OnEndTurnButtonClicked;
@@ -815,17 +847,96 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// ENHANCED: Reset all game systems for a new game - now includes special card state
+		/// Connect to the active UI manager events based on current game mode
+		/// This replaces the legacy gameplayUI event connections
 		/// </summary>
-		void ResetGameSystems () {
-			// Clear hands and selection
-			playerHand.Clear ();
-
-			if (computerAI != null) {
-				computerAI.ClearHand ();
+		private void ConnectActiveUIManagerEvents () {
+			if (!useNewUIArchitecture) {
+				TakiLogger.LogSystem ("New UI architecture disabled - skipping active UI manager event connections");
+				return;
 			}
 
-			// Reset game state
+			TakiLogger.LogSystem ("=== CONNECTING ACTIVE UI MANAGER EVENTS ===");
+			TakiLogger.LogSystem ($"useNewUIArchitecture: {useNewUIArchitecture}");
+			TakiLogger.LogSystem ($"singlePlayerUI: {(singlePlayerUI != null ? "ASSIGNED" : "NULL")}");
+			TakiLogger.LogSystem ($"multiPlayerUI: {(multiPlayerUI != null ? "ASSIGNED" : "NULL")}");
+
+			// Connect to both UI managers - GetActiveUI() will determine which is active
+			ConnectUIManagerEvents (singlePlayerUI, "SinglePlayerUI");
+			ConnectUIManagerEvents (multiPlayerUI, "MultiPlayerUI");
+
+			TakiLogger.LogSystem ("=== UI MANAGER EVENTS CONNECTION COMPLETE ===");
+		}
+
+		/// <summary>
+		/// Helper method to connect events to a specific UI manager
+		/// </summary>
+		private void ConnectUIManagerEvents (BaseGameplayUIManager uiManager, string managerName) {
+			if (uiManager == null) {
+				TakiLogger.LogWarning ($"Cannot connect events - {managerName} is null", TakiLogger.LogCategory.System);
+				return;
+			}
+
+			uiManager.OnPlayCardClicked += OnPlayCardButtonClicked;
+			uiManager.OnDrawCardClicked += OnDrawCardButtonClicked;
+			uiManager.OnEndTurnClicked += OnEndTurnButtonClicked;
+			uiManager.OnColorSelected += OnColorSelectedByPlayer;
+			uiManager.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
+
+			TakiLogger.LogSystem ($"Event handlers connected to {managerName}");
+		}
+
+		/// <summary>
+		/// Disconnect UI manager events to prevent memory leaks
+		/// Call this during cleanup or when switching modes
+		/// </summary>
+		private void DisconnectUIManagerEvents (BaseGameplayUIManager uiManager, string managerName) {
+			if (uiManager == null) return;
+
+			uiManager.OnPlayCardClicked -= OnPlayCardButtonClicked;
+			uiManager.OnDrawCardClicked -= OnDrawCardButtonClicked;
+			uiManager.OnEndTurnClicked -= OnEndTurnButtonClicked;
+			uiManager.OnColorSelected -= OnColorSelectedByPlayer;
+			uiManager.OnEndTakiSequenceClicked -= OnEndTakiSequenceButtonClicked;
+
+			TakiLogger.LogSystem ($"Event handlers disconnected from {managerName}");
+		}
+
+		/// <summary>
+		/// Disconnect all UI manager events
+		/// </summary>
+		private void DisconnectAllUIManagerEvents () {
+			DisconnectUIManagerEvents (singlePlayerUI, "SinglePlayerUI");
+			DisconnectUIManagerEvents (multiPlayerUI, "MultiPlayerUI");
+
+			// Also disconnect legacy if connected
+			if (gameplayUI != null) {
+				gameplayUI.OnPlayCardClicked -= OnPlayCardButtonClicked;
+				gameplayUI.OnDrawCardClicked -= OnDrawCardButtonClicked;
+				gameplayUI.OnEndTurnClicked -= OnEndTurnButtonClicked;
+				gameplayUI.OnColorSelected -= OnColorSelectedByPlayer;
+				gameplayUI.OnEndTakiSequenceClicked -= OnEndTakiSequenceButtonClicked;
+			}
+
+			TakiLogger.LogSystem ("All UI manager event handlers disconnected");
+		}
+
+		/// <summary>
+		/// ENHANCED: Mode-aware reset for both single-player and multiplayer
+		/// FIXED: Only clears hands in single-player mode (multiplayer hands come from network)
+		/// </summary>
+		void ResetGameSystems () {
+			// Only clear hands in single-player mode
+			// In multiplayer, hands are populated from network data and should NOT be cleared
+			if (!isMultiplayerMode) {
+				playerHand.Clear ();
+
+				if (computerAI != null) {
+					computerAI.ClearHand ();
+				}
+			}
+
+			// Always reset core game systems (both modes need this)
 			if (gameState != null) {
 				gameState.ResetGameState ();
 			}
@@ -838,6 +949,11 @@ namespace TakiGame {
 			// Reset turn flow control
 			ResetTurnFlowState (); // This now includes special card state reset
 			isGameActive = false;
+
+			// Reset game initialization flag for fresh setup
+			if (deckManager?.gameSetup != null) {
+				deckManager.gameSetup.ResetInitializationState ();
+			}
 		}
 
 		/// <summary>
@@ -923,7 +1039,7 @@ namespace TakiGame {
 					canPlayerPlay = true;     // Can play PlusTwo to continue chain  
 					canPlayerEndTurn = false; // Must take action first
 
-					gameplayUI?.UpdateStrictButtonStates (true, true, false);
+					GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
 					gameplayUI?.ShowPlayerMessage ($"Chain active! Play PlusTwo to continue or draw {drawCount} cards to break");
 
 					TakiLogger.LogTurnFlow ($"Player has PlusTwo options: continue chain or draw {drawCount} cards");
@@ -934,7 +1050,7 @@ namespace TakiGame {
 					canPlayerPlay = false;    // No valid plays during chain without PlusTwo
 					canPlayerEndTurn = false; // Must take action first
 
-					gameplayUI?.UpdateStrictButtonStates (false, true, false);
+					GetActiveUI ()?.UpdateStrictButtonStates (false, true, false);
 					gameplayUI?.ShowPlayerMessage ($"No PlusTwo cards - you must draw {drawCount} cards to break chain");
 
 					TakiLogger.LogTurnFlow ($"Player must break chain by drawing {drawCount} cards (no PlusTwo available)");
@@ -960,13 +1076,13 @@ namespace TakiGame {
 			if (validCardCount == 0) {
 				// Player has NO valid cards - must draw
 				TakiLogger.LogTurnFlow ("Player has no valid cards, must draw a card");
-				gameplayUI?.ShowPlayerMessage ("No valid cards - you must DRAW a card!");
-				gameplayUI?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
+				GetActiveUI ()?.ShowPlayerMessage ("No valid cards - you must DRAW a card!");
+				GetActiveUI ()?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
 			} else {
 				// Player has valid cards - can play or draw
 				TakiLogger.LogTurnFlow ($"Player has {validCardCount} valid cards, may PLAY or DRAW a card");
 				gameplayUI?.ShowPlayerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
-				gameplayUI?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
 			}
 
 			// Update visual card states
@@ -992,18 +1108,18 @@ namespace TakiGame {
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
 				TakiLogger.LogWarning ("Cannot play card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
 			if (!canPlayerPlay) {
 				TakiLogger.LogWarning ("Cannot play card: Player already took action", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("You already took an action - END TURN!");
+				GetActiveUI ()?.ShowPlayerMessage ("You already took an action - END TURN!");
 				return;
 			}
 
 			// Get selected card using active hand manager
-			CardData cardToPlay = GetActivePlayerHandManager()?.GetSelectedCard ();
+			CardData cardToPlay = GetActivePlayerHandManager ()?.GetSelectedCard ();
 
 			if (cardToPlay != null) {
 				TakiLogger.LogCardPlay ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
@@ -1071,7 +1187,7 @@ namespace TakiGame {
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
 				TakiLogger.LogWarning ("Cannot draw card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("Not your turn!");
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
@@ -1084,7 +1200,7 @@ namespace TakiGame {
 
 			if (!canPlayerDraw) {
 				TakiLogger.LogWarning ("Cannot draw card: Player already took action", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("You already took an action - END TURN!");
+				GetActiveUI ()?.ShowPlayerMessage ("You already took an action - END TURN!");
 				return;
 			}
 
@@ -1100,14 +1216,14 @@ namespace TakiGame {
 			// PHASE 7: Check for pending special card effects first
 			if (HasPendingSpecialCardEffects ()) {
 				TakiLogger.LogWarning ("Cannot end turn: Pending special card effects", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("You must complete your additional action first!");
+				GetActiveUI ()?.ShowPlayerMessage ("You must complete your additional action first!");
 				gameplayUI?.ShowPlayerMessage (GetSpecialCardStateDescription ());
 				return;
 			}
 
 			if (!canPlayerEndTurn) {
 				TakiLogger.LogWarning ("Cannot end turn: Player has not taken an action yet", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("You must take an action first (PLAY or DRAW)!");
+				GetActiveUI ()?.ShowPlayerMessage ("You must take an action first (PLAY or DRAW)!");
 				return;
 			}
 
@@ -1125,7 +1241,7 @@ namespace TakiGame {
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard == null) {
 				TakiLogger.LogError ("Cannot play card: No top discard card available", TakiLogger.LogCategory.CardPlay);
-				gameplayUI?.ShowPlayerMessage ("Game error - no discard pile!");
+				GetActiveUI ()?.ShowPlayerMessage ("Game error - no discard pile!");
 				return;
 			}
 
@@ -1154,7 +1270,7 @@ namespace TakiGame {
 			}
 
 			// Clear selection
-			GetActivePlayerHandManager()?.ClearSelection ();
+			GetActivePlayerHandManager ()?.ClearSelection ();
 
 			// Discard the card
 			deckManager?.DiscardCard (card);
@@ -1172,8 +1288,8 @@ namespace TakiGame {
 				if (gameplayUI != null) {
 					int cardCount = gameState.NumberOfSequenceCards;
 					CardColor sequenceColor = gameState.TakiSequenceColor;
-					gameplayUI.ShowTakiSequenceStatus (sequenceColor, cardCount, true);
-					gameplayUI.ShowSequenceProgressMessage (sequenceColor, cardCount, PlayerType.Human);
+					GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, cardCount, true);
+					GetActiveUI ()?.ShowSequenceProgressMessage (sequenceColor, cardCount, PlayerType.Human);
 				}
 
 				TakiLogger.LogRules ($"Card added to sequence: {card.GetDisplayText ()} (sequence now has {gameState.NumberOfSequenceCards} cards)");
@@ -1237,7 +1353,7 @@ namespace TakiGame {
 				canPlayerDraw = false;         // Cannot draw during sequence
 				canPlayerEndTurn = false;      // Cannot end turn during sequence (must use End Sequence button)
 
-				gameplayUI?.UpdateStrictButtonStates (true, false, false);
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
 				gameplayUI?.EnableEndTakiSequenceButton (true);
 
 				if (card.cardType == CardType.Taki) {
@@ -1260,8 +1376,8 @@ namespace TakiGame {
 				canPlayerDraw = false;         // Still no draw during sequence
 				canPlayerEndTurn = false;      // Still no end turn during sequence
 
-				gameplayUI?.UpdateStrictButtonStates (true, false, false);
-				gameplayUI?.ShowPlayerMessage ("Sequence continues - play more cards or End Sequence!");
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
+				GetActiveUI ()?.ShowPlayerMessage ("Sequence continues - play more cards or End Sequence!");
 
 				TakiLogger.LogTurnFlow ("Sequence continuation: PLAY enabled, DRAW/END TURN disabled");
 				return;
@@ -1302,9 +1418,9 @@ namespace TakiGame {
 				canPlayerEndTurn = false;      // Keep end turn disabled until additional action
 
 				// ENHANCED: Update UI with better messaging
-				gameplayUI?.UpdateStrictButtonStates (true, true, false);
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
 				if (gameplayUI != null) {
-					gameplayUI.ShowSpecialCardEffect (CardType.Plus, PlayerType.Human, "You get one more action");
+					GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Human, "You get one more action");
 				}
 
 				TakiLogger.LogTurnFlow ("Plus card turn flow: Additional action enabled, END TURN disabled");
@@ -1325,7 +1441,7 @@ namespace TakiGame {
 				TakiLogger.LogGameState ("Interaction state changed to ColorSelection");
 
 				// Show color selection panel (this will disable PLAY/DRAW buttons)
-				gameplayUI.ShowColorSelection (true);
+				GetActiveUI ()?.ShowColorSelection (true);
 				TakiLogger.LogUI ("Color selection panel displayed");
 
 				// Mark action as taken but don't allow new actions
@@ -1335,11 +1451,11 @@ namespace TakiGame {
 				canPlayerEndTurn = true;       // Allow end turn after color selection
 
 				// Note: END TURN button will be enabled, but the color selection must complete first
-				gameplayUI?.UpdateStrictButtonStates (false, false, true);
+				GetActiveUI ()?.UpdateStrictButtonStates (false, false, true);
 
 				// ENHANCED: Better feedback about the selection process 
-				gameplayUI.ShowPlayerMessage ("CHANGE COLOR: Choose colors freely, then click END TURN!");
-				gameplayUI.ShowComputerMessage ("Player is selecting new color...");
+				GetActiveUI ()?.ShowPlayerMessage ("CHANGE COLOR: Choose colors freely, then click END TURN!");
+				GetActiveUI ()?.ShowComputerMessage ("Player is selecting new color...");
 
 				TakiLogger.LogTurnFlow ("ChangeColor turn flow: Color selection required, END TURN enabled after selection");
 				return;
@@ -1359,8 +1475,8 @@ namespace TakiGame {
 				canPlayerDraw = false;
 				canPlayerEndTurn = true;
 
-				gameplayUI?.ForceEnableEndTurn ();
-				gameplayUI?.ShowPlayerMessage ("Additional action complete - you must END TURN!");
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ("Additional action complete - you must END TURN!");
 
 				TakiLogger.LogTurnFlow ("Additional action completed - normal END TURN flow");
 				return;
@@ -1375,8 +1491,8 @@ namespace TakiGame {
 			canPlayerEndTurn = true;
 
 			// UI already disabled buttons immediately on click, now enable END TURN
-			gameplayUI?.ForceEnableEndTurn ();
-			gameplayUI?.ShowPlayerMessage ("Card played - you must END TURN!");
+			GetActiveUI ()?.ForceEnableEndTurn ();
+			GetActiveUI ()?.ShowPlayerMessage ("Card played - you must END TURN!");
 
 			TakiLogger.LogTurnFlow ("Normal turn flow: Must END TURN after single action");
 		}
@@ -1403,7 +1519,7 @@ namespace TakiGame {
 				TakiLogger.LogCardPlay ("DRAW COMPLETE");
 			} else {
 				TakiLogger.LogError ("Failed to draw card - deck may be empty", TakiLogger.LogCategory.CardPlay);
-				gameplayUI?.ShowPlayerMessage ("Cannot draw card!");
+				GetActiveUI ()?.ShowPlayerMessage ("Cannot draw card!");
 			}
 		}
 
@@ -1428,8 +1544,8 @@ namespace TakiGame {
 				canPlayerDraw = false;
 				canPlayerEndTurn = true;
 
-				gameplayUI?.ForceEnableEndTurn ();
-				gameplayUI?.ShowPlayerMessage ($"Additional draw complete: {drawnCard.GetDisplayText ()} - you must END TURN!");
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ($"Additional draw complete: {drawnCard.GetDisplayText ()} - you must END TURN!");
 
 				TakiLogger.LogTurnFlow ("Additional draw action completed - normal END TURN flow");
 				return;
@@ -1444,8 +1560,8 @@ namespace TakiGame {
 			canPlayerEndTurn = true;
 
 			// Enable END TURN button
-			gameplayUI?.ForceEnableEndTurn ();
-			gameplayUI?.ShowPlayerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
+			GetActiveUI ()?.ForceEnableEndTurn ();
+			GetActiveUI ()?.ShowPlayerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
 
 			TakiLogger.LogTurnFlow ("Normal draw flow: Must END TURN after single action");
 		}
@@ -1466,7 +1582,7 @@ namespace TakiGame {
 			// Check for pending effects (PLUS cards only)
 			if (HasPendingSpecialCardEffects ()) {
 				TakiLogger.LogError ("Attempting to end turn with pending special card effects!", TakiLogger.LogCategory.TurnFlow);
-				gameplayUI?.ShowPlayerMessage ("Cannot end turn - special card effect pending!");
+				GetActiveUI ()?.ShowPlayerMessage ("Cannot end turn - special card effect pending!");
 				return;
 			}
 
@@ -1475,17 +1591,17 @@ namespace TakiGame {
 				TakiLogger.LogGameState ("Ending turn during color selection - hiding panel and returning to normal");
 
 				// Hide the color selection panel
-				gameplayUI?.ShowColorSelection (false);
+				GetActiveUI ()?.ShowColorSelection (false);
 
 				// Return to normal interaction state
 				gameState.ChangeInteractionState (InteractionState.Normal);
 
 				// Show completion message
-				gameplayUI?.ShowPlayerMessage ($"Color selection complete: {gameState.activeColor}");
+				GetActiveUI ()?.ShowPlayerMessage ($"Color selection complete: {gameState.activeColor}");
 			}
 
 			// Clear any selected cards
-			GetActivePlayerHandManager()?.ClearSelection ();
+			GetActivePlayerHandManager ()?.ClearSelection ();
 
 			// Reset turn flow state for next turn (includes special card state)
 			ResetTurnFlowState ();
@@ -1558,13 +1674,13 @@ namespace TakiGame {
 				"STOP effect: You get another full turn!" :
 				"STOP effect: Computer gets another full turn!";
 
-			gameplayUI?.ShowPlayerMessage (benefitMessage);
-			gameplayUI?.ShowComputerMessage (skipMessage);
+			GetActiveUI ()?.ShowPlayerMessage (benefitMessage);
+			GetActiveUI ()?.ShowComputerMessage (skipMessage);
 
 			TakiLogger.LogTurnFlow ($"STOP effect: {skippedPlayer} turn skipped, {benefitPlayer} gets another turn");
 
 			// Clear any selected cards from previous action
-			GetActivePlayerHandManager()?.ClearSelection ();
+			GetActivePlayerHandManager ()?.ClearSelection ();
 
 			// Reset turn flow state for the new turn
 			ResetTurnFlowState ();
@@ -1596,8 +1712,8 @@ namespace TakiGame {
 			StartPlayerTurnFlow ();
 
 			// Show additional feedback
-			gameplayUI?.ShowPlayerMessage ("Your turn continues thanks to STOP card!");
-			gameplayUI?.ShowComputerMessage ("Waiting (turn skipped)...");
+			GetActiveUI ()?.ShowPlayerMessage ("Your turn continues thanks to STOP card!");
+			GetActiveUI ()?.ShowComputerMessage ("Waiting (turn skipped)...");
 
 			TakiLogger.LogTurnFlow ("Player turn restarted successfully after STOP effect");
 		}
@@ -1614,7 +1730,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("RULE: Basic card - no special effects");
 					TakiLogger.LogRules ("TURN FLOW: Player must END TURN after playing");
 					TakiLogger.LogRules ("IMPLEMENTATION: Standard single-action turn completion");
-					gameplayUI?.ShowPlayerMessage ($"Played NUMBER {card.GetDisplayText ()}");
+					GetActiveUI ()?.ShowPlayerMessage ($"Played NUMBER {card.GetDisplayText ()}");
 					break;
 
 				case CardType.Plus:
@@ -1627,7 +1743,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- isWaitingForAdditionalAction state tracking");
 					TakiLogger.LogRules ("- Enhanced button state management");
 					TakiLogger.LogRules ("- Complete turn flow validation");
-					gameplayUI?.ShowComputerMessage ("PLUS: Additional action required!");
+					GetActiveUI ()?.ShowComputerMessage ("PLUS: Additional action required!");
 					break;
 
 				case CardType.Stop:
@@ -1639,7 +1755,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- HandleStopCardEffect() prepares skip logic");
 					TakiLogger.LogRules ("- TurnManager.SkipTurn() integration");
 					TakiLogger.LogRules ("- Enhanced EndPlayerTurnWithStrictFlow() handles skipping");
-					gameplayUI?.ShowComputerMessage ("STOP: Opponent's turn skipped!");
+					GetActiveUI ()?.ShowComputerMessage ("STOP: Opponent's turn skipped!");
 					break;
 
 				case CardType.ChangeDirection:
@@ -1652,7 +1768,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- HandleChangeDirectionCardEffect() manages direction change");
 					TakiLogger.LogRules ("- GameStateManager.ChangeTurnDirection() integration");
 					TakiLogger.LogRules ("- Clear player feedback with before/after direction display");
-					gameplayUI?.ShowComputerMessage ("DIRECTION: Turn direction changed!");
+					GetActiveUI ()?.ShowComputerMessage ("DIRECTION: Turn direction changed!");
 					break;
 
 				case CardType.ChangeColor:
@@ -1666,7 +1782,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- InteractionState.ColorSelection state management");
 					TakiLogger.LogRules ("- Enhanced OnColorSelectedByPlayer() handles selection");
 					TakiLogger.LogRules ("- Complete integration with existing color selection system");
-					gameplayUI?.ShowComputerMessage ("CHANGE COLOR: Color selection active!");
+					GetActiveUI ()?.ShowComputerMessage ("CHANGE COLOR: Color selection active!");
 					break;
 
 				case CardType.PlusTwo:
@@ -1679,7 +1795,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- Chain breaking strategy for AI");
 					TakiLogger.LogRules ("- InteractionState.PlusTwoChain management");
 					TakiLogger.LogRules ("- Enhanced UI for chain display");
-					gameplayUI?.ShowComputerMessage ("PLUS TWO: Opponent draws 2 cards");
+					GetActiveUI ()?.ShowComputerMessage ("PLUS TWO: Opponent draws 2 cards");
 					break;
 
 				case CardType.Taki:
@@ -1693,7 +1809,7 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- Same-color card validation during sequence");
 					TakiLogger.LogRules ("- AI strategy for sequence length optimization");
 					TakiLogger.LogRules ("- Sequence status UI display");
-					gameplayUI?.ShowComputerMessage ($"TAKI: Multi-card sequence planned (Phase 8)");
+					GetActiveUI ()?.ShowComputerMessage ($"TAKI: Multi-card sequence planned (Phase 8)");
 					break;
 
 				case CardType.SuperTaki:
@@ -1705,13 +1821,13 @@ namespace TakiGame {
 					TakiLogger.LogRules ("- Similar to TAKI but any color allowed");
 					TakiLogger.LogRules ("- Enhanced strategic value for AI");
 					TakiLogger.LogRules ("- Shared UI system with TAKI sequences");
-					gameplayUI?.ShowComputerMessage ("SUPER TAKI: Multi-card any color planned (Phase 8)");
+					GetActiveUI ()?.ShowComputerMessage ("SUPER TAKI: Multi-card any color planned (Phase 8)");
 					break;
 
 				default:
 					TakiLogger.LogWarning ($"UNKNOWN CARD TYPE: {card.cardType}", TakiLogger.LogCategory.Rules);
 					TakiLogger.LogRules ("ERROR: Card type not recognized by rule system");
-					gameplayUI?.ShowComputerMessage ($"Unknown card: {card.GetDisplayText ()}");
+					GetActiveUI ()?.ShowComputerMessage ($"Unknown card: {card.GetDisplayText ()}");
 					break;
 			}
 
@@ -1740,8 +1856,8 @@ namespace TakiGame {
 			TakiLogger.LogGameState ($"Active color changed to: {selectedColor}");
 
 			// Show feedback about color selection
-			gameplayUI?.ShowPlayerMessage ($"Color changed to {selectedColor} - you must END TURN!");
-			gameplayUI?.ShowComputerMessage ($"Active color: {selectedColor}");
+			GetActiveUI ()?.ShowPlayerMessage ($"Color changed to {selectedColor} - you must END TURN!");
+			GetActiveUI ()?.ShowComputerMessage ($"Active color: {selectedColor}");
 
 			// Update UI to reflect new color
 			UpdateAllUI ();
@@ -1904,9 +2020,9 @@ namespace TakiGame {
 
 						// CRITICAL FIX: Enable End Sequence button immediately
 						if (gameplayUI != null) {
-							gameplayUI.EnableEndTakiSequenceButton (true);
+							GetActiveUI ()?.EnableEndTakiSequenceButton (true);
 							gameplayUI.ShowTakiSequenceStatus (card.color, 1, true);
-							gameplayUI.ShowPlayerMessage ($"TAKI Sequence Started! Play {card.color} cards or click End Sequence");
+							GetActiveUI ()?.ShowPlayerMessage ($"TAKI Sequence Started! Play {card.color} cards or click End Sequence");
 						}
 
 						TakiLogger.LogRules ($"TAKI sequence initiated - only {card.color} or wild cards allowed");
@@ -1943,9 +2059,9 @@ namespace TakiGame {
 
 						// CRITICAL FIX: Enable End Sequence button immediately
 						if (gameplayUI != null) {
-							gameplayUI.EnableEndTakiSequenceButton (true);
+							GetActiveUI ()?.EnableEndTakiSequenceButton (true);
 							gameplayUI.ShowTakiSequenceStatus (sequenceColor, 1, true);
-							gameplayUI.ShowPlayerMessage ($"SuperTAKI Sequence Started! Play {sequenceColor} cards or click End Sequence");
+							GetActiveUI ()?.ShowPlayerMessage ($"SuperTAKI Sequence Started! Play {sequenceColor} cards or click End Sequence");
 						}
 
 						TakiLogger.LogRules ($"SUPER TAKI sequence initiated - only {sequenceColor} or wild cards allowed");
@@ -2269,7 +2385,7 @@ namespace TakiGame {
 				TakiLogger.LogTurnFlow ("Final card was ChangeColor - color selection required");
 				hasPlayerTakenAction = true;
 				canPlayerEndTurn = true;
-				gameplayUI?.UpdateStrictButtonStates (false, false, true);
+				GetActiveUI ()?.UpdateStrictButtonStates (false, false, true);
 
 			} else if (gameState.IsPlusTwoChainActive) {
 				// PlusTwo effect activated - end turn for chain response
@@ -2304,7 +2420,7 @@ namespace TakiGame {
 			// Update UI to show sequence status
 			if (gameplayUI != null) {
 				gameplayUI.ShowTakiSequenceStatus (sequenceColor, 1, initiator == PlayerType.Human);
-				gameplayUI.ShowSequenceProgressMessage (sequenceColor, 1, initiator);
+				GetActiveUI ()?.ShowSequenceProgressMessage (sequenceColor, 1, initiator);
 			}
 		}
 
@@ -2319,7 +2435,7 @@ namespace TakiGame {
 			if (gameplayUI != null && gameState != null) {
 				bool isPlayerTurn = gameState.IsPlayerTurn;
 				CardColor sequenceColor = gameState.TakiSequenceColor;
-				gameplayUI.ShowTakiSequenceStatus (sequenceColor, cardCount, isPlayerTurn);
+				GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, cardCount, isPlayerTurn);
 			}
 		}
 
@@ -2331,7 +2447,7 @@ namespace TakiGame {
 
 			// Update UI to hide sequence status
 			if (gameplayUI != null) {
-				gameplayUI.HideTakiSequenceStatus ();
+				GetActiveUI ()?.HideTakiSequenceStatus ();
 				gameplayUI.EnableEndTakiSequenceButton (false);
 			}
 		}
@@ -2343,10 +2459,10 @@ namespace TakiGame {
 			if (gameplayUI != null && gameState != null) {
 				// Update hand sizes
 				int computerHandSize = computerAI?.HandSize ?? 0;
-				gameplayUI.UpdateHandSizeDisplay (playerHand.Count, computerHandSize);
+				GetActiveUI ()?.UpdateHandSizeDisplay (playerHand.Count, computerHandSize);
 
 				// Update all displays using new architecture
-				gameplayUI.UpdateAllDisplays (
+				GetActiveUI ()?.UpdateAllDisplays (
 					gameState.turnState,
 					gameState.gameStatus,
 					gameState.interactionState,
@@ -2356,13 +2472,13 @@ namespace TakiGame {
 				// CHAIN UI INTEGRATION: Update chain status if active
 				if (gameState.IsPlusTwoChainActive) {
 					bool isPlayerTurn = gameState.IsPlayerTurn;
-					gameplayUI.ShowPlusTwoChainStatus (
+					GetActiveUI ()?.ShowPlusTwoChainStatus (
 						gameState.NumberOfChainedCards,
 						gameState.ChainDrawCount,
 						isPlayerTurn
 					);
 				} else {
-					gameplayUI.HidePlusTwoChainStatus ();
+					GetActiveUI ()?.HidePlusTwoChainStatus ();
 				}
 			}
 
@@ -2380,7 +2496,7 @@ namespace TakiGame {
 
 			// Normal turn flow processing
 			if (gameplayUI != null) {
-				gameplayUI.UpdateTurnDisplay (newTurnState);
+				GetActiveUI ()?.UpdateTurnDisplay (newTurnState);
 			}
 
 			// Start strict flow control for player turns
@@ -2396,7 +2512,7 @@ namespace TakiGame {
 
 		void OnInteractionStateChanged (InteractionState newInteractionState) {
 			if (gameplayUI != null) {
-				gameplayUI.ShowColorSelection (newInteractionState == InteractionState.ColorSelection);
+				GetActiveUI ()?.ShowColorSelection (newInteractionState == InteractionState.ColorSelection);
 			}
 		}
 
@@ -2406,7 +2522,7 @@ namespace TakiGame {
 
 		void OnActiveColorChanged (CardColor newColor) {
 			if (gameplayUI != null) {
-				gameplayUI.UpdateActiveColorDisplay (newColor);
+				GetActiveUI ()?.UpdateActiveColorDisplay (newColor);
 			}
 		}
 
@@ -2654,7 +2770,7 @@ namespace TakiGame {
 						TakiLogger.LogAI ("AI played PLUS card - AI gets additional action");
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
 						}
 
 						// AI needs to make another decision
@@ -2683,7 +2799,7 @@ namespace TakiGame {
 						TakiLogger.LogAI ("AI played STOP card - flag already set by main method");
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
 						}
 
 						EndAITurnWithStrictFlow ();
@@ -2707,7 +2823,7 @@ namespace TakiGame {
 
 						if (gameplayUI != null) {
 							string directionMessage = $"Direction changed by AI: {gameState?.turnDirection}";
-							gameplayUI.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
 						}
 
 						if (turnManager != null) {
@@ -2732,7 +2848,7 @@ namespace TakiGame {
 						TakiLogger.LogAI ("AI played CHANGE COLOR card - handling AI color selection");
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowImmediateFeedback ("AI is selecting new color...", true);
+							GetActiveUI ()?.ShowImmediateFeedback ("AI is selecting new color...", true);
 						}
 
 						if (computerAI != null) {
@@ -2740,7 +2856,7 @@ namespace TakiGame {
 							gameState?.ChangeActiveColor (selectedColor);
 
 							if (gameplayUI != null) {
-								gameplayUI.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
+								GetActiveUI ()?.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
 									$"New active color: {selectedColor}");
 							}
 
@@ -2801,14 +2917,14 @@ namespace TakiGame {
 						TakiLogger.LogWarning ("AI played TAKI but no sequence started - this indicates a problem", TakiLogger.LogCategory.AI);
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
 								$"AI starts TAKI sequence for {card.color}");
 						}
 					} else {
 						TakiLogger.LogAI ($"AI played TAKI card within {gameState.TakiSequenceColor} sequence");
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
 								"AI continues TAKI sequence");
 						}
 					}
@@ -2832,14 +2948,14 @@ namespace TakiGame {
 
 						CardColor sequenceColor = gameState.activeColor;
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
 								$"AI starts SuperTAKI sequence for {sequenceColor}");
 						}
 					} else {
 						TakiLogger.LogAI ($"AI played SuperTAKI card within {gameState.TakiSequenceColor} sequence");
 
 						if (gameplayUI != null) {
-							gameplayUI.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
+							GetActiveUI ()?.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
 								"AI continues SuperTAKI sequence");
 						}
 					}
@@ -2994,7 +3110,7 @@ namespace TakiGame {
 		void OnAIDecisionMade (string decision) {
 			// AI made a decision - show in UI 
 			if (gameplayUI != null) {
-				gameplayUI.ShowComputerMessage (decision);
+				GetActiveUI ()?.ShowComputerMessage (decision);
 			}
 		}
 
@@ -3023,7 +3139,7 @@ namespace TakiGame {
 			} else {
 				// Fallback to existing logic if GameEndManager not available
 				if (gameplayUI != null) {
-					gameplayUI.ShowWinnerAnnouncement (winner);
+					GetActiveUI ()?.ShowWinnerAnnouncement (winner);
 				}
 			}
 
@@ -3049,8 +3165,8 @@ namespace TakiGame {
 			TakiLogger.LogSystem ("Initializing visual card system...");
 
 			// Get active hand managers (supports both legacy and per-screen architecture)
-			HandManager activePlayerHandManager = GetActivePlayerHandManager();
-			HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+			HandManager activePlayerHandManager = GetActivePlayerHandManager ();
+			HandManager activeOpponentHandManager = GetActiveOpponentHandManager ();
 
 			if (activePlayerHandManager == null || activeOpponentHandManager == null) {
 				TakiLogger.LogError ($"HandManager references missing! Player: {activePlayerHandManager != null}, Opponent: {activeOpponentHandManager != null}", TakiLogger.LogCategory.System);
@@ -3086,7 +3202,7 @@ namespace TakiGame {
 				if (gameplayUI != null) {
 					bool canPlay = gameState?.IsValidMove (selectedCard, GetTopDiscardCard ()) ?? false;
 					string message = canPlay ? $"Selected: {selectedCard.GetDisplayText ()}" : "Invalid move!";
-					gameplayUI.ShowPlayerMessage (message);
+					GetActiveUI ()?.ShowPlayerMessage (message);
 				}
 			}
 		}
@@ -3105,8 +3221,8 @@ namespace TakiGame {
 		void UpdateVisualHands () {
 			try {
 				// Get active hand managers (supports both legacy and per-screen architecture)
-				HandManager activePlayerHandManager = GetActivePlayerHandManager();
-				HandManager activeOpponentHandManager = GetActiveOpponentHandManager();
+				HandManager activePlayerHandManager = GetActivePlayerHandManager ();
+				HandManager activeOpponentHandManager = GetActiveOpponentHandManager ();
 
 				// Update player hand visual
 				if (activePlayerHandManager != null && playerHand != null) {
@@ -3176,12 +3292,12 @@ namespace TakiGame {
 					TakiLogger.LogError ("GameManager: SinglePlayerUIManager not assigned but new UI architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				if (multiPlayerUI == null) {
 					TakiLogger.LogError ("GameManager: MultiPlayerUIManager not assigned but new UI architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				TakiLogger.LogSystem ("New UI architecture validation complete - both UI managers assigned");
 			}
 
@@ -3191,22 +3307,22 @@ namespace TakiGame {
 					TakiLogger.LogError ("GameManager: SinglePlayerPlayerHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				if (singlePlayerComputerHandManager == null) {
 					TakiLogger.LogError ("GameManager: SinglePlayerComputerHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				if (multiPlayerPlayer1HandManager == null) {
 					TakiLogger.LogError ("GameManager: MultiPlayerPlayer1HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				if (multiPlayerPlayer2HandManager == null) {
 					TakiLogger.LogError ("GameManager: MultiPlayerPlayer2HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
-				
+
 				TakiLogger.LogSystem ("Per-screen HandManager architecture validation complete - all HandManagers assigned");
 			}
 
@@ -3330,8 +3446,9 @@ namespace TakiGame {
 			this.canPlayerEndTurn = snapshot.canPlayerEndTurn;
 
 			// Update UI to reflect restored button states
-			if (gameplayUI != null && gameState != null && gameState.IsPlayerTurn) {
-				gameplayUI.UpdateStrictButtonStates (
+			var activeUI = GetActiveUI ();
+			if (activeUI != null && gameState != null && gameState.IsPlayerTurn) {
+				activeUI.UpdateStrictButtonStates (
 					snapshot.canPlayerPlay,
 					snapshot.canPlayerDraw,
 					snapshot.canPlayerEndTurn
@@ -3444,7 +3561,7 @@ namespace TakiGame {
 
 			// Check button state 
 			if (gameplayUI != null) {
-				bool buttonEnabled = gameplayUI.EndTakiSequenceButtonEnabled;
+				bool buttonEnabled = GetActiveUI ()?.EndTakiSequenceButtonEnabled ?? false;
 				TakiLogger.LogDiagnostics ($"End Sequence Button Enabled: {buttonEnabled}");
 			}
 
@@ -3566,7 +3683,7 @@ namespace TakiGame {
 
 			// Force button state update based on current turn state
 			bool shouldEnableButtons = gameState.CanPlayerAct ();
-			gameplayUI.UpdateButtonStates (shouldEnableButtons);
+			GetActiveUI ()?.UpdateButtonStates (shouldEnableButtons);
 
 			TakiLogger.LogDiagnostics ($"UI synced - Turn: {gameState.turnState}, Buttons enabled: {shouldEnableButtons}");
 		}
@@ -3577,7 +3694,7 @@ namespace TakiGame {
 		void RefreshPlayerHandStates () {
 			TakiLogger.LogUI ("REFRESHING PLAYER HAND STATES");
 
-			HandManager activePlayerHandManager = GetActivePlayerHandManager();
+			HandManager activePlayerHandManager = GetActivePlayerHandManager ();
 			if (activePlayerHandManager != null) {
 				activePlayerHandManager.RefreshPlayableStates ();
 			}
@@ -3612,5 +3729,13 @@ namespace TakiGame {
 		public bool IsGamePaused => pauseManager != null && pauseManager.IsGamePaused;
 		public bool IsGameEndProcessed => gameEndManager != null && gameEndManager.IsGameEndProcessed;
 		public bool IsExitValidationActive => exitValidationManager != null && exitValidationManager.IsExitValidationActive;
+
+		/// <summary>
+		/// Cleanup event connections on destroy to prevent memory leaks
+		/// </summary>
+		private void OnDestroy () {
+			TakiLogger.LogSystem ("GameManager: OnDestroy - Cleaning up event connections");
+			DisconnectAllUIManagerEvents ();
+		}
 	}
 }

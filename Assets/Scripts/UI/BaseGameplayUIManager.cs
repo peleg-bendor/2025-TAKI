@@ -55,6 +55,14 @@ namespace TakiGame {
         public abstract TextMeshProUGUI DiscardPileCountText { get; }
 
         protected virtual void Start() {
+            // Check if this UI manager should be active based on game mode
+            if (!ShouldBeActive()) {
+                TakiLogger.LogSystem($"New UI Architecture - {GetType().Name} DISABLED (not active for current game mode)");
+                gameObject.SetActive(false);
+                return;
+            }
+
+            TakiLogger.LogInfo($"New UI Architecture - {GetType().Name} starting", TakiLogger.LogCategory.UI);
             ConnectButtonEvents();
             SetupInitialState();
         }
@@ -488,6 +496,46 @@ namespace TakiGame {
             UpdateDrawPileCount(drawCount);
             UpdateDiscardPileCount(discardCount);
             TakiLogger.LogUI($"Pile counts updated - Draw: {drawCount}, Discard: {discardCount}");
+        }
+
+        #endregion
+
+        #region Game Mode Detection
+
+        /// <summary>
+        /// Determines if this UI manager should be active based on the current game mode
+        /// Prevents duplicate event handlers by ensuring only the appropriate UI manager is active
+        /// </summary>
+        /// <returns>True if this UI manager should be active for the current game mode</returns>
+        protected virtual bool ShouldBeActive() {
+            // Find the GameManager to check current mode
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (gameManager == null) {
+                TakiLogger.LogWarning($"Cannot determine game mode - GameManager not found. Defaulting {GetType().Name} to ACTIVE", TakiLogger.LogCategory.System);
+                return true;
+            }
+
+            bool isMultiplayerMode = gameManager.IsMultiplayerMode;
+            bool isThisSinglePlayerManager = this is SinglePlayerUIManager;
+            bool isThisMultiPlayerManager = this is MultiPlayerUIManager;
+
+            // SinglePlayerUIManager should only be active in single-player mode
+            if (isThisSinglePlayerManager) {
+                bool shouldBeActive = !isMultiplayerMode;
+                TakiLogger.LogSystem($"SinglePlayerUIManager activity check: isMultiplayerMode={isMultiplayerMode}, shouldBeActive={shouldBeActive}");
+                return shouldBeActive;
+            }
+
+            // MultiPlayerUIManager should only be active in multiplayer mode
+            if (isThisMultiPlayerManager) {
+                bool shouldBeActive = isMultiplayerMode;
+                TakiLogger.LogSystem($"MultiPlayerUIManager activity check: isMultiplayerMode={isMultiplayerMode}, shouldBeActive={shouldBeActive}");
+                return shouldBeActive;
+            }
+
+            // Unknown UI manager type - default to active with warning
+            TakiLogger.LogWarning($"Unknown UI manager type: {GetType().Name}. Defaulting to ACTIVE", TakiLogger.LogCategory.System);
+            return true;
         }
 
         #endregion

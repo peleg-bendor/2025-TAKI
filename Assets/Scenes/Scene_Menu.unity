@@ -10973,7 +10973,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026764700}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ea9b2d7cda83ca43939cd166dc6313b, type: 3}
   m_Name: 
@@ -11816,9 +11816,19 @@ MonoBehaviour:
   drawPileCountText: {fileID: 129087692}
   discardPileCountText: {fileID: 1191459745}
   deckMessageText: {fileID: 5190402}
+  singlePlayerDrawPileCountText: {fileID: 129087692}
+  singlePlayerDiscardPileCountText: {fileID: 1191459745}
+  singlePlayerDeckMessageText: {fileID: 5190402}
+  multiPlayerDrawPileCountText: {fileID: 1972942779}
+  multiPlayerDiscardPileCountText: {fileID: 1267218270}
+  multiPlayerDeckMessageText: {fileID: 464266498}
   pileManager: {fileID: 1099715889}
   drawPilePanel: {fileID: 896669774}
   discardPilePanel: {fileID: 731373650}
+  singlePlayerDrawPilePanel: {fileID: 896669774}
+  singlePlayerDiscardPilePanel: {fileID: 731373650}
+  multiPlayerDrawPilePanel: {fileID: 547943776}
+  multiPlayerDiscardPilePanel: {fileID: 396420033}
   messageDisplayTime: 2
 --- !u!114 &1099715886
 MonoBehaviour:
@@ -11878,6 +11888,10 @@ MonoBehaviour:
   cardPrefab: {fileID: 7544222337847360114, guid: dc80872064f20e142b2c7a2dc2bd1689, type: 3}
   drawPileContainer: {fileID: 896669774}
   discardPileContainer: {fileID: 731373650}
+  singlePlayerDrawPileContainer: {fileID: 896669774}
+  singlePlayerDiscardPileContainer: {fileID: 731373650}
+  multiPlayerDrawPileContainer: {fileID: 547943776}
+  multiPlayerDiscardPileContainer: {fileID: 396420033}
 --- !u!1 &1124799295
 GameObject:
   m_ObjectHideFlags: 0

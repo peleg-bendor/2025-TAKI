@@ -26,10 +26,19 @@ namespace TakiGame {
 		public System.Action OnGameInitialized;
 		public System.Action<List<CardData>, List<CardData>, CardData> OnInitialGameSetup;
 
+		// Safety flag to prevent double initialization
+		private bool _isGameInitialized = false;
+
 		/// <summary>
 		/// Initialize a completely new game
 		/// </summary>
 		public void InitializeNewGame () {
+			// Safety check: Prevent double initialization
+			if (_isGameInitialized) {
+				TakiLogger.LogWarning ("InitializeNewGame called but game is already initialized - skipping duplicate call", TakiLogger.LogCategory.GameState);
+				return;
+			}
+
 			if (cardLoader == null) {
 				TakiLogger.LogError ("CardDataLoader reference is missing!", TakiLogger.LogCategory.GameState);
 				return;
@@ -52,17 +61,33 @@ namespace TakiGame {
 			// Initialize the deck with all cards
 			deck.InitializeDeck (allCards);
 
+			// Mark as initialized to prevent double calls
+			_isGameInitialized = true;
+
 			OnGameInitialized?.Invoke ();
 			TakiLogger.LogInfo ("New game initialized successfully", TakiLogger.LogCategory.GameState);
 		}
 
 		/// <summary>
+		/// Reset the initialization flag to allow a fresh game setup
+		/// Called when starting a completely new game (not during the same session)
+		/// </summary>
+		public void ResetInitializationState () {
+			_isGameInitialized = false;
+			TakiLogger.LogSystem ("Game initialization state reset - ready for new game");
+		}
+
+		/// <summary>
 		/// Set up initial game state: deal cards to players and place starting card
+		/// IMPORTANT: InitializeNewGame() must be called first by the caller
 		/// </summary>
 		/// <returns>Player hands and starting discard card</returns>
 		public (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) SetupInitialGame () {
-			// Initialize fresh deck first
-			InitializeNewGame ();
+			// Ensure game is already initialized
+			if (!_isGameInitialized) {
+				TakiLogger.LogError ("SetupInitialGame called before InitializeNewGame! Call InitializeNewGame() first.", TakiLogger.LogCategory.GameState);
+				return (new List<CardData> (), new List<CardData> (), null);
+			}
 
 			// Deal cards to players
 			List<CardData> player1Hand = DrawInitialHand (initialHandSize);

@@ -92,6 +92,7 @@ namespace TakiGame {
 		//private bool buttonsEnabled = false;
 
 		void Start () {
+			TakiLogger.LogInfo("Legacy GameplayUIManager starting", TakiLogger.LogCategory.UI);
 			ConnectButtonEvents ();
 			SetupInitialState ();
 		}
@@ -108,8 +109,9 @@ namespace TakiGame {
 					TakiLogger.LogTurnFlow ($"Button enabled state: {playButtonEnabled}", TakiLogger.LogLevel.Trace);
 					TakiLogger.LogTurnFlow ($"Button interactable: {playCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
-					if (!playButtonEnabled) {
-						TakiLogger.LogWarning ("PLAY CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!playCardButton.interactable) {
+						TakiLogger.LogWarning ("PLAY CARD clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("Cannot play card right now!");
 						return;
 					}
@@ -127,8 +129,9 @@ namespace TakiGame {
 					TakiLogger.LogTurnFlow ($"Button enabled state: {drawButtonEnabled}", TakiLogger.LogLevel.Trace);
 					TakiLogger.LogTurnFlow ($"Button interactable: {drawCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
-					if (!drawButtonEnabled) {
-						TakiLogger.LogWarning ("DRAW CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!drawCardButton.interactable) {
+						TakiLogger.LogWarning ("DRAW CARD clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("Cannot draw card right now!");
 						return;
 					}
@@ -146,8 +149,9 @@ namespace TakiGame {
 					TakiLogger.LogTurnFlow ($"Button enabled state: {endTurnButtonEnabled}", TakiLogger.LogLevel.Trace);
 					TakiLogger.LogTurnFlow ($"Button interactable: {endTurnButton.interactable}", TakiLogger.LogLevel.Trace);
 
-					if (!endTurnButtonEnabled) {
-						TakiLogger.LogWarning ("END TURN clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!endTurnButton.interactable) {
+						TakiLogger.LogWarning ("END TURN clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
 						ShowComputerMessage ("You must take an action first!");
 						return;
 					}

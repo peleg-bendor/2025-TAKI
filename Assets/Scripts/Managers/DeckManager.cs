@@ -304,8 +304,15 @@ namespace TakiGame {
 		/// <returns>Player hands and starting card</returns>
 		public (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) SetupInitialGame () {
 			if (gameSetup != null) {
-				return gameSetup.SetupInitialGame ();
+				// Initialize the game first
+				gameSetup.InitializeNewGame ();
+				// Then setup the initial game state
+				var result = gameSetup.SetupInitialGame ();
+				TakiLogger.LogNetwork ($"SetupInitialGame successful: P1={result.player1Hand.Count}, P2={result.player2Hand.Count}, Start={result.startingCard?.GetDisplayText() ?? "null"}");
+				return result;
 			}
+
+			TakiLogger.LogError ("CRITICAL: SetupInitialGame failed - gameSetup is null! Check Inspector assignments.", TakiLogger.LogCategory.System);
 			return (new List<CardData> (), new List<CardData> (), null);
 		}
 

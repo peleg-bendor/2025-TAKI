@@ -231,9 +231,9 @@ namespace TakiGame {
 		/// </summary>
 		private void StartMultiPlayerGame () {
 			if (gameManager != null) {
-				TakiLogger.LogInfo ("Initializing multiplayer systems...", TakiLogger.LogCategory.Multiplayer);
-				// FUTURE: This will call proper multiplayer initialization
-				gameManager.InitializeMultiPlayerSystems ();
+				TakiLogger.LogInfo ("Starting multiplayer game...", TakiLogger.LogCategory.Multiplayer);
+				// ENHANCED: Now uses unified game start structure
+				gameManager.StartNewMultiPlayerGame ();
 			} else {
 				TakiLogger.LogError ("Cannot start multiplayer - GameManager not assigned!", TakiLogger.LogCategory.System);
 			}

@@ -31,7 +31,8 @@ namespace TakiGame {
 			Rules,          // Rule validation
 			System,         // System integration and events
 			Diagnostics,    // Debug and diagnostic information
-			SpecialCards,    // PHASE 7: Special card effects and validation
+			Investigation,  // Personal Investigation
+			SpecialCards,   // PHASE 7: Special card effects and validation
 			Network,
 			Multiplayer
 		}
@@ -45,18 +46,19 @@ namespace TakiGame {
 		// Per-category log levels (hardcoded configuration)
 		private static readonly Dictionary<LogCategory, LogLevel> categoryLogLevels = new Dictionary<LogCategory, LogLevel> {
 			{ LogCategory.TurnFlow, LogLevel.Debug },
-			{ LogCategory.CardPlay, LogLevel.Info },
-			{ LogCategory.GameState, LogLevel.Info },
+			{ LogCategory.CardPlay, LogLevel.Debug },
+			{ LogCategory.GameState, LogLevel.Debug },
 			{ LogCategory.TurnManagement, LogLevel.Debug },
-			{ LogCategory.UI, LogLevel.Warning },
-			{ LogCategory.AI, LogLevel.Info },
+			{ LogCategory.UI, LogLevel.Debug },
+			{ LogCategory.AI, LogLevel.Debug },
 			{ LogCategory.Deck, LogLevel.Debug },
 			{ LogCategory.Rules, LogLevel.Debug },
-			{ LogCategory.System, LogLevel.Info },
+			{ LogCategory.System, LogLevel.Debug },
 			{ LogCategory.Diagnostics, LogLevel.Trace },
-			{ LogCategory.SpecialCards, LogLevel.Info },
-			{ LogCategory.Network, LogLevel.Info },
-			{ LogCategory.Multiplayer, LogLevel.Info }
+			{ LogCategory.Investigation, LogLevel.Trace },
+			{ LogCategory.SpecialCards, LogLevel.Debug },
+			{ LogCategory.Network, LogLevel.Debug },
+			{ LogCategory.Multiplayer, LogLevel.Debug }
 		};
 
 		// Category-specific logging methods
@@ -129,6 +131,13 @@ namespace TakiGame {
 		/// </summary>
 		public static void LogDiagnostics (string message, LogLevel level = LogLevel.Trace) {
 			Log (LogCategory.Diagnostics, message, level);
+		}
+
+		/// <summary>
+		/// Log personal Investigation
+		/// </summary>
+		public static void LogInvestigation (string message, LogLevel level = LogLevel.Trace) {
+			Log (LogCategory.Investigation, message, level);
 		}
 
 		/// <summary>
@@ -226,12 +235,12 @@ namespace TakiGame {
 			}
 
 			// Get category-specific log level, fallback to global level if not found
-			LogLevel categoryLevel = categoryLogLevels.ContainsKey(category) 
-				? categoryLogLevels[category] 
+			LogLevel categoryLevel = categoryLogLevels.ContainsKey(category)
+				? categoryLogLevels[category]
 				: currentLogLevel;
 
-			// Show this log if both global AND category levels allow it
-			return currentLogLevel >= level && categoryLevel >= level;
+			// Show this log if category level allows it (no global level check)
+			return categoryLevel >= level;
 		}
 
 		/// <summary>
@@ -257,6 +266,7 @@ namespace TakiGame {
 				case LogCategory.Rules: return "RULES";
 				case LogCategory.System: return "SYS";
 				case LogCategory.Diagnostics: return "DIAG";
+				case LogCategory.Investigation: return "INVESTIGATION";
 				case LogCategory.SpecialCards: return "SPECIAL";
 				case LogCategory.Network: return "NET";
 				case LogCategory.Multiplayer: return "MP";

@@ -191,8 +191,8 @@ namespace TakiGame {
 			UpdateMultiplayerDeckDisplay ();
 
 			// Show ready message
-			if (gameManager.gameplayUI != null) {
-				gameManager.gameplayUI.ShowPlayerMessage ("Game synchronized - Ready to play!");
+			if (gameManager.GetActiveUI() != null) {
+				gameManager.GetActiveUI().ShowPlayerMessage ("Game synchronized - Ready to play!");
 			}
 
 			TakiLogger.LogNetwork ("Game state applied successfully with simplified approach");
@@ -267,8 +267,8 @@ namespace TakiGame {
 				}
 
 				// Update UI
-				if (gameManager.gameplayUI != null) {
-					gameManager.gameplayUI.UpdateHandSizeDisplay (myHand.Count, opponentHand.Count);
+				if (gameManager.GetActiveUI() != null) {
+					gameManager.GetActiveUI().UpdateHandSizeDisplay (myHand.Count, opponentHand.Count);
 				}
 			}
 
@@ -341,18 +341,25 @@ namespace TakiGame {
 
 			TakiLogger.LogNetwork ($"Updating multiplayer deck display: Draw={drawPileCount}, Discard={discardPileCount}, Top={topDiscardCard?.GetDisplayText ()}");
 
-			// Update deck UI if available
-			if (gameManager.deckManager.deckUI != null) {
-				gameManager.deckManager.deckUI.UpdateDeckUI (drawPileCount, discardPileCount);
+			// Check if deck UI is properly assigned
+			if (gameManager.deckManager.deckUI == null) {
+				TakiLogger.LogError ("CRITICAL: deckUI is null! Check Inspector assignments.", TakiLogger.LogCategory.Network);
+				return;
+			}
 
-				if (topDiscardCard != null) {
-					gameManager.deckManager.deckUI.UpdateDiscardPileDisplay (topDiscardCard);
-				}
+			// Check if pile manager is assigned
+			TakiLogger.LogNetwork ($"DeckUI PileManager status: {(gameManager.deckManager.deckUI.pileManager != null ? "ASSIGNED" : "NULL")}");
+
+			// Update deck UI if available
+			gameManager.deckManager.deckUI.UpdateDeckUI (drawPileCount, discardPileCount);
+
+			if (topDiscardCard != null) {
+				gameManager.deckManager.deckUI.UpdateDiscardPileDisplay (topDiscardCard);
 			}
 
 			// Update gameplay UI with deck status message (using existing methods)
-			if (gameManager.gameplayUI != null) {
-				gameManager.gameplayUI.ShowDeckSyncStatus ($"Draw: {drawPileCount}, Discard: {discardPileCount}");
+			if (gameManager.GetActiveUI() != null) {
+				gameManager.GetActiveUI().ShowDeckSyncStatus ($"Draw: {drawPileCount}, Discard: {discardPileCount}");
 			}
 
 			TakiLogger.LogNetwork ("Multiplayer deck display updated successfully");
@@ -457,8 +464,8 @@ namespace TakiGame {
 				gameManager.gameState.ChangeTurnState (newTurnState);
 
 				// Update UI
-				if (gameManager.gameplayUI != null) {
-					gameManager.gameplayUI.UpdateTurnDisplayMultiplayer (_isMyTurn);
+				if (gameManager.GetActiveUI() != null) {
+					gameManager.GetActiveUI().UpdateTurnDisplayMultiplayer (_isMyTurn);
 				}
 			}
 

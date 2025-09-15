@@ -24,7 +24,7 @@ namespace TakiGame {
 		public BasicComputerAI computerAI;
 
 		[Tooltip ("Reference to GameplayUIManager for UI state updates")]
-		public GameplayUIManager gameplayUI;
+		public GameplayUIManager gameplayUI; // DEPRECATED: Use GetActiveUI() instead
 
 		[Tooltip ("Reference to MenuNavigation for screen transitions")]
 		public MenuNavigation menuNavigation;
@@ -68,8 +68,9 @@ namespace TakiGame {
 			pauseStartTime = Time.time;
 
 			// Update UI state
-			if (gameplayUI != null) {
-				gameplayUI.UpdateStrictButtonStates (false, false, false); // Disable all game buttons
+			// Update UI state using active UI manager
+			if (gameManager.GetActiveUI() != null) {
+				gameManager.GetActiveUI().UpdateStrictButtonStates (false, false, false); // Disable all game buttons
 			}
 
 			TakiLogger.LogSystem ("Game successfully paused");
@@ -242,8 +243,8 @@ namespace TakiGame {
 			}
 
 			// Update UI to reflect restored state 
-			if (gameplayUI != null) {
-				gameplayUI.UpdateAllDisplays (
+			if (gameManager.GetActiveUI() != null) {
+				gameManager.GetActiveUI().UpdateAllDisplays (
 					gameState.turnState,
 					gameState.gameStatus,
 					gameState.interactionState,
@@ -280,8 +281,9 @@ namespace TakiGame {
 				computerAI = FindObjectOfType<BasicComputerAI> ();
 			}
 
+			// DEPRECATED: gameplayUI field no longer used - GameManager.GetActiveUI() provides active UI manager
 			if (gameplayUI == null) {
-				gameplayUI = FindObjectOfType<GameplayUIManager> ();
+				gameplayUI = FindObjectOfType<GameplayUIManager> (); // Legacy fallback for Inspector assignment
 			}
 
 			if (menuNavigation == null) {
