@@ -890,12 +890,12 @@ namespace TakiGame {
 				// First PlusTwo played
 				message = targetPlayer == PlayerType.Human ?
 					$"PlusTwo played! Draw {drawCount} cards or play PlusTwo" :
-					$"PlusTwo played! AI draws {drawCount} or continues chain";
+					$"PlusTwo played! Opponent draws {drawCount} or continues chain";
 			} else {
 				// Chain continues  
 				message = targetPlayer == PlayerType.Human ?
 					$"Chain grows! Draw {drawCount} cards or play PlusTwo" :
-					$"Chain grows! AI draws {drawCount} or continues chain";
+					$"Chain grows! Opponent draws {drawCount} or continues chain";
 			}
 
 			if (targetPlayer == PlayerType.Human) {
@@ -913,11 +913,11 @@ namespace TakiGame {
 		public void ShowChainBrokenMessage (int cardsDrawn, PlayerType whoBreaks) {
 			string playerMessage = whoBreaks == PlayerType.Human ?
 				$"Chain broken! You drew {cardsDrawn} cards" :
-				$"Chain broken! AI drew {cardsDrawn} cards";
+				$"";
 
 			string computerMessage = whoBreaks == PlayerType.Computer ?
-				$"I drew {cardsDrawn} cards - chain broken" :
-				$"Opponent drew {cardsDrawn} cards - chain broken";
+				$"Chain broken! Opponent drew {cardsDrawn} cards" :
+				$"";
 
 			ShowPlayerMessageTimed (playerMessage, 3.0f);
 			ShowComputerMessageTimed (computerMessage, 3.0f);

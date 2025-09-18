@@ -340,6 +340,21 @@ namespace TakiGame {
 		#region Message System
 
 		/// <summary>
+		/// Show immediate action feedback (short duration, high priority)
+		/// </summary>
+		/// <param name="message">Urgent message to show</param>
+		/// <param name="toPlayer">If true, show to player; if false, show to opponent area</param>
+		public virtual void ShowImmediateFeedback (string message, bool toPlayer = true) {
+			if (toPlayer) {
+				ShowPlayerMessageTimed (message, 2.0f);
+			} else {
+				ShowOpponentMessageTimed (message, 2.0f);
+			}
+
+			TakiLogger.LogUI ($"Immediate feedback: '{message}' -> {(toPlayer ? "Player" : "Opponent")}");
+		}
+
+		/// <summary>
 		/// Show message to player (instructions, warnings, guidance)
 		/// </summary>
 		/// <param name="message">Message to show</param>
