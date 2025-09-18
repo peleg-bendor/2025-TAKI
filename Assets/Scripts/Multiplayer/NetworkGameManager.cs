@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace TakiGame {
 	/// <summary>
-	/// PHASE 2 MILESTONE 1: Enhanced MultiplayerGameManager with Deck Initialization
+	/// PHASE 2 MILESTONE 1: Enhanced NetworkGameManager with Deck Initialization
 	/// Following instructor's proven pattern with master/client coordination
 	/// FIXED: All CardData constructor calls removed
 	/// </summary>
-	public class MultiplayerGameManager : MonoBehaviourPunCallbacks, IPunTurnManagerCallbacks {
+	public class NetworkGameManager : MonoBehaviourPunCallbacks, IPunTurnManagerCallbacks {
 
 		[Header ("Network Turn Management")]
 		public PunTurnManager turnMgr;
@@ -277,7 +277,7 @@ namespace TakiGame {
 
 		/// <summary>
 		/// DEBUG: Test serialization/deserialization process
-		/// Add this method to MultiplayerGameManager and call it before sending hands
+		/// Add this method to NetworkGameManager and call it before sending hands
 		/// </summary>
 		[ContextMenu ("Debug Serialization")]
 		void DebugSerialization () {

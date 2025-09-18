@@ -16,7 +16,7 @@ namespace TakiGame {
 		[Tooltip ("Card prefab to instantiate")]
 		public GameObject cardPrefab;
 
-		[Tooltip ("Whether this hand shows face-up cards (player) or face-down (computer)")]
+		[Tooltip ("Whether this hand shows face-up cards (player) or face-down (opponent)")]
 		public bool showFaceUpCards = true;
 
 		[Header ("Layout Settings")]

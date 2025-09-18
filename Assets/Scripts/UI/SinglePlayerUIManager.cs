@@ -40,12 +40,6 @@ namespace TakiGame {
 		[SerializeField] private Button endTakiSequenceButton;
 		[SerializeField] private TextMeshProUGUI takiSequenceStatusText;
 
-		[Header ("Deck Pile Elements")]
-		[SerializeField] private GameObject drawPilePanel;
-		[SerializeField] private TextMeshProUGUI drawPileCountText;
-		[SerializeField] private GameObject discardPilePanel;
-		[SerializeField] private TextMeshProUGUI discardPileCountText;
-
 		#region Abstract Property Implementations
 
 		public override TextMeshProUGUI TurnIndicatorText => turnIndicatorText;
@@ -66,14 +60,53 @@ namespace TakiGame {
 		public override TextMeshProUGUI ChainStatusText => chainStatusText;
 		public override Button EndTakiSequenceButton => endTakiSequenceButton;
 		public override TextMeshProUGUI TakiSequenceStatusText => takiSequenceStatusText;
-		public override GameObject DrawPilePanel => drawPilePanel;
-		public override TextMeshProUGUI DrawPileCountText => drawPileCountText;
-		public override GameObject DiscardPilePanel => discardPilePanel;
-		public override TextMeshProUGUI DiscardPileCountText => discardPileCountText;
 
 		#endregion
 
 		#region SinglePlayer-Specific Implementations
+
+		/// <summary>
+		/// SinglePlayer context: Only enable for human-initiated sequences
+		/// </summary>
+		public override void EnableEndTakiSequenceButton (bool enable) {
+			if (enable) {
+				// SinglePlayer logic: Only humans can end sequences (not AI)
+				bool isHumanSequence = IsCurrentSequenceHumanInitiated ();
+				base.EnableEndTakiSequenceButton (enable && isHumanSequence);
+
+				if (!isHumanSequence) {
+					TakiLogger.LogUI ("BLOCKED: End Sequence button - AI initiated sequence, player cannot end it");
+				}
+			} else {
+				base.EnableEndTakiSequenceButton (false);
+			}
+		}
+
+		private bool IsCurrentSequenceHumanInitiated () {
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+			return gameState != null && gameState.IsInTakiSequence &&
+				   gameState.TakiSequenceInitiator == PlayerType.Human;
+		}
+
+		/// <summary>
+		/// Build SinglePlayer-specific TAKI sequence message (Human vs AI)
+		/// </summary>
+		protected override string BuildTakiSequenceMessage (CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+
+			if (gameState != null && gameState.IsInTakiSequence) {
+				PlayerType initiator = gameState.TakiSequenceInitiator;
+
+				if (initiator == PlayerType.Human) {
+					return $"Your TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence";
+				} else {
+					return $"AI TAKI Sequence: {cardCount} cards -> AI playing {sequenceColor} cards";
+				}
+			}
+
+			// Fallback to base implementation
+			return base.BuildTakiSequenceMessage (sequenceColor, cardCount, isPlayerTurn);
+		}
 
 		protected override string GetTurnMessage (TurnState turnState) {
 			if (Application.isPlaying) {
@@ -149,24 +182,9 @@ namespace TakiGame {
 			ShowPlayerMessage ("");
 			ShowComputerMessage ("");
 
+			// Disable all action buttons on game over
 			UpdateStrictButtonStates (false, false, false);
 			TakiLogger.LogGameState ("SinglePlayer game over - all buttons disabled");
-		}
-
-		/// <summary>
-		/// Reset UI for new singleplayer game
-		/// </summary>
-		public void ResetUIForNewGame () {
-			if (turnIndicatorText != null) {
-				turnIndicatorText.text = "New Game";
-			}
-
-			UpdateActiveColorDisplay (CardColor.Wild);
-			UpdateHandSizeDisplay (0, 0);
-			ShowColorSelection (false);
-			UpdateStrictButtonStates (false, false, false);
-
-			TakiLogger.LogUI ("SinglePlayer UI reset for new game");
 		}
 
 		/// <summary>

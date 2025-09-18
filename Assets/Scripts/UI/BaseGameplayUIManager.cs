@@ -49,11 +49,6 @@ namespace TakiGame {
         public abstract Button EndTakiSequenceButton { get; }
         public abstract TextMeshProUGUI TakiSequenceStatusText { get; }
 
-        public abstract GameObject DrawPilePanel { get; }
-        public abstract TextMeshProUGUI DrawPileCountText { get; }
-        public abstract GameObject DiscardPilePanel { get; }
-        public abstract TextMeshProUGUI DiscardPileCountText { get; }
-
         protected virtual void Start() {
             // Check if this UI manager should be active based on game mode
             if (!ShouldBeActive()) {
@@ -62,154 +57,244 @@ namespace TakiGame {
                 return;
             }
 
-            TakiLogger.LogInfo($"New UI Architecture - {GetType().Name} starting", TakiLogger.LogCategory.UI);
+			TakiLogger.LogInfo($"New UI Architecture starting", TakiLogger.LogCategory.UI);
             ConnectButtonEvents();
             SetupInitialState();
         }
 
-        #region Button Event Management
+		#region Button Event Management
 
-        protected virtual void ConnectButtonEvents() {
-            TakiLogger.LogUI("Connecting button events with STRICT FLOW validation...");
+		/// <summary>
+		/// Connect button events to internal handlers - with validation and TAKI sequence support
+		/// </summary>
+		protected virtual void ConnectButtonEvents () {
+			TakiLogger.LogUI ("Connecting button events with STRICT FLOW validation...");
 
-            if (PlayCardButton != null) {
-                PlayCardButton.onClick.AddListener(() => {
-                    TakiLogger.LogTurnFlow("=== PLAY CARD BUTTON CLICKED ===");
-                    if (!playButtonEnabled) {
-                        TakiLogger.LogWarning("PLAY CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
-                        ShowComputerMessage("Cannot play card right now!");
-                        return;
-                    }
-                    OnPlayCardClicked?.Invoke();
-                });
-            }
+			if (PlayCardButton != null) {
+				PlayCardButton.onClick.AddListener (() => {
+					TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED ===", TakiLogger.LogLevel.Debug);
+					TakiLogger.LogTurnFlow ($"Button enabled state: {playButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {PlayCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
-            if (DrawCardButton != null) {
-                DrawCardButton.onClick.AddListener(() => {
-                    TakiLogger.LogTurnFlow("=== DRAW CARD BUTTON CLICKED ===");
-                    if (!drawButtonEnabled) {
-                        TakiLogger.LogWarning("DRAW CARD clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
-                        ShowComputerMessage("Cannot draw card right now!");
-                        return;
-                    }
-                    OnDrawCardClicked?.Invoke();
-                });
-            }
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!PlayCardButton.interactable) {
+						TakiLogger.LogWarning ("PLAY CARD clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
+						ShowPlayerMessage ("Cannot play card right now!");
+						return;
+					}
 
-            if (EndTurnButton != null) {
-                EndTurnButton.onClick.AddListener(() => {
-                    TakiLogger.LogTurnFlow("=== END TURN BUTTON CLICKED ===");
-                    if (!endTurnButtonEnabled) {
-                        TakiLogger.LogWarning("END TURN clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
-                        ShowComputerMessage("You must take an action first!");
-                        return;
-                    }
-                    TakiLogger.LogTurnFlow("IMMEDIATELY disabling all buttons after END TURN click");
-                    UpdateStrictButtonStates(false, false, false);
-                    OnEndTurnClicked?.Invoke();
-                });
-            }
+					OnPlayCardClicked?.Invoke ();
+				});
+				TakiLogger.LogSystem ("Play Card button event connected", TakiLogger.LogLevel.Trace);
+			} else {
+				TakiLogger.LogError ("Play Card button is NULL!", TakiLogger.LogCategory.UI);
+			}
 
-            if (EndTakiSequenceButton != null) {
-                EndTakiSequenceButton.onClick.AddListener(() => {
-                    TakiLogger.LogTurnFlow("=== END TAKI SEQUENCE BUTTON CLICKED ===");
-                    if (!EndTakiSequenceButton.interactable) {
-                        TakiLogger.LogWarning("END TAKI SEQUENCE clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
-                        ShowComputerMessage("Cannot end sequence right now!");
-                        return;
-                    }
-                    OnEndTakiSequenceClicked?.Invoke();
-                });
-            }
+			if (DrawCardButton != null) {
+				DrawCardButton.onClick.AddListener (() => {
+					TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED ===", TakiLogger.LogLevel.Debug);
+					TakiLogger.LogTurnFlow ($"Button enabled state: {drawButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {DrawCardButton.interactable}", TakiLogger.LogLevel.Trace);
 
-            // Color selection buttons
-            if (SelectRedButton != null) {
-                SelectRedButton.onClick.AddListener(() => SelectColor(CardColor.Red));
-            }
-            if (SelectBlueButton != null) {
-                SelectBlueButton.onClick.AddListener(() => SelectColor(CardColor.Blue));
-            }
-            if (SelectGreenButton != null) {
-                SelectGreenButton.onClick.AddListener(() => SelectColor(CardColor.Green));
-            }
-            if (SelectYellowButton != null) {
-                SelectYellowButton.onClick.AddListener(() => SelectColor(CardColor.Yellow));
-            }
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!DrawCardButton.interactable) {
+						TakiLogger.LogWarning ("DRAW CARD clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
+						ShowPlayerMessage ("Cannot draw card right now!");
+						return;
+					}
 
-            TakiLogger.LogSystem("All button events connected with strict flow validation");
-        }
+					OnDrawCardClicked?.Invoke ();
+				});
+				TakiLogger.LogSystem ("Draw Card button event connected", TakiLogger.LogLevel.Trace);
+			} else {
+				TakiLogger.LogError ("Draw Card button is NULL!", TakiLogger.LogCategory.UI);
+			}
 
-        protected virtual void SetupInitialState() {
-            if (ColorSelectionPanel != null) {
+			if (EndTurnButton != null) {
+				EndTurnButton.onClick.AddListener (() => {
+					TakiLogger.LogTurnFlow ("=== END TURN BUTTON CLICKED ===");
+					TakiLogger.LogTurnFlow ($"Button enabled state: {endTurnButtonEnabled}", TakiLogger.LogLevel.Trace);
+					TakiLogger.LogTurnFlow ($"Button interactable: {EndTurnButton.interactable}", TakiLogger.LogLevel.Trace);
+
+					// Check actual button state instead of internal tracking (fixes duplicate handler issue)
+					if (!EndTurnButton.interactable) {
+						TakiLogger.LogWarning ("END TURN clicked but button is not interactable!", TakiLogger.LogCategory.TurnFlow);
+						ShowPlayerMessage ("You must take an action first!");
+						return;
+					}
+
+					// Immediately disable all buttons to prevent multiple clicks
+					TakiLogger.LogTurnFlow ("IMMEDIATELY disabling all buttons after END TURN click", TakiLogger.LogLevel.Trace);
+					UpdateStrictButtonStates (false, false, false);
+
+					OnEndTurnClicked?.Invoke ();
+				});
+				TakiLogger.LogSystem ("End Turn button event connected", TakiLogger.LogLevel.Trace);
+			} else {
+				TakiLogger.LogError ("End Turn button is NULL!", TakiLogger.LogCategory.UI);
+			}
+
+			// PHASE 8B: Connect End TAKI Sequence button
+			if (EndTakiSequenceButton != null) {
+				EndTakiSequenceButton.onClick.AddListener (() => {
+					TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED ===", TakiLogger.LogLevel.Debug);
+					TakiLogger.LogTurnFlow ($"Button interactable: {EndTakiSequenceButton.interactable}", TakiLogger.LogLevel.Trace);
+
+					if (!EndTakiSequenceButton.interactable) {
+						TakiLogger.LogWarning ("END TAKI SEQUENCE clicked but button should be disabled!", TakiLogger.LogCategory.TurnFlow);
+						ShowPlayerMessage ("Cannot end sequence right now!");
+						return;
+					}
+
+					OnEndTakiSequenceClicked?.Invoke ();
+				});
+				TakiLogger.LogSystem ("End TAKI Sequence button event connected", TakiLogger.LogLevel.Trace);
+			} else {
+				TakiLogger.LogWarning ("Btn_Player1EndTakiSequence is NULL - TAKI sequence ending will not work!", TakiLogger.LogCategory.UI);
+			}
+
+			// Color selection buttons
+			if (SelectRedButton != null) {
+				SelectRedButton.onClick.AddListener (() => SelectColor (CardColor.Red));
+			}
+			if (SelectBlueButton != null) {
+				SelectBlueButton.onClick.AddListener (() => SelectColor (CardColor.Blue));
+			}
+			if (SelectGreenButton != null) {
+				SelectGreenButton.onClick.AddListener (() => SelectColor (CardColor.Green));
+			}
+			if (SelectYellowButton != null) {
+				SelectYellowButton.onClick.AddListener (() => SelectColor (CardColor.Yellow));
+			}
+
+			TakiLogger.LogSystem ("All button events connected with strict flow validation", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary>
+		/// Setup initial UI state
+		/// </summary>
+		protected virtual void SetupInitialState() {
+			// Hide color selection initially
+			if (ColorSelectionPanel != null) {
                 ColorSelectionPanel.SetActive(false);
             }
 
-            if (CurrentColorIndicator != null) {
+			// Set initial color indicator
+			if (CurrentColorIndicator != null) {
                 CurrentColorIndicator.color = wildColor;
             }
 
-            UpdateStrictButtonStates(false, false, false);
+			// Start with all buttons disabled (safe state)
+			UpdateStrictButtonStates (false, false, false);
         }
 
-        #endregion
+		#endregion
 
-        #region Button State Management
+		#region Button State Management
 
-        public virtual void UpdateStrictButtonStates(bool enablePlay, bool enableDraw, bool enableEndTurn) {
-            TakiLogger.LogTurnFlow("=== UPDATING STRICT BUTTON STATES ===");
-            TakiLogger.LogTurnFlow($"PLAY: {(enablePlay ? "ENABLED" : "DISABLED")}");
-            TakiLogger.LogTurnFlow($"DRAW: {(enableDraw ? "ENABLED" : "DISABLED")}");
-            TakiLogger.LogTurnFlow($"END TURN: {(enableEndTurn ? "ENABLED" : "DISABLED")}");
+		/// <summary>
+		/// ENHANCED: Strict button state control with comprehensive logging
+		/// </summary>
+		/// <param name="enablePlay">Enable/disable PLAY button</param>
+		/// <param name="enableDraw">Enable/disable DRAW button</param>
+		/// <param name="enableEndTurn">Enable/disable END TURN button</param>
+		public virtual void UpdateStrictButtonStates(bool enablePlay, bool enableDraw, bool enableEndTurn) {
+            TakiLogger.LogTurnFlow("=== UPDATING STRICT BUTTON STATES ===", TakiLogger.LogLevel.Debug);
+            TakiLogger.LogTurnFlow($"PLAY: {(enablePlay ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Debug);
+            TakiLogger.LogTurnFlow($"DRAW: {(enableDraw ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Debug);
+            TakiLogger.LogTurnFlow($"END TURN: {(enableEndTurn ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Debug);
 
-            playButtonEnabled = enablePlay;
+			// Update internal state tracking
+			playButtonEnabled = enablePlay;
             drawButtonEnabled = enableDraw;
             endTurnButtonEnabled = enableEndTurn;
 
             if (PlayCardButton != null) {
                 PlayCardButton.interactable = enablePlay;
-            }
+				TakiLogger.LogTurnFlow ($"Play Card button updated: {(enablePlay ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
+			}
 
-            if (DrawCardButton != null) {
+			if (DrawCardButton != null) {
                 DrawCardButton.interactable = enableDraw;
-            }
+				TakiLogger.LogTurnFlow ($"Draw Card button updated: {(enableDraw ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
+			}
 
-            if (EndTurnButton != null) {
+			if (EndTurnButton != null) {
                 EndTurnButton.interactable = enableEndTurn;
-            }
+				TakiLogger.LogTurnFlow ($"End Turn button updated: {(enableEndTurn ? "ENABLED" : "DISABLED")}", TakiLogger.LogLevel.Trace);
+			}
 
-            if (PauseButton != null) {
+			// Pause button should always be available 
+			if (PauseButton != null) {
                 PauseButton.interactable = true;
             }
+
+			TakiLogger.LogTurnFlow ("Strict button state update complete", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary> 
+		/// Force enable END TURN button after successful action
+		/// Used when action was successful and player must end turn
+		/// </summary>
+		public virtual void ForceEnableEndTurn() {
+			TakiLogger.LogTurnFlow ("=== FORCE ENABLING END TURN BUTTON ===", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogTurnFlow ("Action was successful - player must now END TURN", TakiLogger.LogLevel.Info);
+
+			// Enable only END TURN button
+			UpdateStrictButtonStates (false, false, true);
         }
 
-        public virtual void ForceEnableEndTurn() {
-            TakiLogger.LogTurnFlow("=== FORCE ENABLING END TURN BUTTON ===");
-            UpdateStrictButtonStates(false, false, true);
-        }
+		#endregion
 
-        #endregion
+		#region Display Updates
 
-        #region Display Updates
-
-        public virtual void UpdateTurnDisplay(TurnState turnState) {
+		/// <summary>
+		/// Update turn display
+		/// </summary>
+		public virtual void UpdateTurnDisplay(TurnState turnState) {
             TakiLogger.LogUI($"=== UPDATING TURN DISPLAY for {turnState} ===", TakiLogger.LogLevel.Debug);
 
             if (TurnIndicatorText != null) {
                 string turnMessage = GetTurnMessage(turnState);
-                TurnIndicatorText.text = turnMessage;
-            }
-        }
+				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Trace);
+			}
 
-        public virtual void UpdateActiveColorDisplay(CardColor activeColor) {
+			// Button states are controlled by GameManager's strict flow system
+			// Do not automatically update button states here
+			TakiLogger.LogTurnFlow ("Turn display updated - button states controlled by strict flow system", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary>
+		/// Update current color indicator
+		/// </summary>
+		/// <param name="activeColor">Current active color</param>
+		public virtual void UpdateActiveColorDisplay(CardColor activeColor) {
             if (CurrentColorIndicator != null) {
                 CurrentColorIndicator.color = GetColorForCardColor(activeColor);
             }
         }
 
-        public abstract void UpdateHandSizeDisplay(int player1HandSize, int player2HandSize);
+		/// <summary>
+		/// Update hand size displays
+		/// </summary>
+		/// <param name="player1HandSize">Player 1 (human) hand size</param>
+		/// <param name="player2HandSize">Player 2 (computer) hand size</param>
+		public virtual void UpdateHandSizeDisplay (int player1HandSize, int player2HandSize) {
+			if (Player1HandSizeText != null) {
+				Player1HandSizeText.text = $"Your Cards: {player1HandSize}";
+			}
 
-        protected virtual string GetTurnMessage(TurnState turnState) {
-            if (Application.isPlaying) {
+			if (Player2HandSizeText != null) {
+				Player2HandSizeText.text = $"Computer Cards: {player2HandSize}";
+			}
+		}
+
+		/// <summary>
+		/// Get turn message from turn state
+		/// </summary>
+		protected virtual string GetTurnMessage(TurnState turnState) {
+			// Check game status first through GameStateManager if available
+			if (Application.isPlaying) {
                 GameStateManager gameState = FindObjectOfType<GameStateManager>();
                 if (gameState != null) {
                     if (gameState.gameStatus == GameStatus.Paused) {
@@ -232,7 +317,10 @@ namespace TakiGame {
             }
         }
 
-        protected virtual Color GetColorForCardColor(CardColor cardColor) {
+		/// <summary>
+		/// Convert CardColor to Unity Color
+		/// </summary>
+		protected virtual Color GetColorForCardColor(CardColor cardColor) {
             switch (cardColor) {
                 case CardColor.Red:
                     return redColor;
@@ -247,155 +335,237 @@ namespace TakiGame {
             }
         }
 
-        #endregion
+		#endregion
 
-        #region Message System
+		#region Message System
 
-        public virtual void ShowPlayerMessage(string message) {
+		/// <summary>
+		/// Show message to player (instructions, warnings, guidance)
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		public virtual void ShowPlayerMessage(string message) {
             if (PlayerMessageText != null) {
                 PlayerMessageText.text = message;
             }
         }
 
-        public virtual void ShowComputerMessage(string message) {
+		/// <summary>
+		/// Show computer action message (Opponent thinking, actions)
+		/// UPDATED: Now uses computerMessageText instead of gameMessageText
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		public virtual void ShowComputerMessage(string message) {
             if (ComputerMessageText != null) {
                 ComputerMessageText.text = message;
             }
         }
 
-        public virtual void ShowPlayerMessageTimed(string message, float duration = 3.0f) {
+		/// <summary> 
+		/// Show player message with duration to prevent overwrites
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
+		public virtual void ShowPlayerMessageTimed(string message, float duration = 3.0f) {
             if (PlayerMessageText != null) {
                 PlayerMessageText.text = message;
-                TakiLogger.LogUI($"Player message: '{message}' (duration: {duration}s)");
+                TakiLogger.LogUI($"Player message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
 
                 if (duration > 0) {
-                    CancelInvoke(nameof(ClearPlayerMessage));
-                    Invoke(nameof(ClearPlayerMessage), duration);
+					// Cancel any existing clear operations
+					CancelInvoke (nameof(ClearPlayerMessage));
+					// Schedule clear
+					Invoke (nameof(ClearPlayerMessage), duration);
                 }
             }
         }
 
-        public virtual void ShowComputerMessageTimed(string message, float duration = 3.0f) {
+		/// <summary>
+		/// Show computer message with duration to prevent overwrites
+		/// </summary>
+		/// <param name="message">Message to show</param>
+		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
+		public virtual void ShowComputerMessageTimed(string message, float duration = 3.0f) {
             if (ComputerMessageText != null) {
                 ComputerMessageText.text = message;
-                TakiLogger.LogUI($"Computer message: '{message}' (duration: {duration}s)");
+                TakiLogger.LogUI($"Computer message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
 
                 if (duration > 0) {
-                    CancelInvoke(nameof(ClearComputerMessage));
-                    Invoke(nameof(ClearComputerMessage), duration);
+					// Cancel any existing clear operations
+					CancelInvoke (nameof(ClearComputerMessage));
+					// Schedule clear
+					Invoke (nameof(ClearComputerMessage), duration);
                 }
             }
         }
 
-        protected virtual void ClearPlayerMessage() {
+		/// <summary>
+		/// Clear player message
+		/// </summary>
+		protected virtual void ClearPlayerMessage() {
             if (PlayerMessageText != null) {
                 PlayerMessageText.text = "";
-            }
-        }
+				TakiLogger.LogUI ("Player message cleared", TakiLogger.LogLevel.Trace);
+			}
+		}
 
-        protected virtual void ClearComputerMessage() {
+		/// <summary>
+		/// Clear computer message
+		/// </summary>
+		protected virtual void ClearComputerMessage() {
             if (ComputerMessageText != null) {
                 ComputerMessageText.text = "";
-            }
-        }
+				TakiLogger.LogUI ("Computer message cleared", TakiLogger.LogLevel.Trace);
+			}
+		}
 
-        #endregion
+		/// <summary>
+		/// Show opponent action feedback
+		/// </summary>
+		public virtual void ShowOpponentAction (string action) {
+			ShowComputerMessage ($"Opponent {action}");
+			TakiLogger.LogNetwork ($"Opponent action displayed: {action}", TakiLogger.LogLevel.Trace);
+		}
 
-        #region Color Selection
+		#endregion
 
-        public virtual void ShowColorSelection(bool show) {
+		#region Color Selection
+
+		/// <summary>
+		/// Show/hide color selection panel
+		/// </summary>
+		/// <param name="show">Whether to show the color selection</param>
+		public virtual void ShowColorSelection(bool show) {
             if (ColorSelectionPanel != null) {
                 ColorSelectionPanel.SetActive(show);
             }
 
-            if (show) {
-                TakiLogger.LogUI("Color selection active - disabling all action buttons");
+			// Disable all action buttons during color selection
+			if (show) {
+                TakiLogger.LogUI("Color selection active - disabling all action buttons", TakiLogger.LogLevel.Info);
                 UpdateStrictButtonStates(false, false, true);
             }
         }
 
-        protected virtual void SelectColor(CardColor selectedColor) {
-            UpdateActiveColorDisplay(selectedColor);
-            OnColorSelected?.Invoke(selectedColor);
-            TakiLogger.LogUI($"Player selected color: {selectedColor} (panel stays visible)");
-            ShowPlayerMessage($"Color set to {selectedColor} - click END TURN when ready!");
+		/// <summary>
+		/// Handle color selection, keep panel visible
+		/// </summary> 
+		/// <param name="selectedColor">Selected color</param>
+		protected virtual void SelectColor(CardColor selectedColor) {
+			// Update color indicator
+			UpdateActiveColorDisplay (selectedColor);
+
+			// Notify external systems
+			OnColorSelected?.Invoke(selectedColor);
+            
+            TakiLogger.LogUI($"Player selected color: {selectedColor}", TakiLogger.LogLevel.Trace);
+
+			// Show feedback that color was selected but player can choose again
+			ShowPlayerMessage ($"Color set to {selectedColor} - click END TURN when ready!");
         }
 
-        #endregion
+		#endregion
 
-        #region Special Card Effects
+		#region Special Card Effects
 
-        public virtual void ShowPlusTwoChainStatus(int chainCount, int accumulatedDraw, bool isPlayerTurn) {
-            if (ChainStatusText != null) {
-                string statusMessage = isPlayerTurn 
-                    ? $"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw} or play PlusTwo"
-                    : $"PlusTwo Chain: {chainCount} cards -> AI must respond";
-                
-                ChainStatusText.text = statusMessage;
-            }
-        }
+		/// <summary>
+		/// Show PlusTwo chain status with progressive messaging 
+		/// </summary>
+		/// <param name="chainCount">Number of PlusTwo cards in chain</param>
+		/// <param name="accumulatedDraw">Total cards to draw</param>
+		/// <param name="isPlayerTurn">True if it's player's turn to respond</param>
+		public virtual void ShowPlusTwoChainStatus(int chainCount, int accumulatedDraw, bool isPlayerTurn) {
+			if (ChainStatusText != null) {
+				string statusMessage;
 
-        public virtual void HidePlusTwoChainStatus() {
+				if (isPlayerTurn) {
+					statusMessage = $"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw} or play PlusTwo";
+				} else {
+					statusMessage = $"PlusTwo Chain: {chainCount} cards -> Opponent must respond";
+				}
+
+				ChainStatusText.text = statusMessage;
+			}
+
+			TakiLogger.LogUI ($"Chain status displayed: {chainCount} cards, {accumulatedDraw} draw, PlayerTurn={isPlayerTurn}", TakiLogger.LogLevel.Info);
+		}
+
+		/// <summary>
+		/// Hide PlusTwo chain status
+		/// </summary>
+		public virtual void HidePlusTwoChainStatus() {
             if (ChainStatusText != null) {
                 ChainStatusText.text = "";
             }
+
+			TakiLogger.LogUI ("Chain status hidden", TakiLogger.LogLevel.Trace);
         }
 
-        public virtual void EnableEndTakiSequenceButton(bool enable) {
-            if (EndTakiSequenceButton != null) {
-                bool shouldEnable = enable;
+		/// <summary>
+		/// Enable/disable the End TAKI Sequence button
+		/// </summary>
+		/// <param name="enable">Whether to enable the button</param>
+		public virtual void EnableEndTakiSequenceButton (bool enable) {
+			if (EndTakiSequenceButton != null) {
+				EndTakiSequenceButton.interactable = enable;
+				EndTakiSequenceButton.gameObject.SetActive (enable);
+				TakiLogger.LogUI ($"End TAKI Sequence button {(enable ? "ENABLED & VISIBLE" : "DISABLED & HIDDEN")}");
+			} else {
+				TakiLogger.LogError ("CRITICAL: EndTakiSequenceButton is NULL! Button not assigned in Inspector!", TakiLogger.LogCategory.UI);
+			}
+		}
 
-                if (enable) {
-                    GameStateManager gameState = FindObjectOfType<GameStateManager>();
-                    if (gameState != null && gameState.IsInTakiSequence) {
-                        shouldEnable = (gameState.TakiSequenceInitiator == PlayerType.Human);
-                    }
-                }
+		/// <summary>
+		/// Display TAKI sequence status - no context logic, just shows what the concrete class tells it to show
+		/// </summary>
+		/// <param name="sequenceColor">Color required for sequence</param>
+		/// <param name="cardCount">Number of cards in sequence</param>
+		/// <param name="isPlayerTurn">True if it's player's turn</param>
+		public virtual void ShowTakiSequenceStatus (CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
+			if (TakiSequenceStatusText != null) {
+				string message = BuildTakiSequenceMessage (sequenceColor, cardCount, isPlayerTurn);
+				TakiSequenceStatusText.text = message;
+				TakiSequenceStatusText.gameObject.SetActive (true);
+				TakiLogger.LogUI ($"TAKI sequence status: '{message}'");
+			} else {
+				TakiLogger.LogError ("CRITICAL: TakiSequenceStatusText is NULL! Text element not assigned in Inspector!",
+		TakiLogger.LogCategory.UI);
+			}
+		}
 
-                EndTakiSequenceButton.interactable = shouldEnable;
-                EndTakiSequenceButton.gameObject.SetActive(shouldEnable);
-            }
-        }
+		/// <summary>
+		/// Build a basic TAKI sequence message - overridden by concrete classes for context-specific messages
+		/// </summary>
+		protected virtual string BuildTakiSequenceMessage (CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
+			return isPlayerTurn
+				? $"TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence"
+				: $"TAKI Sequence: {cardCount} cards -> Opponent playing {sequenceColor} cards";
+		}
 
-        public virtual void ShowTakiSequenceStatus(CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
-            if (TakiSequenceStatusText != null) {
-                GameStateManager gameState = FindObjectOfType<GameStateManager>();
-                string statusMessage;
-                
-                if (gameState != null && gameState.IsInTakiSequence) {
-                    PlayerType initiator = gameState.TakiSequenceInitiator;
-                    statusMessage = initiator == PlayerType.Human
-                        ? $"Your TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence"
-                        : $"AI TAKI Sequence: {cardCount} cards -> AI playing {sequenceColor} cards";
-                } else {
-                    statusMessage = isPlayerTurn
-                        ? $"TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence"
-                        : $"TAKI Sequence: {cardCount} cards -> AI playing {sequenceColor} cards";
-                }
+		/// <summary>
+		/// Hides sequence status
+		/// </summary>
+		public virtual void HideTakiSequenceStatus() {
+			if (TakiSequenceStatusText != null) {
+				TakiSequenceStatusText.text = "";
+				TakiSequenceStatusText.gameObject.SetActive (false);
+				TakiLogger.LogUI ("TAKI sequence status hidden", TakiLogger.LogLevel.Trace);
+			} else {
+				TakiLogger.LogError ("CRITICAL: takiSequenceStatusText is NULL when trying to hide!", TakiLogger.LogCategory.UI);
+			}
+		}
 
-                TakiSequenceStatusText.text = statusMessage;
-                TakiSequenceStatusText.gameObject.SetActive(true);
-            }
-        }
+		#endregion
 
-        public virtual void HideTakiSequenceStatus() {
-            if (TakiSequenceStatusText != null) {
-                TakiSequenceStatusText.text = "";
-                TakiSequenceStatusText.gameObject.SetActive(false);
-            }
-        }
+		#region Game State Management
 
-        #endregion
-
-        #region Game State Management
-
-        public virtual void UpdateAllDisplays(TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor) {
+		public virtual void UpdateAllDisplays(TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor) {
             TakiLogger.LogUI("=== UPDATING ALL DISPLAYS (BASE) ===", TakiLogger.LogLevel.Debug);
 
             UpdateTurnDisplay(turnState);
             UpdateActiveColorDisplay(activeColor);
 
-            if (interactionState == InteractionState.ColorSelection) {
+			// Handle special interaction states
+			if (interactionState == InteractionState.ColorSelection) {
                 ShowColorSelection(true);
             } else {
                 ShowColorSelection(false);
@@ -403,20 +573,19 @@ namespace TakiGame {
 
             if (interactionState == InteractionState.TakiSequence) {
                 GameStateManager gameState = FindObjectOfType<GameStateManager>();
-                bool shouldEnableButton = false;
 
                 if (gameState != null && gameState.IsInTakiSequence) {
-                    shouldEnableButton = (gameState.TakiSequenceInitiator == PlayerType.Human) &&
-                                        (gameState.IsPlayerTurn);
-                }
+                    // Let concrete classes decide whether to enable the button based on their context
+                    EnableEndTakiSequenceButton(true);
 
-                EnableEndTakiSequenceButton(shouldEnableButton);
-
-                if (gameState != null && TakiSequenceStatusText != null) {
+                    // Show sequence status with current game state
                     bool isPlayerTurn = gameState.IsPlayerTurn;
                     int cardCount = gameState.NumberOfSequenceCards;
                     CardColor sequenceColor = gameState.TakiSequenceColor;
                     ShowTakiSequenceStatus(sequenceColor, cardCount, isPlayerTurn);
+                } else {
+                    EnableEndTakiSequenceButton(false);
+                    HideTakiSequenceStatus();
                 }
             } else {
                 EnableEndTakiSequenceButton(false);
@@ -436,37 +605,96 @@ namespace TakiGame {
             }
         }
 
-        protected virtual void HandlePausedState() {
-            UpdateStrictButtonStates(false, false, false);
-            EnableEndTakiSequenceButton(false);
-            ShowPlayerMessage("Game Paused");
-            ShowComputerMessage("Game is paused");
+		/// <summary>
+		/// Handle UI state when game is paused
+		/// </summary>
+		protected virtual void HandlePausedState() {
+			TakiLogger.LogUI ("Handling paused game state", TakiLogger.LogLevel.Debug);
 
-            if (PauseButton != null) {
+			// Disable all gameplay buttons including TAKI sequence button
+			UpdateStrictButtonStates (false, false, false);
+            EnableEndTakiSequenceButton(false);
+
+			// Show pause message to user
+			ShowPlayerMessage ("Game Paused");
+            ShowComputerMessage("Game Paused");
+
+			// Pause button should still be available (it becomes Continue when paused)
+			if (PauseButton != null) {
                 PauseButton.interactable = true;
             }
         }
 
-        protected virtual void HandleGameOverState() {
-            UpdateStrictButtonStates(false, false, false);
+		/// <summary>
+		/// Handle UI state when game is over
+		/// </summary>
+		protected virtual void HandleGameOverState() {
+			TakiLogger.LogUI ("Handling game over state", TakiLogger.LogLevel.Debug);
+
+			// Disable all gameplay buttons including TAKI sequence button
+			UpdateStrictButtonStates (false, false, false);
             EnableEndTakiSequenceButton(false);
 
-            if (PauseButton != null) {
+			// Pause button should be disabled
+			if (PauseButton != null) {
                 PauseButton.interactable = false;
             }
-        }
 
-        protected virtual void HandleActiveState(TurnState turnState) {
-            if (PauseButton != null) {
+			// Winner message will be handled by GameEndManager
+		}
+
+		/// <summary>
+		/// Handle UI state when game is active
+		/// </summary>
+		/// <param name="turnState">Current turn state</param>
+		protected virtual void HandleActiveState(TurnState turnState) {
+			TakiLogger.LogUI ("Handling active game state",TakiLogger.LogLevel.Debug);
+
+			// Pause button should be available
+			if (PauseButton != null) {
                 PauseButton.interactable = true;
             }
-        }
 
-        #endregion
+			// Button states will be handled by strict turn flow system
+			// Don't automatically enable buttons here - let GameManager control them
+		}
 
-        #region Properties
+		/// <summary>
+		/// Reset UI for new game
+		/// </summary>
+		public virtual void ResetUIForNewGame () {
+			TakiLogger.LogUI ("Resetting UI for new game (base implementation)", TakiLogger.LogLevel.Debug);
 
-        public bool PlayButtonEnabled => playButtonEnabled;
+			// Reset turn display
+			if (TurnIndicatorText != null) {
+				TurnIndicatorText.text = "New Game";
+			}
+
+			// Reset color indicator
+			UpdateActiveColorDisplay (CardColor.Wild);
+
+			// Reset hand size displays
+			UpdateHandSizeDisplay (0, 0);
+
+			// Hide color selection
+			ShowColorSelection (false);
+
+			// Start with all buttons disabled for safety
+			UpdateStrictButtonStates (false, false, false);
+
+			// Clear messages
+			ShowPlayerMessage ("Setting up game...");
+			ShowComputerMessage ("");
+
+			TakiLogger.LogUI ("Base UI reset for new game complete");
+		}
+
+		#endregion
+
+		#region Properties
+
+		// Properties 
+		public bool PlayButtonEnabled => playButtonEnabled;
         public bool DrawButtonEnabled => drawButtonEnabled;
         public bool EndTurnButtonEnabled => endTurnButtonEnabled;
         public bool EndTakiSequenceButtonEnabled => EndTakiSequenceButton != null && EndTakiSequenceButton.interactable;
@@ -474,28 +702,6 @@ namespace TakiGame {
 
         public virtual string GetButtonStateSummary() {
             return $"Play:{(playButtonEnabled ? "ON" : "OFF")}, Draw:{(drawButtonEnabled ? "ON" : "OFF")}, EndTurn:{(endTurnButtonEnabled ? "ON" : "OFF")}, EndSequence:{(EndTakiSequenceButtonEnabled ? "ON" : "OFF")}";
-        }
-
-        #endregion
-
-        #region Deck Pile Management
-
-        public virtual void UpdateDrawPileCount(int count) {
-            if (DrawPileCountText != null) {
-                DrawPileCountText.text = count.ToString();
-            }
-        }
-
-        public virtual void UpdateDiscardPileCount(int count) {
-            if (DiscardPileCountText != null) {
-                DiscardPileCountText.text = count.ToString();
-            }
-        }
-
-        public virtual void UpdateAllPileCounts(int drawCount, int discardCount) {
-            UpdateDrawPileCount(drawCount);
-            UpdateDiscardPileCount(discardCount);
-            TakiLogger.LogUI($"Pile counts updated - Draw: {drawCount}, Discard: {discardCount}");
         }
 
         #endregion

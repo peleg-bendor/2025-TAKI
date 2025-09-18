@@ -149,14 +149,14 @@ Multiplayer Pile Containers:
 ```
 
 ### 🎯 Current Status
-- **Singleplayer**: ✅ **Complete & Stable** - Full TAKI game with all special cards, AI opponent, pause system, UI warnings resolved
-- **Multiplayer**: 🚀 **Ready for Testing** - Core initialization bugs fixed, UI conflicts resolved!
+- **Singleplayer**: ✅ **Complete & Stable** - Full TAKI game with all special cards, AI opponent, pause system
+- **Multiplayer**: ⚠️ **Architecture Issues Discovered** - Core initialization bugs fixed, but UI architecture incomplete
   - ✅ Hand assignment no longer cleared after network setup
   - ✅ Double initialization prevented with safety system
   - ✅ Unified game start architecture implemented
   - ✅ Per-screen UI architecture ready
   - ✅ Network synchronization logic functional
-  - ✅ Singleplayer UI conflicts resolved (false warnings eliminated)
+  - ⚠️ **UI Architecture Migration Incomplete** - Missing base contracts causing compilation errors
 
 ## Recent Investigation (2025-01-14 - UI Architecture Warnings)
 
@@ -211,3 +211,449 @@ Modified legacy `GameplayUIManager` button handlers to check **actual button sta
 - **Singleplayer**: Uses legacy `GameplayUIManager` (stable, complete)
 - **Multiplayer**: Will use new `MultiPlayerUIManager` when ready
 - **Migration**: New architecture exists but disabled until fully integrated
+
+## Current Investigation (2025-01-16 - UI Architecture Contract Issues)
+
+### 🚨 **CRITICAL ISSUE IDENTIFIED**: Incomplete Base Contract in BaseGameplayUIManager
+
+**Problem**: `GameManager` calls methods via `GetActiveUI()` that don't exist in `BaseGameplayUIManager`, causing compilation errors.
+
+**Root Cause**: The new UI architecture migration was incomplete - methods were copied to concrete classes without establishing proper base contracts.
+
+### **Missing Method Analysis**
+
+**9 Missing Methods in BaseGameplayUIManager**:
+1. `ResetUIForNewGame()` - exists in legacy + SinglePlayer, missing from base + Multiplayer
+2. `ShowOpponentAction()` - exists in legacy + Multiplayer, missing from base + SinglePlayer
+3. `UpdateTurnDisplayMultiplayer()` - exists in legacy + Multiplayer, should be in base
+4. `ShowSequenceProgressMessage()` - only exists in legacy, missing from new architecture
+5. `ShowSpecialCardEffect()` - only exists in legacy, missing from new architecture
+6. `ShowWinnerAnnouncement()` - exists in legacy + SinglePlayer, different signature in Multiplayer
+7. `ShowDeckSyncStatus()` - exists in legacy + Multiplayer (identical), should be in base
+8. `ShowImmediateFeedback()` - only exists in legacy, missing from new architecture
+9. `UpdateButtonStates()` - only exists in legacy, missing from new architecture
+
+### **Architectural Pattern Problems**
+
+**Legacy Dependencies**: All GameManager calls use broken pattern:
+```csharp
+if (gameplayUI != null) {  // Legacy check
+    GetActiveUI()?.MethodName();  // New architecture call
+}
+```
+
+**Inconsistent Implementation**: Methods scattered across concrete classes without base contracts, breaking polymorphism.
+
+### **Current Fix Strategy**
+
+**Phase 1**: ✅ **Investigation Complete** - All 9 methods analyzed, patterns identified
+**Phase 2**: 🎯 **In Progress** - Comprehensive UI Architecture Consolidation (Side Quest):
+
+## **🔄 Current Status (2025-01-17)**:
+**BREAKTHROUGH**: Clean UI architecture implementation achieved with proper separation of concerns!
+
+**✅ MAJOR ARCHITECTURAL REFACTORING COMPLETE**:
+
+### **🎯 Core Methods - Clean Architecture Implemented**
+1. **EnableEndTakiSequenceButton()** - ✅ **CLEAN ARCHITECTURE**
+   - **BaseGameplayUIManager**: Simple UI control (enable/disable button)
+   - **SinglePlayerUIManager**: Human vs AI context (blocks AI sequences)
+   - **MultiPlayerUIManager**: Network context (local player turn validation)
+   - **Clean separation**: UI manipulation vs context decisions
+
+2. **ShowTakiSequenceStatus()** - ✅ **CLEAN ARCHITECTURE**
+   - **BaseGameplayUIManager**: UI display + basic message building via `BuildTakiSequenceMessage()`
+   - **SinglePlayerUIManager**: "Your TAKI Sequence" vs "AI TAKI Sequence"
+   - **MultiPlayerUIManager**: "Your TAKI Sequence" vs "Opponent TAKI Sequence" with network awareness
+   - **Template Method Pattern**: Public method handles UI, protected virtual builds context messages
+
+3. **UpdateAllDisplays()** - ✅ **REFACTORED FOR CLEAN ARCHITECTURE**
+   - **BaseGameplayUIManager**: Removed context logic, now delegates to concrete classes
+   - **Flow**: Base calls `EnableEndTakiSequenceButton(true)` → Concrete classes apply context → Base updates UI
+   - **SinglePlayerUIManager**: No override needed (uses base implementation)
+   - **MultiPlayerUIManager**: Uses `UpdateAllDisplaysWithNetwork()` composition pattern
+
+### **🏗️ Architectural Pattern Achieved**
+**Perfect Separation of Concerns**:
+- **BaseGameplayUIManager**: Pure UI manipulation, no business logic
+- **Concrete Classes**: Context-specific business logic (Human vs AI, Local vs Network)
+- **Template Method Pattern**: Base defines flow, concrete classes customize behavior
+- **Composition over Inheritance**: MultiPlayer uses `UpdateAllDisplaysWithNetwork()` extension
+
+### **✅ Methods Marked as FINE FOR NOW (Multiplayer refinement deferred)**:
+- **HandlePausedState()** - Basic pause UI handling works for both modes
+- **HandleGameOverState()** - Basic game over UI handling works for both modes
+- **HandleActiveState()** - Basic active game UI handling works for both modes
+- **ResetUIForNewGame()** - Basic UI reset works for both modes
+- *These may need multiplayer-specific enhancements later but are functionally adequate*
+
+### **✅ Previously Consolidated Core Methods**:
+4. **ResetUIForNewGame()** - Virtual method in base, context overrides in concrete classes
+5. **ShowOpponentAction()** - Base implementation with context-aware messaging
+6. **UpdateStrictButtonStates()** - Base implementation using abstract properties
+7. **ForceEnableEndTurn()** - Base implementation for turn flow control
+8. **UpdateTurnDisplay()** - Base implementation with `GetTurnMessage()` context override
+9. **UpdateActiveColorDisplay()** - Base implementation using color conversion
+10. **UpdateHandSizeDisplay()** - Base implementation with context-aware labels
+11. **GetTurnMessage()** - Protected virtual for context-specific turn messages
+12. **GetColorForCardColor()** - Base color conversion utility
+13. **ShowPlayerMessage()** / **ShowComputerMessage()** - Base messaging system
+14. **ShowPlayerMessageTimed()** / **ShowComputerMessageTimed()** - Base timed messaging
+15. **ClearPlayerMessage()** / **ClearComputerMessage()** - Base message clearing
+16. **ShowColorSelection()** - Base color selection UI control
+17. **SelectColor()** - Base color selection with event handling
+18. **ShowPlusTwoChainStatus()** / **HidePlusTwoChainStatus()** - Base chain status display
+19. **HideTakiSequenceStatus()** - Base sequence status hiding
+
+**⏳ Original 9 Missing Methods Status**:
+✅ **ResetUIForNewGame()** - COMPLETE
+✅ **ShowOpponentAction()** - COMPLETE
+✅ **EnableEndTakiSequenceButton()** - COMPLETE (was not in original 9, but was causing compilation errors)
+✅ **ShowTakiSequenceStatus()** - COMPLETE (was not in original 9, but was causing compilation errors)
+✅ **UpdateAllDisplays()** - COMPLETE (was not in original 9, but needed refactoring for clean architecture)
+⏳ **UpdateTurnDisplayMultiplayer()** - Exists in legacy, needs integration
+⏳ **ShowSequenceProgressMessage()** - Needs base class integration
+⏳ **ShowSpecialCardEffect()** - Needs base class integration
+⏳ **ShowWinnerAnnouncement()** - Needs signature standardization
+⏳ **ShowDeckSyncStatus()** - Needs base class integration
+⏳ **ShowImmediateFeedback()** - Needs base class integration
+⏳ **UpdateButtonStates()** - Legacy method, needs integration decision
+
+## **🎯 BaseGameplayUIManager.cs - COMPLETE REVIEW FINISHED** ✅
+
+**ALL METHODS REVIEWED AND STATUS CONFIRMED**:
+
+### **✅ Methods with Clean Architecture Implementation**:
+- **EnableEndTakiSequenceButton()** / **ShowTakiSequenceStatus()** - Clean separation of concerns
+- **UpdateAllDisplays()** - Refactored to delegate context decisions to concrete classes
+- **All core UI methods** - Properly consolidated with Template Method pattern
+
+### **✅ Methods Confirmed Fine For Now**:
+- **HandlePausedState()** / **HandleGameOverState()** / **HandleActiveState()** / **ResetUIForNewGame()** - Basic implementations work for both modes
+- **Properties section** - **PlayButtonEnabled**, **DrawButtonEnabled**, **EndTurnButtonEnabled**, **EndTakiSequenceButtonEnabled**, **IsColorSelectionActive**, **GetButtonStateSummary()** - All look great
+
+### **✅ Methods Correctly Removed**:
+- **UpdateDrawPileCount()** / **UpdateDiscardPileCount()** / **UpdateAllPileCounts()** - Not BaseGameplayUIManager's responsibility, belongs to DeckUIManager
+
+### **✅ Architecture Methods Working Perfectly**:
+- **ShouldBeActive()** - Perfect implementation for preventing duplicate handlers, robust error handling
+
+## **🎯 Legacy GameplayUIManager.cs - USAGE ANALYSIS** ⚠️
+
+**LEGACY SYSTEM STILL IN USE**: Found **14 active references** in GameManager.cs:
+
+### **🔗 Active Legacy Dependencies in GameManager.cs**:
+- **Event Connections** (lines 809-815): `gameplayUI.OnPlayCardClicked += ...` (5 event handlers)
+- **Event Disconnections** (lines 904-908): `gameplayUI.OnPlayCardClicked -= ...` (5 event handlers)
+- **Direct Method Calls** (lines 2014, 2053, 2412, 2441): `gameplayUI.ShowTakiSequenceStatus()`, `gameplayUI.EnableEndTakiSequenceButton()`
+
+### **🚨 MIGRATION REQUIRED**:
+**GameManager still uses legacy gameplayUI instead of GetActiveUI()**
+- **Event system**: Legacy gameplayUI event connections need migration to new architecture
+- **Direct calls**: 4 remaining direct legacy calls need conversion to `GetActiveUI()?.Method()`
+- **This explains**: Why legacy GameplayUIManager can't be removed yet
+
+## **🎯 REVISED SYSTEMATIC CLEANUP PLAN** - Top-Down Approach ✅
+
+### **📋 GameManager.cs Organization Structure**
+
+```csharp
+#region Core Properties and Fields
+// Essential game state, configuration, and component references
+- Header attributes and tooltips for Inspector fields
+- gameState, turnManager, computerAI, gameplayUI (component references)
+- singlePlayerUI, multiPlayerUI, useNewUIArchitecture (new UI architecture)
+- deckManager, startingPlayer, playerHand (game setup)
+- playerHandManager, computerHandManager (legacy hand managers)
+- singlePlayerPlayerHandManager, singlePlayerComputerHandManager (per-screen hand managers)
+- multiPlayerPlayer1HandManager, multiPlayerPlayer2HandManager (multiplayer hand managers)
+- usePerScreenHandManagers (architecture flag)
+- pauseManager, gameEndManager, exitValidationManager (flow managers)
+- networkGameManager (multiplayer)
+- logLevel, productionMode (logging configuration)
+- Events: OnGameStarted, OnGameEnded, OnTurnStarted, OnCardPlayed
+#endregion
+
+#region Private State Management
+// Internal state tracking and control variables
+- areComponentsValidated, areSystemsInitialized, isGameActive, isMultiplayerMode
+- hasPlayerTakenAction, canPlayerDraw, canPlayerPlay, canPlayerEndTurn (turn flow control)
+- isWaitingForAdditionalAction, activeSpecialCardEffect (special card state)
+- shouldSkipNextTurn, stopCardPlayer (STOP card state)
+- isCurrentCardLastInSequence (TAKI sequence state)
+#endregion
+
+#region Public Properties
+// External API for accessing game state
+- IsGameActive, IsPlayerTurn, CurrentPlayer, PlayerHandSize, ComputerHandSize, ActiveColor
+- AreComponentsValidated, AreSystemsInitialized
+- HasPlayerTakenAction, CanPlayerDrawCard, CanPlayerPlayCard, CanPlayerEndTurn
+- IsWaitingForAdditionalAction, ActiveSpecialCardEffect
+- IsGamePaused, IsGameEndProcessed, IsExitValidationActive
+- IsMultiplayerMode, IsNetworkReady, IsMyNetworkTurn (multiplayer properties)
+#endregion
+
+#region Architecture Management
+// UI and HandManager architecture abstraction methods
+- GetActiveUI(), GetUI()
+- GetActivePlayerHandManager(), GetActiveOpponentHandManager()
+- GetPlayerHandManager(), GetOpponentHandManager()
+#endregion
+
+#region Unity Lifecycle
+// MonoBehaviour lifecycle methods
+- Start()
+- OnDestroy()
+#endregion
+
+#region System Initialization
+// Component validation, system setup, and game mode initialization
+- ConfigureLogging()
+- ValidateAndConnectComponents()
+- ValidateComponents()
+- ConnectComponentReferences()
+- ConnectEvents()
+- ConnectActiveUIManagerEvents()
+- ConnectUIManagerEvents()
+- DisconnectUIManagerEvents()
+- DisconnectAllUIManagerEvents()
+- InitializeSinglePlayerSystems()
+- InitializeMultiPlayerSystems()
+- InitializeVisualCardSystem()
+- InitializeNetworkHandManagers()
+#endregion
+
+#region Game Flow Control
+// Main game startup and reset functionality
+- StartNewSinglePlayerGame()
+- StartNewMultiPlayerGame()
+- ResetGameSystems()
+- OnInitialGameSetupComplete()
+#endregion
+
+#region Turn Flow Management
+// Strict turn flow control system
+- ResetTurnFlowState()
+- StartPlayerTurnFlow()
+- HandlePostCardPlayTurnFlow()
+- HandlePostDrawTurnFlow()
+- EndPlayerTurnWithStrictFlow()
+- EndAITurnWithStrictFlow()
+- StartPlayerTurnAfterStop()
+- StartAITurnAfterStop()
+- TriggerAITurnAfterStop()
+#endregion
+
+#region Player Actions
+// User input handlers and card play mechanics
+- OnPlayCardButtonClicked()
+- OnDrawCardButtonClicked()
+- OnEndTurnButtonClicked()
+- OnEndTakiSequenceButtonClicked()
+- OnColorSelectedByPlayer()
+- PlayCardWithStrictFlow()
+- DrawCardWithStrictFlow()
+- CountPlayableCards()
+- GetTopDiscardCard()
+#endregion
+
+#region Special Card System
+// Special card effects and rule processing
+- HandleSpecialCardEffects()
+- HandleStopCardEffect()
+- HandleChangeDirectionCardEffect()
+- HandleChangeColorCardEffect()
+- LogCardEffectRules()
+- ResetSpecialCardState()
+- HasPendingSpecialCardEffects()
+- GetSpecialCardStateDescription()
+- ProcessStopSkipEffect()
+- BreakPlusTwoChainByDrawing()
+- MakeOpponentDrawCards()
+- GetTwoPlayerDirectionNote()
+#endregion
+
+#region AI Integration
+// Computer AI event handlers and coordination
+- OnComputerTurnReady()
+- OnAICardSelected()
+- OnAIDrawCard()
+- OnAIColorSelected()
+- OnAIDecisionMade()
+- OnAISequenceComplete()
+- HandleAISpecialCardEffects()
+- TriggerAIAdditionalAction()
+- TriggerAISequenceDecision()
+#endregion
+
+#region Network Multiplayer
+// Network game coordination and synchronization
+- ProcessNetworkCardPlay()
+- ProcessNetworkCardDraw()
+- SendLocalCardPlayToNetwork()
+- SendLocalCardDrawToNetwork()
+- OnPlayCardButtonClickedMultiplayer()
+- OnDrawCardButtonClickedMultiplayer()
+- UpdateAllUIWithNetworkSupport()
+- SynchronizeNetworkHandCounts()
+- IsMultiplayerGameReady()
+- GetNetworkGameStatus()
+#endregion
+
+#region Game State Events
+// Event handlers for game state changes
+- OnTurnStateChanged()
+- OnInteractionStateChanged()
+- OnGameStatusChanged()
+- OnActiveColorChanged()
+- OnTurnChanged()
+- OnGameWon()
+- OnPlayerTurnTimeOut()
+- OnCardDrawnFromDeck()
+- OnTakiSequenceStarted()
+- OnTakiSequenceCardAdded()
+- OnTakiSequenceEnded()
+- ProcessStopSkip()
+#endregion
+
+#region UI and Visual Updates
+// UI synchronization and visual card management
+- UpdateAllUI()
+- UpdateVisualHands()
+- RefreshPlayerHandStates()
+- OnPlayerCardSelected()
+- OnComputerCardSelected()
+#endregion
+
+#region External System Coordination
+// Integration with pause, game end, and menu systems
+- OnGamePaused()
+- OnGameResumed()
+- OnGameEndProcessed()
+- OnGameRestarted()
+- OnReturnedToMenu()
+- OnExitValidationShown()
+- OnExitValidationCancelled()
+- OnExitConfirmed()
+#endregion
+
+#region State Preservation
+// Pause/resume state management
+- CaptureTurnFlowState()
+- RestoreTurnFlowState()
+#endregion
+
+#region Public API
+// External interface methods for other systems
+- RequestPauseGame()
+- RequestResumeGame()
+- RequestRestartGame()
+- RequestRestartGameFromPause()
+- RequestReturnToMenu()
+- RequestExitConfirmation()
+- RequestDrawCard()
+- RequestPlayCard()
+- GetPlayerHand()
+- CanPlayerAct()
+#endregion
+
+#region Debug and Development
+// Debug methods, context menus, and development tools
+- DebugNetworkHandState()
+- DebugNetworkDeckState()
+- ForceNetworkHandSync()
+- DebugTakiSequenceState()
+- DebugSelectedCardType()
+- ForceNewGameStart()
+- LogTurnFlowState()
+- LogSpecialCardState()
+- ForceResetStopFlag()
+- TestStopCardEffect()
+- CheckStopFlagState()
+- ForceResetSpecialCardState()
+- TriggerComputerTurnManually()
+- ForceUISync()
+#endregion
+```
+
+**Region Ordering Rationale:**
+
+1. **Core Properties and Fields** - Essential declarations and dependencies
+2. **Private State Management** - Internal state tracking
+3. **Public Properties** - External API access points
+4. **Architecture Management** - Abstraction layer for UI/HandManager systems
+5. **Unity Lifecycle** - Standard Unity methods
+6. **System Initialization** - Setup and configuration logic
+7. **Game Flow Control** - Main game startup and reset
+8. **Turn Flow Management** - Core turn mechanics
+9. **Player Actions** - User input processing
+10. **Special Card System** - Game rules and card effects
+11. **AI Integration** - Computer opponent coordination
+12. **Network Multiplayer** - Multiplayer-specific functionality
+13. **Game State Events** - Event handling and state changes
+14. **UI and Visual Updates** - Display synchronization
+15. **External System Coordination** - Integration with other managers
+16. **State Preservation** - Pause/resume mechanics
+17. **Public API** - External interface methods
+18. **Debug and Development** - Development tools and debugging
+
+This structure groups related functionality together while maintaining a logical flow from core setup through gameplay mechanics to external integrations and debugging tools.
+
+### **📋 PHASE 1: GameManager.cs Migration** (Current Phase)
+**Goal**: Methodically migrate all `gameplayUI` dependencies in GameManager.cs to new architecture
+
+**Why This Approach is Superior**:
+- **Top-Down (Consumer-Driven)**: Start with actual usage → drive architecture from real needs
+- **Immediate Progress**: Make tangible improvements right away
+- **Test-Driven Migration**: Each change can be verified immediately
+- **Natural Discovery**: Missing methods become obvious when GameManager needs them
+
+**Migration Strategy**:
+1. **Target the 14 known gameplayUI references** in GameManager.cs:
+   - **Event Connections** (lines 809-815): `gameplayUI.OnPlayCardClicked += ...` (5 handlers)
+   - **Event Disconnections** (lines 904-908): `gameplayUI.OnPlayCardClicked -= ...` (5 handlers)
+   - **Direct Method Calls** (lines 2014, 2053, 2412, 2441): `gameplayUI.ShowTakiSequenceStatus()`, etc.
+
+2. **Methodical Conversion Process**:
+   - **One call at a time**: Convert `gameplayUI.Method()` → `GetActiveUI()?.Method()`
+   - **Handle missing methods**: If method doesn't exist in BaseGameplayUIManager → add it
+   - **Test immediately**: Verify both singleplayer and multiplayer still work
+   - **Document progress**: Track which calls have been migrated
+
+3. **Expected Outcomes**:
+   - **BaseGameplayUIManager** gets any missing methods it actually needs
+   - **GameManager** fully uses new architecture
+   - **Legacy dependencies** are eliminated systematically
+   - **Real usage patterns** drive what methods are truly needed
+
+### **📋 PHASE 2: Legacy Cleanup** (Next Phase)
+**Goal**: Clean up unused legacy methods and remove GameplayUIManager.cs
+
+**Approach**:
+- After GameManager migration, any methods in legacy GameplayUIManager.cs that were never needed become obvious candidates for removal
+- **Usage-driven cleanup**: Only keep what's actually used, remove what's not
+
+### **📋 PHASE 3: Final Integration** (Future Phase)
+**Goal**: Complete any remaining original 9-method requirements and final validation
+
+**This top-down approach ensures**:
+- **Real needs drive architecture** (not theoretical requirements)
+- **Immediate validation** after each change
+- **No accidental removal** of needed functionality
+- **Clean migration path** from legacy to new architecture
+
+### **Additional Discovery: Orphaned Method Integration**
+
+**Critical Finding**: `DeckUIManager.ResetUIForNewGame()` exists but is **never called** by any code:
+- Method exists and is functional (resets deck UI, pile visuals, shows loading message)
+- No integration with game initialization flow
+- Should likely be called during new game setup
+- Indicates incomplete deck UI integration in initialization sequence
+
+### **Files Updated with Clean Architecture**
+✅ **BaseGameplayUIManager.cs** - Clean base implementation with Template Method pattern
+✅ **SinglePlayerUIManager.cs** - Context-aware overrides for Human vs AI logic
+✅ **MultiPlayerUIManager.cs** - Context-aware overrides for network/local player logic
+⏳ **GameManager.cs** - Remove legacy `gameplayUI` dependencies (HIGH PRIORITY)
+⏳ **DeckUIManager.cs** - Investigate orphaned ResetUIForNewGame() integration (deferred)
+

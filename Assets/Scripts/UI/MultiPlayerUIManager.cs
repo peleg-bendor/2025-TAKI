@@ -40,12 +40,6 @@ namespace TakiGame {
         [SerializeField] private Button endTakiSequenceButton;
         [SerializeField] private TextMeshProUGUI takiSequenceStatusText;
 
-        [Header("Deck Pile Elements")]
-        [SerializeField] private GameObject drawPilePanel;
-        [SerializeField] private TextMeshProUGUI drawPileCountText;
-        [SerializeField] private GameObject discardPilePanel;
-        [SerializeField] private TextMeshProUGUI discardPileCountText;
-
         #region Abstract Property Implementations
 
         public override TextMeshProUGUI TurnIndicatorText => turnIndicatorText;
@@ -66,16 +60,69 @@ namespace TakiGame {
         public override TextMeshProUGUI ChainStatusText => chainStatusText;
         public override Button EndTakiSequenceButton => endTakiSequenceButton;
         public override TextMeshProUGUI TakiSequenceStatusText => takiSequenceStatusText;
-        public override GameObject DrawPilePanel => drawPilePanel;
-        public override TextMeshProUGUI DrawPileCountText => drawPileCountText;
-        public override GameObject DiscardPilePanel => discardPilePanel;
-        public override TextMeshProUGUI DiscardPileCountText => discardPileCountText;
 
-        #endregion
+		#endregion
 
-        #region MultiPlayer-Specific Implementations
+		#region MultiPlayer-Specific Implementations
 
-        protected override string GetTurnMessage(TurnState turnState) {
+		/// <summary>
+		/// Multiplayer context: Only enable for local player's sequences when it's their turn
+		/// </summary>
+		public override void EnableEndTakiSequenceButton (bool enable) {
+			if (enable) {
+				// Multiplayer logic: Only local player can end their own sequences
+				bool canEndSequence = CanLocalPlayerEndSequence ();
+				base.EnableEndTakiSequenceButton (enable && canEndSequence);
+
+				if (!canEndSequence) {
+					TakiLogger.LogUI ("BLOCKED: End Sequence button - not local player's sequence or not their turn");
+				}
+			} else {
+				base.EnableEndTakiSequenceButton (false);
+			}
+		}
+
+		private bool CanLocalPlayerEndSequence () {
+			GameManager gameManager = FindObjectOfType<GameManager> ();
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+
+			if (gameManager?.networkGameManager == null || gameState == null || !gameState.IsInTakiSequence) {
+				return false;
+			}
+
+			bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
+			bool isHumanSequence = gameState.TakiSequenceInitiator == PlayerType.Human;
+
+			// Can only end sequence if it's my turn AND I initiated it
+			return isMyTurn && isHumanSequence;
+		}
+
+		/// <summary>
+		/// Build Multiplayer-specific TAKI sequence message (Local vs Opponent with network awareness)
+		/// </summary>
+		protected override string BuildTakiSequenceMessage (CardColor sequenceColor, int cardCount, bool isPlayerTurn) {
+			GameManager gameManager = FindObjectOfType<GameManager> ();
+			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
+
+			if (gameManager?.networkGameManager != null && gameState != null && gameState.IsInTakiSequence) {
+				PlayerType initiator = gameState.TakiSequenceInitiator;
+				bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
+
+				// Determine if this is the local player's sequence
+				bool isLocalPlayerSequence = (initiator == PlayerType.Human) && isMyTurn;
+
+				if (isLocalPlayerSequence) {
+					return $"Your TAKI Sequence: {cardCount} cards -> Play {sequenceColor} cards or End Sequence";
+				} else {
+					return $"Opponent TAKI Sequence: {cardCount} cards -> Opponent playing {sequenceColor} cards";
+				}
+			}
+
+			// Fallback to base implementation
+			return base.BuildTakiSequenceMessage (sequenceColor, cardCount, isPlayerTurn);
+		}
+
+		protected override string GetTurnMessage(TurnState turnState) {
             if (Application.isPlaying) {
                 GameStateManager gameState = FindObjectOfType<GameStateManager>();
                 if (gameState != null) {
@@ -147,14 +194,6 @@ namespace TakiGame {
         }
 
         /// <summary>
-        /// Show opponent action feedback
-        /// </summary>
-        public void ShowOpponentAction(string action) {
-            ShowComputerMessage($"Opponent {action}");
-            TakiLogger.LogNetwork($"Opponent action displayed: {action}");
-        }
-
-        /// <summary>
         /// Update hand size display for multiplayer
         /// </summary>
         public void UpdateHandSizeDisplayMultiplayer(int localHandSize, int opponentHandSize) {
@@ -172,9 +211,9 @@ namespace TakiGame {
         /// <summary>
         /// Show deck synchronization status
         /// </summary>
-        public void ShowDeckSyncStatus(string message) {
-            ShowComputerMessageTimed($"Deck: {message}", 2.0f);
-            TakiLogger.LogNetwork($"Deck sync status: {message}");
+        public void ShowDeckSyncStatus (string message) {
+            ShowComputerMessageTimed ($"Deck: {message}", 2.0f);
+            TakiLogger.LogNetwork ($"Deck sync status: {message}");
         }
 
         /// <summary>
@@ -281,37 +320,18 @@ namespace TakiGame {
         /// <summary>
         /// Show winner announcement for multiplayer
         /// </summary>
-        public void ShowWinnerAnnouncementMultiplayer(bool localPlayerWon, string winnerName) {
-            string winnerText = localPlayerWon ? "You Win!" : $"{winnerName} Wins!";
+        public void ShowWinnerAnnouncementMultiplayer(bool localPlayerWon) {
+            string winnerText = localPlayerWon ? "You Win!" : "Opponent Wins!";
 
             if (turnIndicatorText != null) {
                 turnIndicatorText.text = winnerText;
             }
 
             ShowPlayerMessage(localPlayerWon ? "Congratulations!" : "Better luck next time!");
-            ShowComputerMessage(localPlayerWon ? "You won the match!" : $"{winnerName} won the match!");
+            ShowComputerMessage(localPlayerWon ? "You won the match!" : "Opponent won the match!");
 
             UpdateStrictButtonStates(false, false, false);
-            TakiLogger.LogNetwork($"Multiplayer game over - Winner: {winnerName}, LocalWon: {localPlayerWon}");
-        }
-
-        /// <summary>
-        /// Reset UI for new multiplayer game
-        /// </summary>
-        public void ResetUIForNewMultiplayerGame() {
-            if (turnIndicatorText != null) {
-                turnIndicatorText.text = "Connecting...";
-            }
-
-            UpdateActiveColorDisplay(CardColor.Wild);
-            UpdateHandSizeDisplay(0, 0);
-            ShowColorSelection(false);
-            UpdateStrictButtonStates(false, false, false);
-
-            ShowPlayerMessage("Setting up multiplayer game...");
-            ShowComputerMessage("Connecting to opponent...");
-
-            TakiLogger.LogNetwork("MultiPlayer UI reset for new game");
+            TakiLogger.LogNetwork($"Multiplayer game over - LocalWon: {localPlayerWon}");
         }
 
         #endregion

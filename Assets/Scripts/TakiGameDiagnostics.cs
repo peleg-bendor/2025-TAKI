@@ -77,7 +77,7 @@ namespace TakiGame {
 				TakiLogger.LogDebug ("GameManager.turnManager: " + (gameManager.turnManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 				TakiLogger.LogDebug ("GameManager.computerAI: " + (gameManager.computerAI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 				TakiLogger.LogDebug ("GameManager.playerHandManager: " + (gameManager.playerHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
-				TakiLogger.LogDebug ("GameManager.computerHandManager: " + (gameManager.computerHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.opponentHandManager: " + (gameManager.opponentHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 				TakiLogger.LogDebug ("GameManager.gameplayUI: " + (gameManager.gameplayUI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 			}
 		}
