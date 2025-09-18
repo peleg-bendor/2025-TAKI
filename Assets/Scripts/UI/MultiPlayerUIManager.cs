@@ -51,7 +51,7 @@ namespace TakiGame {
         public override TextMeshProUGUI Player1HandSizeText => player1HandSizeText;
         public override TextMeshProUGUI Player2HandSizeText => player2HandSizeText;
         public override TextMeshProUGUI PlayerMessageText => playerMessageText;
-        public override TextMeshProUGUI ComputerMessageText => computerMessageText;
+        public override TextMeshProUGUI OpponentMessageText => computerMessageText;
         public override GameObject ColorSelectionPanel => colorSelectionPanel;
         public override Button SelectRedButton => selectRedButton;
         public override Button SelectBlueButton => selectBlueButton;
@@ -65,6 +65,95 @@ namespace TakiGame {
 
 		#region MultiPlayer-Specific Implementations
 
+		public override void ShowSequenceEndedMessage (int finalCardCount, CardColor sequenceColor, PlayerType who) {
+			if (IsLocalPlayer (who)) {
+				ShowPlayerMessageTimed ($"Sequence ended! You played {finalCardCount} {sequenceColor} cards", 3.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"Opponent ended sequence: {finalCardCount} {sequenceColor} cards", 3.0f);
+				ClearPlayerMessage ();
+			}
+
+			HideTakiSequenceStatus ();
+		}
+
+		public override void ShowSequenceProgressMessage (int cardCount, CardColor sequenceColor, PlayerType who) {
+			if (IsLocalPlayer (who)) {
+				ShowPlayerMessageTimed ($"Your TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"Opponent TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ClearPlayerMessage ();
+			}
+		}
+
+		/// <summary>
+		/// Show special card effect message with appropriate routing
+		/// </summary>
+		/// <param name="cardType">Type of special card</param>
+		/// <param name="playedBy">Who played the card</param>
+		/// <param name="effectDescription">Description of the effect</param>
+		public override void ShowSpecialCardEffect (CardType cardType, PlayerType playedBy, string
+		effectDescription) {
+			if (IsLocalPlayer (playedBy)) {
+				// Local player played special card
+				ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription}", 4.0f);
+				ClearOpponentMessage ();
+				if (cardType == CardType.Plus) {
+					ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription} - Take 1 more action!", 0f);
+				} else if (cardType == CardType.Stop) {
+					ShowOpponentMessageTimed ("STOP: Opponent's turn is skipped!", 3.0f);
+				}
+			} else {
+				// Opponent played special card
+				ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription}", 4.0f);
+				ClearPlayerMessage ();
+				if (cardType == CardType.Plus) {
+					ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription} - Takes 1 more action!", 0f);
+				} else if (cardType == CardType.Stop) {
+					ShowPlayerMessageTimed ("STOP: Your turn is skipped!", 3.0f);
+				}
+			}
+		}
+
+		public override void ShowChainProgressMessage (int chainCount, int accumulatedDraw, PlayerType who) {
+			if (IsLocalPlayer (who)) {
+				ShowPlayerMessageTimed ($"You added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+	  
+		  ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"Opponent added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+	  
+		  ClearPlayerMessage ();
+			}
+		}
+
+		public override void ShowChainBrokenMessage (int cardsDrawn, PlayerType who) {
+			if (IsLocalPlayer (who)) {
+				ShowPlayerMessageTimed ($"You broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"Opponent broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ClearPlayerMessage ();
+			}
+		}
+
+		/// <summary>
+		/// Determine if the given PlayerType represents the local player in multiplayer
+		/// </summary>
+		private bool IsLocalPlayer (PlayerType playerType) {
+			GameManager gameManager = FindObjectOfType<GameManager> ();
+
+			if (gameManager?.networkGameManager == null) {
+				TakiLogger.LogError ("MultiPlayerUIManager: IsLocalPlayer - networkGameManager is NULL!", TakiLogger.LogCategory.UI);
+				return playerType == PlayerType.Human;
+			}
+
+			// In multiplayer: PlayerType.Human represents the local player when it's their turn
+			bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
+			return (playerType == PlayerType.Human) && isMyTurn;
+		}
+
 		/// <summary>
 		/// Multiplayer context: Only enable for local player's sequences when it's their turn
 		/// </summary>
@@ -75,7 +164,7 @@ namespace TakiGame {
 				base.EnableEndTakiSequenceButton (enable && canEndSequence);
 
 				if (!canEndSequence) {
-					TakiLogger.LogUI ("BLOCKED: End Sequence button - not local player's sequence or not their turn");
+					TakiLogger.LogUI ("BLOCKED: End Sequence button - not local player's sequence or not their turn", TakiLogger.LogLevel.Debug);
 				}
 			} else {
 				base.EnableEndTakiSequenceButton (false);
@@ -86,7 +175,12 @@ namespace TakiGame {
 			GameManager gameManager = FindObjectOfType<GameManager> ();
 			GameStateManager gameState = FindObjectOfType<GameStateManager> ();
 
-			if (gameManager?.networkGameManager == null || gameState == null || !gameState.IsInTakiSequence) {
+            if (gameManager?.networkGameManager == null || gameState == null) {
+                TakiLogger.LogError ("MultiPlayerUIManager: CanLocalPlayerEndSequence - networkGameManager or gameState are NULL!", TakiLogger.LogCategory.UI);
+                return false;
+            }
+
+            if (!gameState.IsInTakiSequence) {
 				return false;
 			}
 
@@ -212,7 +306,7 @@ namespace TakiGame {
         /// Show deck synchronization status
         /// </summary>
         public void ShowDeckSyncStatus (string message) {
-            ShowComputerMessageTimed ($"Deck: {message}", 2.0f);
+            ShowOpponentMessageTimed ($"Deck: {message}", 2.0f);
             TakiLogger.LogNetwork ($"Deck sync status: {message}");
         }
 
@@ -221,7 +315,7 @@ namespace TakiGame {
         /// </summary>
         public void ShowMultiplayerGameReady() {
             ShowPlayerMessage("Game ready - waiting for your turn...");
-            ShowComputerMessage("Both players connected");
+            ShowOpponentMessage("Both players connected");
             TakiLogger.LogNetwork("Multiplayer game ready UI displayed");
         }
 
@@ -229,7 +323,7 @@ namespace TakiGame {
         /// Show opponent hand privacy feedback
         /// </summary>
         public void ShowOpponentHandPrivacy(int cardCount) {
-            ShowComputerMessageTimed($"Opponent has {cardCount} cards (hidden)", 2.0f);
+            ShowOpponentMessageTimed($"Opponent has {cardCount} cards (hidden)", 2.0f);
             TakiLogger.LogNetwork($"Opponent hand privacy feedback: {cardCount} cards");
         }
 
@@ -243,10 +337,10 @@ namespace TakiGame {
                 } else {
                     ShowPlayerMessage("Your turn!");
                 }
-                ShowComputerMessage("Waiting for your action...");
+                ShowOpponentMessage("Waiting for your action...");
             } else {
                 ShowPlayerMessage("Turn sent - waiting for opponent...");
-                ShowComputerMessage("Opponent is thinking...");
+                ShowOpponentMessage("Opponent is thinking...");
             }
 
             TakiLogger.LogNetwork($"Turn transition displayed: MyTurn={nowMyTurn}, PreviousAction={previousAction}");
@@ -259,9 +353,9 @@ namespace TakiGame {
             ShowPlayerMessage($"Network Error: {error}");
 
             if (canRecover) {
-                ShowComputerMessage("Attempting to reconnect...");
+                ShowOpponentMessage("Attempting to reconnect...");
             } else {
-                ShowComputerMessage("Please check connection and restart");
+                ShowOpponentMessage("Please check connection and restart");
             }
 
             TakiLogger.LogNetwork($"Network error displayed: {error}, CanRecover={canRecover}");
@@ -280,7 +374,7 @@ namespace TakiGame {
         /// </summary>
         public void ShowDeckInitialized(int drawCount, int discardCount, string startingCard) {
             ShowPlayerMessage("Game ready - deck initialized!");
-            ShowComputerMessage($"Draw: {drawCount}, Discard: {discardCount}, Start: {startingCard}");
+            ShowOpponentMessage($"Draw: {drawCount}, Discard: {discardCount}, Start: {startingCard}");
             TakiLogger.LogNetwork($"Deck initialized display: Draw={drawCount}, Discard={discardCount}, Start={startingCard}");
         }
 
@@ -289,7 +383,7 @@ namespace TakiGame {
         /// </summary>
         public void ShowHandsInitialized(int myHandSize, int opponentHandSize) {
             ShowPlayerMessage($"Hands dealt - you have {myHandSize} cards");
-            ShowComputerMessage($"Opponent has {opponentHandSize} cards (hidden)");
+            ShowOpponentMessage($"Opponent has {opponentHandSize} cards (hidden)");
             TakiLogger.LogNetwork($"Hands initialized display: My={myHandSize}, Opponent={opponentHandSize}");
         }
 
@@ -298,7 +392,7 @@ namespace TakiGame {
         /// </summary>
         public void ShowWaitingForOpponent(string action = "to play") {
             ShowPlayerMessage($"Waiting for opponent {action}...");
-            ShowComputerMessage("Opponent's turn");
+            ShowOpponentMessage("Opponent's turn");
             TakiLogger.LogNetwork($"Waiting for opponent: {action}");
         }
 
@@ -328,7 +422,7 @@ namespace TakiGame {
             }
 
             ShowPlayerMessage(localPlayerWon ? "Congratulations!" : "Better luck next time!");
-            ShowComputerMessage(localPlayerWon ? "You won the match!" : "Opponent won the match!");
+            ShowOpponentMessage(localPlayerWon ? "You won the match!" : "Opponent won the match!");
 
             UpdateStrictButtonStates(false, false, false);
             TakiLogger.LogNetwork($"Multiplayer game over - LocalWon: {localPlayerWon}");

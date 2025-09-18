@@ -1671,7 +1671,109 @@ Aggressive approach to remove legacy from `GameManager.cs`. You can compare `CLA
 
 
 
+
+
+  Read `CLAUDE.md` to understand the project context and current status.
+
+  WORKING STYLE:
+  - Let me lead the conversation - don't take actions without discussing first
+  - Pass everything by me before reading files or implementing changes
+  - Be token-efficient - don't read/search speculatively
+
+  We're at the GameManager.cs migration phase - ready to systematically convert legacy `gameplayUI` calls to the new architecture.
+
+
+
+I will begin by methodically going over and investigating every metod in `GameManager.cs`.
+Starting off with: 
+```csharp
+#region Architecture Management
+// UI and HandManager architecture abstraction methods
+- GetActiveUI()
+- GetActivePlayerHandManager(), GetActiveOpponentHandManager()
+#endregion
+```
+Read: `investigating.md` 
+
+
+Cool, `#region Architecture Management` done. Continueing to `Unity Lifecycle` and `System Initialization`.
+```csharp
+#region Unity Lifecycle
+// MonoBehaviour lifecycle methods
+- Start()
+- OnDestroy()
+#endregion
+
+#region System Initialization
+// Component validation, system setup, and game mode initialization
+- ConfigureLogging()
+- ValidateAndConnectComponents()
+- ValidateComponents()
+- ConnectComponentReferences()
+- ConnectEvents()
+- ConnectActiveUIManagerEvents()
+- DisconnectUIManagerEvents()
+- InitializeSinglePlayerSystems()
+- InitializeMultiPlayerSystems()
+- InitializeVisualCardSystem()
+- InitializeNetworkHandManagers()
+#endregion
+```
+Read: `investigating.md` 
+Reply to each and every part.
+
+Cool, Read: `investigating.md`, are these fine?
+
+Cool, `#region System Initialization` done. Continueing to `Game Flow Control`.
+```csharp
+#region Game Flow Control
+// Main game startup and reset functionality
+- StartNewSinglePlayerGame()
+- StartNewMultiPlayerGame()
+- ResetGameSystems()
+- OnInitialGameSetupComplete()
+#endregion
+```
+Read: `investigating.md` 
+I didn't change anything, for now. I think it's wiser to aproach this reigion at the end. in general, I think I will focus on pause, restart, and end game at the end. I want to first make sure that both the singleplayer and multiplayer first time games function properly.
+Tell me if there is something critical here that needs our attention now.
+
+
+Ok, `#region Game Flow Control` marked as RETURN TO LATER ON. Continueing to `Turn Flow Management`.
+```csharp
+#region Turn Flow Management
+// Strict turn flow control system
+- ResetTurnFlowState()
+- StartPlayerTurnFlow()
+- HandlePostCardPlayTurnFlow()
+- HandlePostCardDrawTurnFlow()
+- EndPlayerTurnWithStrictFlow()
+- EndAITurnWithStrictFlow()
+- StartPlayerTurnAfterStop()
+- StartAITurnAfterStop()
+- TriggerAITurnAfterStop()
+#endregion
+```
+Read: `investigating.md` 
+I didn't change anything, for now. I think it's wiser to aproach this reigion at the end. in general, I think I will focus on pause, restart, and end game at the end. I want to first make sure that both the singleplayer and multiplayer first time games function properly.
+Tell me if there is something critical here that needs our attention now.
+
+
+
+
 `GameplayUIManager.cs`
 `BaseGameplayUIManager.cs`
 `SinglePlayerUIManager.cs`
 `MultiPlayerUIManager.cs`
+
+`GameManager.cs`
+
+## region- `...`:
+
+### `...`
+#### Original code:
+```csharp
+```
+#### My proposal:
+```csharp
+```

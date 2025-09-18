@@ -51,7 +51,7 @@ namespace TakiGame {
 		public override TextMeshProUGUI Player1HandSizeText => player1HandSizeText;
 		public override TextMeshProUGUI Player2HandSizeText => player2HandSizeText;
 		public override TextMeshProUGUI PlayerMessageText => playerMessageText;
-		public override TextMeshProUGUI ComputerMessageText => computerMessageText;
+		public override TextMeshProUGUI OpponentMessageText => computerMessageText;
 		public override GameObject ColorSelectionPanel => colorSelectionPanel;
 		public override Button SelectRedButton => selectRedButton;
 		public override Button SelectBlueButton => selectBlueButton;
@@ -64,6 +64,80 @@ namespace TakiGame {
 		#endregion
 
 		#region SinglePlayer-Specific Implementations
+
+		public override void ShowSequenceEndedMessage (int finalCardCount, CardColor sequenceColor, PlayerType who) {
+			if (who == PlayerType.Human) {
+				ShowPlayerMessageTimed ($"Sequence ended! You played {finalCardCount} {sequenceColor} cards", 3.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"AI ended sequence: {finalCardCount} {sequenceColor} cards", 3.0f);
+				ClearPlayerMessage ();
+			}
+
+			HideTakiSequenceStatus ();
+		}
+
+		public override void ShowSequenceProgressMessage (int cardCount, CardColor sequenceColor, PlayerType who) {
+			if (who == PlayerType.Human) {
+				ShowPlayerMessageTimed ($"Your TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"AI TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ClearPlayerMessage ();
+			}
+		}
+
+		/// <summary>
+		/// Show special card effect message with appropriate routing
+		/// </summary>
+		/// <param name="cardType">Type of special card</param>
+		/// <param name="playedBy">Who played the card</param>
+		/// <param name="effectDescription">Description of the effect</param>
+		public override void ShowSpecialCardEffect (CardType cardType, PlayerType playedBy, string effectDescription) {
+			TakiLogger.LogUI ($"Special card effect: {cardType} by {playedBy} - {effectDescription}", TakiLogger.LogLevel.Info);
+
+			if (playedBy == PlayerType.Human) {
+				// Human played special card
+				ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription}", 4.0f);
+				ClearOpponentMessage ();
+				if (cardType == CardType.Plus) {
+					ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription} - Take 1 more action!", 0f);
+				} else if (cardType == CardType.Stop) {
+					ShowOpponentMessageTimed ("STOP: Opponent's turn is skipped!", 3.0f);
+				}
+			} else {
+				// AI played special card
+				ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription}", 4.0f);
+				ClearPlayerMessage ();
+				if (cardType == CardType.Plus) {
+					ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription} - Takes 1 more action!", 0f);
+				} else if (cardType == CardType.Stop) {
+					ShowPlayerMessageTimed ("STOP: Your turn is skipped!", 3.0f);
+				}
+			}
+		}
+
+		public override void ShowChainProgressMessage (int chainCount, int accumulatedDraw, PlayerType who) {
+			if (who == PlayerType.Human) {
+				ShowPlayerMessageTimed ($"You added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+	  
+		  ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"AI added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+	  
+		  ClearPlayerMessage ();
+			}
+		}
+
+		public override void ShowChainBrokenMessage (int cardsDrawn, PlayerType who) {
+			if (who == PlayerType.Human) {
+				ShowPlayerMessageTimed ($"You broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ClearOpponentMessage ();
+			} else {
+				ShowOpponentMessageTimed ($"AI broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ClearPlayerMessage ();
+			}
+		}
 
 		/// <summary>
 		/// SinglePlayer context: Only enable for human-initiated sequences
@@ -152,7 +226,7 @@ namespace TakiGame {
 		/// Show AI thinking message
 		/// </summary>
 		public void ShowAIThinking (string message) {
-			ShowComputerMessageTimed ($"AI thinking: {message}", 2.0f);
+			ShowOpponentMessageTimed ($"AI thinking: {message}", 2.0f);
 			TakiLogger.LogUI ($"AI thinking message: {message}");
 		}
 
@@ -164,7 +238,7 @@ namespace TakiGame {
 				? $"AI {action}"
 				: $"AI {action}: {result}";
 
-			ShowComputerMessageTimed (message, 3.0f);
+			ShowOpponentMessageTimed (message, 3.0f);
 			TakiLogger.LogUI ($"AI action message: {message}");
 		}
 
@@ -180,7 +254,7 @@ namespace TakiGame {
 			}
 
 			ShowPlayerMessage ("");
-			ShowComputerMessage ("");
+			ShowOpponentMessage ("");
 
 			// Disable all action buttons on game over
 			UpdateStrictButtonStates (false, false, false);
@@ -191,7 +265,7 @@ namespace TakiGame {
 		/// Show computer difficulty selection feedback
 		/// </summary>
 		public void ShowDifficultyFeedback (string difficulty) {
-			ShowComputerMessageTimed ($"AI Difficulty: {difficulty}", 2.0f);
+			ShowOpponentMessageTimed ($"AI Difficulty: {difficulty}", 2.0f);
 			TakiLogger.LogUI ($"Difficulty feedback: {difficulty}");
 		}
 

@@ -1,289 +1,772 @@
 # investigating!
 
-To track, we can create a TODO list.
-I will not be giving much attention to purely testing-purposed methods.
+---
 
-## `ResetUIForNewGame()`
+## region- `Architecture Management`:
+Done!
 
-- In `GameManager.cs`, read `InitializeSinglePlayerSystems ()` and `InitializeMultiPlayerSystems ()`
-   - In both `InitializeSinglePlayerSystems ()` and `InitializeMultiPlayerSystems ()` we see the following lines:
-      ```csharp
-      // Initialize UI for gameplay
-      if (gameplayUI != null) {
-         GetActiveUI ()?.ResetUIForNewGame ();
-      }
-      ```
-   - I find this odd - My understanding is that `gameplayUI` is legacy related, so why is our new architecture (`GetActiveUI`) dependant or even related to it?
-   - Also, It's a bit problematic or at the very least messy, these 2 functions that have these 2 methods are so differently orginized - of course some things must be different (network, ai, etc), but the base should be fairly simular, don't you think? 
-- Wait, what?? I am finding `public void ResetUIForNewGame ()` in 3 scripts:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-   - In `SinglePlayerUIManager`, practicaly identical to the one in `GameplayUIManager`, which makes sense. 
-      - But `public void ResetUIForNewGame ()` doesn't appear in `BaseGameplayUIManager` or in `MultiPlayerUIManager`. If anything, it should be in `BaseGameplayUIManager`, and not the inheritants, right?
-   - In `DeckUIManager` - This is bizzare I think. Maybe there was a mix up in the names? We need to investigate this carefully
-- I can see we have `ForceNewGameStart ()`, which is never being used anywhere. I think it's best if we remove this.
+## region- `Unity Lifecycle`:
+Done!
 
-## `ShowOpponentAction()`
+## region- `System Initialization`:
+Done!
 
-- In `GameManager.cs`
-   - In both `ProcessNetworkCardDraw ()` and `ProcessNetworkCardPlay ()` we see the following lines:
-      ```csharp
-		// Enhanced feedback for milestone 1
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
-			GetActiveUI ()?.ShowComputerMessage ($"Opponent played {cardIdentifier}");
+## region- `Game Flow Control`:
+RETURN TO LATER ON
+
+---
+
+## region- `Turn Flow Management`:
+
+### `ResetTurnFlowState`
+
+#### Original code:
+```csharp
+		/// <summary>
+		/// Reset turn flow control state, includes special card state
+		/// </summary>
+		void ResetTurnFlowState () {
+			hasPlayerTakenAction = false;
+			canPlayerDraw = true;
+			canPlayerPlay = true;
+			canPlayerEndTurn = false;
+
+			// Reset special card state
+			ResetSpecialCardState ();
+
+			TakiLogger.LogTurnFlow ("TURN FLOW STATE RESET (includes special card state)");
 		}
-      ```
-   - Same issue as before, `gameplayUI` is legacy related.
-   - I find it odd that `ProcessNetworkCardDraw` has `UpdateAllUI ();`, while `ProcessNetworkCardPlay` has `UpdateAllUIWithNetworkSupport ();`.
-- I am finding `public void ShowOpponentAction (string action)` in 2 scripts:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-   - In `MultiPlayerUIManager`, practicaly identical to the one in `GameplayUIManager`, which makes sense. 
-      - But `public void ResetUIForNewGame ()` doesn't appear in `BaseGameplayUIManager` or in `SinglePlayerUIManager`. If anything, it should be in `BaseGameplayUIManager`, and not the inheritants, right?
+```
 
-## `UpdateTurnDisplayMultiplayer()`
+#### My motes:
+Looks good
 
-- In `GameManager.cs`
-   - In `UpdateAllUIWithNetworkSupport ()` we see the following lines:
-      ```csharp
-		// MILESTONE 1: Additional network-specific UI updates
-		if (isMultiplayerMode && networkGameManager != null) {
-			// Update turn display for multiplayer
-			if (gameplayUI != null) {
-				GetActiveUI ()?.UpdateTurnDisplayMultiplayer (networkGameManager.IsMyTurn);
+### `StartPlayerTurnFlow`
+
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// ENHANCED: Start player turn with strict flow control
+		/// </summary>
+		void StartPlayerTurnFlow () {
+			TakiLogger.LogTurnFlow ("STARTING PLAYER TURN WITH PLSTWO CHAIN AWARENESS");
+
+			// CRITICAL: Check for active PlusTwo chain FIRST
+			if (gameState.IsPlusTwoChainActive) {
+				TakiLogger.LogTurnFlow ("=== PLSTWO CHAIN ACTIVE - SPECIAL TURN LOGIC ===");
+
+				int drawCount = gameState.ChainDrawCount;
+				int chainLength = gameState.NumberOfChainedCards;
+
+				TakiLogger.LogTurnFlow ($"Chain status: {chainLength} cards, player must draw {drawCount} or play PlusTwo");
+
+				// Check if player has PlusTwo cards
+				bool hasPlusTwo = playerHand.Any (card => card.cardType == CardType.PlusTwo);
+
+				if (hasPlusTwo) {
+					// Player can either play PlusTwo to continue chain or draw to break it
+					hasPlayerTakenAction = false;
+					canPlayerDraw = true;     // Can draw to break chain
+					canPlayerPlay = true;     // Can play PlusTwo to continue chain  
+					canPlayerEndTurn = false; // Must take action first
+
+					GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
+					gameplayUI?.ShowPlayerMessage ($"Chain active! Play PlusTwo to continue or draw {drawCount} cards to break");
+
+					TakiLogger.LogTurnFlow ($"Player has PlusTwo options: continue chain or draw {drawCount} cards");
+				} else {
+					// Player has no PlusTwo cards - must draw to break chain
+					hasPlayerTakenAction = false;
+					canPlayerDraw = true;     // Must draw to break chain
+					canPlayerPlay = false;    // No valid plays during chain without PlusTwo
+					canPlayerEndTurn = false; // Must take action first
+
+					GetActiveUI ()?.UpdateStrictButtonStates (false, true, false);
+					gameplayUI?.ShowPlayerMessage ($"No PlusTwo cards - you must draw {drawCount} cards to break chain");
+
+					TakiLogger.LogTurnFlow ($"Player must break chain by drawing {drawCount} cards (no PlusTwo available)");
+				}
+
+				// Update visual card states - only PlusTwo cards should show as playable
+				RefreshPlayerHandStates ();
+				return;
 			}
 
-			// Sync hand counts for network display (already done above)
-			SynchronizeNetworkHandCounts ();
-		}
-      ```
-   - Same issue as before, `gameplayUI` is legacy related.
-- In `MultiplayerGameManager.cs`
-   - In `OnTurnBegins (int turn)` we see the following lines:
-      ```csharp
-		// Update GameManager turn state
-		if (gameManager != null && gameManager.gameState != null) {
-			TurnState newTurnState = _isMyTurn ? TurnState.PlayerTurn : TurnState.ComputerTurn;
-			gameManager.gameState.ChangeTurnState (newTurnState);
+			// ... KEEP ALL EXISTING NORMAL TURN FLOW LOGIC AFTER THIS POINT ...
+			TakiLogger.LogTurnFlow ("Normal turn flow - no active chain");
 
-			// Update UI
-			if (gameManager.GetActiveUI() != null) {
-				gameManager.GetActiveUI().UpdateTurnDisplayMultiplayer (_isMyTurn);
+			// Reset turn flow state
+			hasPlayerTakenAction = false;
+			canPlayerDraw = true;
+			canPlayerPlay = true;
+			canPlayerEndTurn = false;
+
+			// Check if player has valid cards (existing logic)
+			int validCardCount = CountPlayableCards ();
+
+			if (validCardCount == 0) {
+				// Player has NO valid cards - must draw
+				TakiLogger.LogTurnFlow ("Player has no valid cards, must draw a card");
+				GetActiveUI ()?.ShowPlayerMessage ("No valid cards - you must DRAW a card!");
+				GetActiveUI ()?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
+			} else {
+				// Player has valid cards - can play or draw
+				TakiLogger.LogTurnFlow ($"Player has {validCardCount} valid cards, may PLAY or DRAW a card");
+				gameplayUI?.ShowPlayerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
+			}
+
+			// Update visual card states
+			RefreshPlayerHandStates ();
+		}
+```
+
+#### My proposal:
+
+```csharp
+		/// <summary>
+		/// Start player turn with strict flow control
+		/// </summary>
+		void StartPlayerTurnFlow () {
+			TakiLogger.LogTurnFlow ("Starting Player Turn", TakiLogger.LogLevel.Debug);
+
+			// Check for active PlusTwo chain FIRST
+			if (gameState.IsPlusTwoChainActive) {
+				TakiLogger.LogTurnFlow ("=== PLSTWO CHAIN ACTIVE - SPECIAL TURN LOGIC ===", TakiLogger.LogLevel.Debug);
+
+				int drawCount = gameState.ChainDrawCount;
+				int chainLength = gameState.NumberOfChainedCards;
+
+				TakiLogger.LogTurnFlow ($"Chain status: {chainLength} cards, player must draw {drawCount} or play PlusTwo", TakiLogger.LogLevel.Debug);
+
+				// Check if player has PlusTwo cards
+				bool hasPlusTwo = playerHand.Any (card => card.cardType == CardType.PlusTwo);
+
+				if (hasPlusTwo) {
+					// Player can either play PlusTwo to continue chain or draw to break it
+					hasPlayerTakenAction = false;
+					canPlayerDraw = true;     // Can draw to break chain
+					canPlayerPlay = true;     // Can play PlusTwo to continue chain
+					canPlayerEndTurn = false; // Must take action first
+
+					GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
+					GetActiveUI ()?.ShowPlayerMessage ($"Chain active! Play PlusTwo to continue or draw {drawCount} cards to break");
+
+					TakiLogger.LogTurnFlow ($"Player has PlusTwo options: continue chain or draw {drawCount} cards", TakiLogger.LogLevel.Debug);
+				} else {
+					// Player has no PlusTwo cards - must draw to break chain
+					hasPlayerTakenAction = false;
+					canPlayerDraw = true;     // Must draw to break chain
+					canPlayerPlay = false;    // No valid plays during chain without PlusTwo
+					canPlayerEndTurn = false; // Must take action first
+
+					GetActiveUI ()?.UpdateStrictButtonStates (false, true, false);
+					GetActiveUI ()?.ShowPlayerMessage ($"No PlusTwo cards - you must draw {drawCount} cards to break chain");
+
+					TakiLogger.LogTurnFlow ($"Player must break chain by drawing {drawCount} cards (no PlusTwo available)", TakiLogger.LogLevel.Debug);
+				}
+
+				// Update visual card states - only PlusTwo cards should show as playable
+				RefreshPlayerHandStates ();
+				return;
+			}
+
+			// ... KEEP ALL EXISTING NORMAL TURN FLOW LOGIC AFTER THIS POINT ...
+			TakiLogger.LogTurnFlow ("Normal turn flow - no active chain", TakiLogger.LogLevel.Debug);
+
+			// Reset turn flow state
+			hasPlayerTakenAction = false;
+			canPlayerDraw = true;
+			canPlayerPlay = true;
+			canPlayerEndTurn = false;
+
+			// Check if player has valid cards (existing logic)
+			int validCardCount = CountPlayableCards ();
+
+			if (validCardCount == 0) {
+				// Player has NO valid cards - must draw
+				TakiLogger.LogTurnFlow ("Player has no valid cards, must draw a card", TakiLogger.LogLevel.Debug);
+				GetActiveUI ()?.ShowPlayerMessage ("No valid cards - you must DRAW a card!");
+				GetActiveUI ()?.UpdateStrictButtonStates (false, true, false); // No Play, Yes Draw, No EndTurn
+			} else {
+				// Player has valid cards - can play or draw
+				TakiLogger.LogTurnFlow ($"Player has {validCardCount} valid cards, may PLAY or DRAW a card", TakiLogger.LogLevel.Debug);
+				GetActiveUI ()?.ShowPlayerMessage ($"You have {validCardCount} valid moves - PLAY a card or DRAW");
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false); // Yes Play, Yes Draw, No EndTurn
+			}
+
+			// Update visual card states
+			RefreshPlayerHandStates ();
+		}
+```
+
+### `HandlePostCardPlayTurnFlow`
+
+#### Original code:
+
+```csharp
+		/// <summary> 
+		/// PHASE 8B: FIXED HandlePostCardPlayTurnFlow with proper TAKI sequence handling
+		/// CRITICAL FIX: Proper sequence continuation and End Sequence button management
+		/// </summary>
+		/// <param name="card">Card that was just played</param>
+		void HandlePostCardPlayTurnFlow (CardData card) {
+			TakiLogger.LogTurnFlow ($"=== HANDLING POST-CARD-PLAY TURN FLOW for {card.GetDisplayText ()} ===");
+
+			// PHASE 8B: Check if TAKI sequence was started and we should continue turn
+			if (gameState.IsInTakiSequence && (card.cardType == CardType.Taki || card.cardType == CardType.SuperTaki) && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ($"{card.cardType} card started sequence - turn continues for sequence play");
+
+				// For TAKI/SuperTAKI cards that start sequences, keep turn active
+				hasPlayerTakenAction = false;  // Reset to allow sequence cards
+				canPlayerPlay = true;          // Re-enable play for sequence
+				canPlayerDraw = false;         // Cannot draw during sequence
+				canPlayerEndTurn = false;      // Cannot end turn during sequence (must use End Sequence button)
+
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
+				gameplayUI?.EnableEndTakiSequenceButton (true);
+
+				if (card.cardType == CardType.Taki) {
+					gameplayUI?.ShowPlayerMessage ($"TAKI Sequence active - play {card.color} cards or End Sequence!");
+				} else {
+					gameplayUI?.ShowPlayerMessage ($"SuperTAKI Sequence active - play {gameState.TakiSequenceColor} cards or End Sequence!");
+				}
+
+				TakiLogger.LogTurnFlow ($"{card.cardType} sequence turn flow: PLAY enabled, DRAW/END TURN disabled, END SEQUENCE enabled");
+				return;
+			}
+
+			// PHASE 8B: Check if card was played during existing sequence (not last card)
+			if (gameState.IsInTakiSequence && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Card played in existing sequence - turn continues");
+
+				// Continue sequence - same button states as sequence start 
+				hasPlayerTakenAction = false;  // Allow more sequence cards
+				canPlayerPlay = true;          // Keep play enabled
+				canPlayerDraw = false;         // Still no draw during sequence
+				canPlayerEndTurn = false;      // Still no end turn during sequence
+
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
+				GetActiveUI ()?.ShowPlayerMessage ("Sequence continues - play more cards or End Sequence!");
+
+				TakiLogger.LogTurnFlow ("Sequence continuation: PLAY enabled, DRAW/END TURN disabled");
+				return;
+			}
+
+			// PHASE 8B: Check if sequence just ended (last card processed)
+			if (isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Last card in sequence processed - ending turn normally");
+
+				// Reset flag
+				isCurrentCardLastInSequence = false;
+
+				// Force end turn after sequence completion
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				gameplayUI?.ForceEnableEndTurn ();
+				gameplayUI?.ShowPlayerMessage ("Sequence completed - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Sequence completion: Must END TURN");
+				return;
+			}
+
+			// ENHANCED: Plus card handling with better messaging
+			if (card.cardType == CardType.Plus && !gameState.IsInTakiSequence) {
+				TakiLogger.LogTurnFlow ("PLUS CARD PLAYED - Player gets additional action");
+
+				// Set special card state
+				isWaitingForAdditionalAction = true;
+				activeSpecialCardEffect = CardType.Plus;
+
+				// Reset action state to allow additional action
+				hasPlayerTakenAction = false;  // Reset to allow additional action
+				canPlayerPlay = true;          // Re-enable play
+				canPlayerDraw = true;          // Re-enable draw  
+				canPlayerEndTurn = false;      // Keep end turn disabled until additional action
+
+				// ENHANCED: Update UI with better messaging
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
+				if (gameplayUI != null) {
+					GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Human, "You get one more action");
+				}
+
+				TakiLogger.LogTurnFlow ("Plus card turn flow: Additional action enabled, END TURN disabled");
+				return;
+			}
+
+			// FIXED: ChangeColor card handling for HUMAN players - ADD UI LOGIC HERE
+			if (card.cardType == CardType.ChangeColor && !gameState.IsInTakiSequence) {
+				TakiLogger.LogTurnFlow ("CHANGE COLOR CARD PLAYED BY HUMAN - Player must select color");
+
+				if (gameState == null || gameplayUI == null) {
+					TakiLogger.LogError ("Cannot handle ChangeColor: Missing components!", TakiLogger.LogCategory.Rules);
+					return;
+				}
+
+				// Set interaction state to color selection
+				gameState.ChangeInteractionState (InteractionState.ColorSelection);
+				TakiLogger.LogGameState ("Interaction state changed to ColorSelection");
+
+				// Show color selection panel (this will disable PLAY/DRAW buttons)
+				GetActiveUI ()?.ShowColorSelection (true);
+				TakiLogger.LogUI ("Color selection panel displayed");
+
+				// Mark action as taken but don't allow new actions
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;         // Disable play during color selection
+				canPlayerDraw = false;         // Disable draw during color selection
+				canPlayerEndTurn = true;       // Allow end turn after color selection
+
+				// Note: END TURN button will be enabled, but the color selection must complete first
+				GetActiveUI ()?.UpdateStrictButtonStates (false, false, true);
+
+				// ENHANCED: Better feedback about the selection process 
+				GetActiveUI ()?.ShowPlayerMessage ("CHANGE COLOR: Choose colors freely, then click END TURN!");
+				GetActiveUI ()?.ShowComputerMessage ("Player is selecting new color...");
+
+				TakiLogger.LogTurnFlow ("ChangeColor turn flow: Color selection required, END TURN enabled after selection");
+				return;
+			}
+
+			// PHASE 7: Check if this was the additional action after a Plus card
+			if (isWaitingForAdditionalAction && activeSpecialCardEffect == CardType.Plus) {
+				TakiLogger.LogTurnFlow ("COMPLETING ADDITIONAL ACTION after Plus card");
+
+				// Clear special card state
+				isWaitingForAdditionalAction = false;
+				activeSpecialCardEffect = CardType.Number;
+
+				// Now follow normal turn completion flow
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ("Additional action complete - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Additional action completed - normal END TURN flow");
+				return;
+			}
+
+			// Normal card flow (non-Plus, non-ChangeColor cards or cards not during Plus sequence)
+			TakiLogger.LogTurnFlow ("NORMAL CARD TURN FLOW - Single action, must end turn");
+
+			hasPlayerTakenAction = true;
+			canPlayerPlay = false;
+			canPlayerDraw = false; // Cannot draw after playing
+			canPlayerEndTurn = true;
+
+			// UI already disabled buttons immediately on click, now enable END TURN
+			GetActiveUI ()?.ForceEnableEndTurn ();
+			GetActiveUI ()?.ShowPlayerMessage ("Card played - you must END TURN!");
+
+			TakiLogger.LogTurnFlow ("Normal turn flow: Must END TURN after single action");
+		}
+```
+
+#### My proposal:
+
+```csharp
+		/// <summary> 
+		/// Handle post card play turn flow with proper TAKI sequence handling (sequence continuation and End Sequence button management)
+		/// </summary>
+		/// <param name="card">Card that was just played</param>
+		void HandlePostCardPlayTurnFlow (CardData card) {
+			TakiLogger.LogTurnFlow ($"=== HANDLING POST-CARD-PLAY TURN FLOW for {card.GetDisplayText ()} ===", TakiLogger.LogLevel.Debug);
+
+			// Check if TAKI sequence was started and we should continue turn
+			if (gameState.IsInTakiSequence && (card.cardType == CardType.Taki || card.cardType == CardType.SuperTaki) && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ($"{card.cardType} card started sequence - turn continues for sequence play", TakiLogger.LogLevel.Debug);
+
+				// For TAKI/SuperTAKI cards that start sequences, keep turn active
+				hasPlayerTakenAction = false;  // Reset to allow sequence cards
+				canPlayerPlay = true;          // Re-enable play for sequence
+				canPlayerDraw = false;         // Cannot draw during sequence
+				canPlayerEndTurn = false;      // Cannot end turn during sequence (must use End Sequence button)
+
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
+				GetActiveUI ()?.EnableEndTakiSequenceButton (true);
+
+				if (card.cardType == CardType.Taki) {
+					GetActiveUI ()?.ShowPlayerMessage ($"TAKI Sequence active - play {card.color} cards or End Sequence!");
+				} else {
+					GetActiveUI ()?.ShowPlayerMessage ($"SuperTAKI Sequence active - play {gameState.TakiSequenceColor} cards or End Sequence!");
+				}
+
+				TakiLogger.LogTurnFlow ($"{card.cardType} sequence turn flow: PLAY enabled, DRAW/END TURN disabled, END SEQUENCE enabled", TakiLogger.LogLevel.Debug);
+				return;
+			}
+
+			// Check if card was played during existing sequence (not last card)
+			if (gameState.IsInTakiSequence && !isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Card played in existing sequence - turn continues");
+
+				// Continue sequence - same button states as sequence start 
+				hasPlayerTakenAction = false;  // Allow more sequence cards
+				canPlayerPlay = true;          // Keep play enabled
+				canPlayerDraw = false;         // Still no draw during sequence
+				canPlayerEndTurn = false;      // Still no end turn during sequence
+
+				GetActiveUI ()?.UpdateStrictButtonStates (true, false, false);
+				GetActiveUI ()?.ShowPlayerMessage ("Sequence continues - play more cards or End Sequence!");
+
+				TakiLogger.LogTurnFlow ("Sequence continuation: PLAY enabled, DRAW/END TURN disabled");
+				return;
+			}
+
+			// Check if sequence just ended (last card processed)
+			if (isCurrentCardLastInSequence) {
+				TakiLogger.LogTurnFlow ("Last card in sequence processed - ending turn normally");
+
+				// Reset flag
+				isCurrentCardLastInSequence = false;
+
+				// Force end turn after sequence completion
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ("Sequence completed - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Sequence completion: Must END TURN");
+				return;
+			}
+
+			// Plus card handling with better messaging
+			if (card.cardType == CardType.Plus && !gameState.IsInTakiSequence) {
+				TakiLogger.LogTurnFlow ("PLUS CARD PLAYED - Player gets additional action", TakiLogger.LogLevel.Debug);
+
+				// Set special card state
+				isWaitingForAdditionalAction = true;
+				activeSpecialCardEffect = CardType.Plus;
+
+				// Reset action state to allow additional action
+				hasPlayerTakenAction = false;  // Reset to allow additional action
+				canPlayerPlay = true;          // Re-enable play
+				canPlayerDraw = true;          // Re-enable draw  
+				canPlayerEndTurn = false;      // Keep end turn disabled until additional action
+
+				// Update UI with better messaging
+				GetActiveUI ()?.UpdateStrictButtonStates (true, true, false);
+				GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Human, "You get one more action");
+
+				TakiLogger.LogTurnFlow ("Plus card turn flow: Additional action enabled, END TURN disabled", TakiLogger.LogLevel.Debug);
+				return;
+			}
+
+			// ChangeColor card handling for Player
+			if (card.cardType == CardType.ChangeColor && !gameState.IsInTakiSequence) {
+				TakiLogger.LogTurnFlow ("CHANGE COLOR CARD PLAYED BY PLAYER - Player must select color", TakiLogger.LogLevel.Debug);
+
+				if (gameState == null) {
+					TakiLogger.LogError ("Cannot handle ChangeColor: Missing gameState component!", TakiLogger.LogCategory.Rules);
+					return;
+				}
+
+				// Set interaction state to color selection
+				gameState.ChangeInteractionState (InteractionState.ColorSelection);
+				TakiLogger.LogGameState ("Interaction state changed to ColorSelection", TakiLogger.LogLevel.Debug);
+
+				// Show color selection panel (this will disable PLAY/DRAW buttons)
+				GetActiveUI ()?.ShowColorSelection (true);
+				TakiLogger.LogUI ("Color selection panel displayed", TakiLogger.LogLevel.Debug);
+
+				// Mark action as taken but don't allow new actions
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;         // Disable play during color selection
+				canPlayerDraw = false;         // Disable draw during color selection
+				canPlayerEndTurn = true;       // Allow end turn after color selection
+
+				// Note: END TURN button will be enabled, but the color selection must complete first
+				GetActiveUI ()?.UpdateStrictButtonStates (false, false, true);
+
+				// ENHANCED: Better feedback about the selection process 
+				GetActiveUI ()?.ShowPlayerMessage ("CHANGE COLOR: Choose colors freely, then click END TURN!");
+				GetActiveUI ()?.ShowOpponentMessage ("Waiting for player to finish selecting new color...");
+
+				TakiLogger.LogTurnFlow ("ChangeColor turn flow: Color selection required, END TURN enabled after selection", TakiLogger.LogLevel.Debug);
+				return;
+			}
+
+			// Check if this was the additional action after a Plus card
+			if (isWaitingForAdditionalAction && activeSpecialCardEffect == CardType.Plus) {
+				TakiLogger.LogTurnFlow ("COMPLETING ADDITIONAL ACTION after Plus card", TakiLogger.LogLevel.Debug);
+
+				// Clear special card state
+				isWaitingForAdditionalAction = false;
+				activeSpecialCardEffect = CardType.Number;
+
+				// Now follow normal turn completion flow
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ("Additional action complete - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Additional action completed - normal END TURN flow", TakiLogger.LogLevel.Debug);
+				return;
+			}
+
+			// Normal card flow (non-Plus, non-ChangeColor cards or cards not during Plus sequence)
+			TakiLogger.LogTurnFlow ("NORMAL CARD TURN FLOW - Single action, must end turn", TakiLogger.LogLevel.Debug);
+
+			hasPlayerTakenAction = true;
+			canPlayerPlay = false;
+			canPlayerDraw = false; // Cannot draw after playing
+			canPlayerEndTurn = true;
+
+			// UI already disabled buttons immediately on click, now enable END TURN
+			GetActiveUI ()?.ForceEnableEndTurn ();
+			GetActiveUI ()?.ShowPlayerMessage ("Card played - you must END TURN!");
+
+			TakiLogger.LogTurnFlow ("Normal turn flow: Must END TURN after single action", TakiLogger.LogLevel.Debug);
+		}
+```
+
+### `HandlePostCardDrawTurnFlow`
+
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// PHASE 7: Handle turn flow after drawing a card
+		/// </summary>
+		/// <param name="drawnCard">Card that was drawn</param>
+		void HandlePostCardDrawTurnFlow (CardData drawnCard) {
+			TakiLogger.LogTurnFlow ($"=== HANDLING POST-DRAW TURN FLOW ===");
+
+			// PHASE 7: Check if this was the additional action after a Plus card
+			if (isWaitingForAdditionalAction && activeSpecialCardEffect == CardType.Plus) {
+				TakiLogger.LogTurnFlow ("COMPLETING ADDITIONAL DRAW ACTION after Plus card");
+
+				// Clear special card state
+				isWaitingForAdditionalAction = false;
+				activeSpecialCardEffect = CardType.Number;
+
+				// Now follow normal turn completion flow
+				hasPlayerTakenAction = true;
+				canPlayerPlay = false;
+				canPlayerDraw = false;
+				canPlayerEndTurn = true;
+
+				GetActiveUI ()?.ForceEnableEndTurn ();
+				GetActiveUI ()?.ShowPlayerMessage ($"Additional draw complete: {drawnCard.GetDisplayText ()} - you must END TURN!");
+
+				TakiLogger.LogTurnFlow ("Additional draw action completed - normal END TURN flow");
+				return;
+			}
+
+			// Normal draw flow (first action or not during Plus sequence)
+			TakiLogger.LogTurnFlow ("NORMAL DRAW TURN FLOW - Single action, must end turn");
+
+			hasPlayerTakenAction = true;
+			canPlayerPlay = false;
+			canPlayerDraw = false;
+			canPlayerEndTurn = true;
+
+			// Enable END TURN button
+			GetActiveUI ()?.ForceEnableEndTurn ();
+			GetActiveUI ()?.ShowPlayerMessage ($"Drew: {drawnCard.GetDisplayText ()} - you must END TURN!");
+
+			TakiLogger.LogTurnFlow ("Normal draw flow: Must END TURN after single action");
+		}
+```
+Looks good.
+
+### `EndPlayerTurnWithStrictFlow`
+
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// FIXED: Enhanced turn completion to handle Stop card effects at correct timing
+		/// </summary>
+		void EndPlayerTurnWithStrictFlow () {
+			TakiLogger.LogTurnFlow ("ENDING PLAYER TURN - STRICT FLOW WITH SPECIAL CARDS");
+
+			// STOP CARD FIX: Check STOP flag FIRST, before any turn switching logic
+			if (shouldSkipNextTurn) {
+				TakiLogger.LogTurnFlow ("=== STOP FLAG DETECTED - PROCESSING STOP EFFECT ===");
+				ProcessStopSkipEffect ();
+				return; // Exit early - don't proceed with normal turn switch
+			}
+
+			// Check for pending effects (PLUS cards only)
+			if (HasPendingSpecialCardEffects ()) {
+				TakiLogger.LogError ("Attempting to end turn with pending special card effects!", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("Cannot end turn - special card effect pending!");
+				return;
+			}
+
+			// FIXED: Hide color selection panel if it's still visible
+			if (gameState != null && gameState.interactionState == InteractionState.ColorSelection) {
+				TakiLogger.LogGameState ("Ending turn during color selection - hiding panel and returning to normal");
+
+				// Hide the color selection panel
+				GetActiveUI ()?.ShowColorSelection (false);
+
+				// Return to normal interaction state
+				gameState.ChangeInteractionState (InteractionState.Normal);
+
+				// Show completion message
+				GetActiveUI ()?.ShowPlayerMessage ($"Color selection complete: {gameState.activeColor}");
+			}
+
+			// Clear any selected cards
+			GetActivePlayerHandManager ()?.ClearSelection ();
+
+			// Reset turn flow state for next turn (includes special card state)
+			ResetTurnFlowState ();
+
+			// Normal turn end - proceed with turn switch
+			TakiLogger.LogTurnFlow ("Normal turn end - switching to computer turn");
+			if (turnManager != null) {
+				turnManager.EndTurn ();
 			}
 		}
-      ```
-   - I suppose it alright, after we'll fix `GameManager.cs` that is.
-- I am finding `public void UpdateTurnDisplayMultiplayer (bool isLocalPlayerTurn)` and also `UpdateTurnDisplayMultiplayer(isMyTurn);` in 2 scripts:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-   - In `MultiPlayerUIManager`, practicaly identical to the one in `GameplayUIManager`, which makes sense. 
+```
+Looks good.
 
-## `ShowSequenceProgressMessage()`
+### `EndAITurnWithStrictFlow`
 
-- In `GameManager.cs`
-   - In `OnTakiSequenceStarted (CardColor sequenceColor, PlayerType initiator)` we see the following lines:
-      ```csharp
-		// Update UI to show sequence status
-		if (gameplayUI != null) {
-			gameplayUI.ShowTakiSequenceStatus (sequenceColor, 1, initiator == PlayerType.Human);
-			GetActiveUI ()?.ShowSequenceProgressMessage (sequenceColor, 1, initiator);
-		}
-      ```
-   - Same issue as before, `gameplayUI` is legacy related.
-   - In `PlayCardWithStrictFlow (CardData card)` we see the following lines:
-      ```csharp
-		// Update sequence UI immediately
-		if (gameplayUI != null) {
-			int cardCount = gameState.NumberOfSequenceCards;
-			CardColor sequenceColor = gameState.TakiSequenceColor;
-			GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, cardCount, true);
-			GetActiveUI ()?.ShowSequenceProgressMessage (sequenceColor, cardCount, PlayerType.Human);
-		}
-      ```
-   - Same issue as before, `gameplayUI` is legacy related.
-- I am finding `public void ShowSequenceProgressMessage (CardColor sequenceColor, int cardCount, PlayerType initiator)` in 1 script:
-   - In `GameplayUIManager`, makes sense since this is a legacy script (we should probably add to `BaseGameplayUIManager`)
+#### Original code:
 
-## `ShowSpecialCardEffect()`
+```csharp
+		/// <summary>
+		/// FIXED: Enhanced AI turn completion to handle Stop card effects at correct timing
+		/// Mirrors the logic in EndPlayerTurnWithStrictFlow() for symmetrical behavior
+		/// </summary>
+		void EndAITurnWithStrictFlow () {
+			TakiLogger.LogTurnFlow ("ENDING AI TURN - STRICT FLOW WITH SPECIAL CARDS");
 
-- In `GameManager.cs`
-   - In `HandlePostCardPlayTurnFlow (CardData card)` we see the following lines:
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Human, "You get one more action");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
+			// STOP CARD FIX: Check STOP flag FIRST, before any turn switching logic
+			if (shouldSkipNextTurn) {
+				TakiLogger.LogTurnFlow ("=== STOP FLAG DETECTED FOR AI TURN END - PROCESSING STOP EFFECT ===");
+				ProcessStopSkipEffect ();
+				return; // Exit early - don't proceed with normal turn switch
+			}
 
-   - In `HandlePostCardPlayTurnFlow (CardData card)` we see the following lines:
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.Plus, PlayerType.Computer, "AI gets one more action");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.Stop, PlayerType.Computer, "Your next turn will be skipped!");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			string directionMessage = $"Direction changed by AI: {gameState?.turnDirection}";
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.ChangeDirection, PlayerType.Computer, directionMessage);
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.ChangeColor, PlayerType.Computer,
-				$"New active color: {selectedColor}");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer,
-			$"Chain continues! Draw {drawCount} or play PlusTwo");
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		TakiLogger.LogError ("AI played PlusTwo but no chain is active - this indicates a sequence processing issue!", TakiLogger.LogCategory.AI);
-		gameplayUI?.ShowSpecialCardEffect (CardType.PlusTwo, PlayerType.Computer, "You draw 2 cards!");
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
-				$"AI starts TAKI sequence for {card.color}");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.Taki, PlayerType.Computer,
-				"AI continues TAKI sequence");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
-				$"AI starts SuperTAKI sequence for {sequenceColor}");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowSpecialCardEffect (CardType.SuperTaki, PlayerType.Computer,
-				"AI continues SuperTAKI sequence");
-		}
-      ```
-	   - Same issue as before, `gameplayUI` is legacy related.
-
-   - In `PlayCardWithStrictFlow (CardData card)` we see the following lines:
-      ```csharp
-
-      ```
-   - Same issue as before, `gameplayUI` is legacy related.
-- I am finding `public void ShowSpecialCardEffect (CardType cardType, PlayerType playedBy, string effectDescription)` in 1 script:
-   - In `GameplayUIManager`, makes sense since this is a legacy script (we should probably add to `BaseGameplayUIManager`)
-
-## `ShowWinnerAnnouncement()`
-
-- In `GameManager.cs`
-   - In `OnGameWon (PlayerType winner)` we see the following lines:
-      ```csharp
-		// Process through GameEndManager instead of direct UI
-		if (gameEndManager != null) {
-			gameEndManager.ProcessGameEnd (winner);
-		} else {
-			// Fallback to existing logic if GameEndManager not available
-			if (gameplayUI != null) {
-				GetActiveUI ()?.ShowWinnerAnnouncement (winner);
+			// Normal turn end - proceed with turn switch
+			TakiLogger.LogTurnFlow ("Normal AI turn end - switching to human turn");
+			if (turnManager != null) {
+				turnManager.EndTurn ();
 			}
 		}
-      ```
-   - Same issue as before, `gameplayUI` is legacy related, (even if it's fallback).
+```
 
-- In `GameEndManager.cs`
-   - In `private IEnumerator ShowGameEndSequence (PlayerType winner)` we see the following lines:
-      ```csharp
-		// First, show winner in gameplay UI for a moment
-		if (gameManager.GetActiveUI() != null) {
-			gameManager.GetActiveUI().ShowWinnerAnnouncement (winner);
+Looks good.
+
+### `StartPlayerTurnAfterStop`
+
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// NEW: Start player turn after STOP effect processing
+		/// </summary>
+		void StartPlayerTurnAfterStop () {
+			TakiLogger.LogTurnFlow ("=== STARTING PLAYER TURN AFTER STOP EFFECT ===");
+
+			// Ensure game state shows player turn
+			if (gameState != null) {
+				gameState.ChangeTurnState (TurnState.PlayerTurn);
+			}
+
+			// Start the player turn flow
+			StartPlayerTurnFlow ();
+
+			// Show additional feedback
+			GetActiveUI ()?.ShowPlayerMessage ("Your turn continues thanks to STOP card!");
+			GetActiveUI ()?.ShowComputerMessage ("Waiting (turn skipped)...");
+
+			TakiLogger.LogTurnFlow ("Player turn restarted successfully after STOP effect");
 		}
-      ```
-   - I suppose it alright, after we'll fix `GameManager.cs` that is.
-   
-- I am finding `public void ShowWinnerAnnouncement (PlayerType winner)` in 2 scripts:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-   - In `SinglePlayerUIManager`, practicaly identical to the one in `GameplayUIManager`, which makes sense. 
-- I am also finding `public void ShowWinnerAnnouncementMultiplayer(bool localPlayerWon)` and also in `MultiPlayerUIManager`, very simular to the other 2, but not identical, which makes sense. 
-- It might be best to have a function like this in `BaseGameplayUIManager`.
+```
 
-## `ShowDeckSyncStatus()`
+#### My proposal:
 
-- In `GameManager.cs`
-   - We don't see it at all!
-   
-- I am finding `public void ShowDeckSyncStatus (string message)` in 2 scripts:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-   - In `MultiPlayerUIManager`, completely identical to the one in `GameplayUIManager`, which makes sense. 
-- I believe it would be best to have a function like this in `BaseGameplayUIManager`.
+```csharp
+```
 
-## `ShowDeckSyncStatus()`
+### `StartAITurnAfterStop`
 
-- In `GameManager.cs`
-   - In `HandleAISpecialCardEffects (CardData card)` we see the following lines:
-      ```csharp
-		if (gameplayUI != null) {
-			GetActiveUI ()?.ShowImmediateFeedback ("AI is selecting new color...", true);
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// NEW: Start AI turn after STOP effect processing
+		/// Mirrors StartPlayerTurnAfterStop() for when computer benefits from STOP
+		/// </summary>
+		void StartAITurnAfterStop () {
+			TakiLogger.LogTurnFlow ("=== STARTING AI TURN AFTER STOP EFFECT ===");
+
+			// Ensure game state shows computer turn
+			if (gameState != null) {
+				gameState.ChangeTurnState (TurnState.ComputerTurn);
+			}
+
+			// Show feedback messages
+			gameplayUI?.ShowPlayerMessage ("Computer gets another turn thanks to STOP card!");
+			gameplayUI?.ShowComputerMessage ("I get another turn!");
+
+			// Trigger AI decision for the new turn
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard != null && computerAI != null) {
+				TakiLogger.LogTurnFlow ("Triggering AI decision for STOP benefit turn");
+				// Give AI time to "think" about the new turn
+				Invoke (nameof (TriggerAITurnAfterStop), 1.5f);
+			} else {
+				TakiLogger.LogError ("Cannot start AI turn after STOP - missing components", TakiLogger.LogCategory.AI);
+			}
+
+			TakiLogger.LogTurnFlow ("AI turn setup complete after STOP effect");
 		}
-      ```
-   - I suppose it alright, after we'll fix `GameManager.cs` that is.
-   
-- I am finding `public void ShowImmediateFeedback (string message, bool toPlayer = true)` in 1 script:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-- I believe we want some kind of version of this in `BaseGameplayUIManager`, `SinglePlayerUIManager`, and `MultiPlayerUIManager`.
 
-## `UpdateButtonStates()`
+```
 
-- In `GameManager.cs`
-   - In `ForceUISync ()` we see the following lines:
-      ```csharp
-		// Force button state update based on current turn state
-		bool shouldEnableButtons = gameState.CanPlayerAct ();
-		GetActiveUI ()?.UpdateButtonStates (shouldEnableButtons);
-      ```
-   - I suppose it alright, after we'll fix `GameManager.cs` that is.
+#### My proposal:
 
-- In `GamePlayUIManager.cs`
-   - In `ForceButtonRefresh (bool enableState)` we see the following lines:
-      ```csharp
-		public void ForceButtonRefresh (bool enableState) {
-			TakiLogger.LogDiagnostics ($"=== FORCE BUTTON REFRESH to {(enableState ? "ENABLED" : "DISABLED")} ===");
-			UpdateButtonStates (enableState);
-			ValidateButtonStates ();
+```csharp
+```
+
+### `TriggerAITurnAfterStop`
+
+#### Original code:
+
+```csharp
+		/// <summary>
+		/// Helper method to trigger AI decision after STOP benefit
+		/// </summary>
+		void TriggerAITurnAfterStop () {
+			TakiLogger.LogAI ("=== AI MAKING DECISION FOR STOP BENEFIT TURN ===");
+
+			CardData topCard = GetTopDiscardCard ();
+			if (topCard != null && computerAI != null) {
+				gameplayUI?.ShowComputerMessage ("Thinking about my bonus turn...");
+				computerAI.MakeDecision (topCard);
+			} else {
+				TakiLogger.LogError ("Cannot trigger AI turn after STOP - missing components", TakiLogger.LogCategory.AI);
+			}
 		}
-      ```
-   - I suppose it alright, after we'll fix `GameManager.cs` that is.
-   
-- I am finding `public void UpdateButtonStates (bool enabled)` in 1 script:
-   - In `GameplayUIManager`, makes sense since this is a legacy script
-- I believe we want some kind of version of this in `BaseGameplayUIManager`.
+```
 
+#### My proposal:
 
+```csharp
+```
 
+---
 
+```
 
-
-
-
+Do you want me to continue with **all regions expanded like this** (one huge file), or do you prefer me to give them to you **piece by piece** (region by region, like this)?
+```

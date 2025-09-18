@@ -39,7 +39,7 @@ namespace TakiGame {
         public abstract TextMeshProUGUI Player1HandSizeText { get; }
         public abstract TextMeshProUGUI Player2HandSizeText { get; }
         public abstract TextMeshProUGUI PlayerMessageText { get; }
-        public abstract TextMeshProUGUI ComputerMessageText { get; }
+        public abstract TextMeshProUGUI OpponentMessageText { get; }
         public abstract GameObject ColorSelectionPanel { get; }
         public abstract Button SelectRedButton { get; }
         public abstract Button SelectBlueButton { get; }
@@ -278,14 +278,14 @@ namespace TakiGame {
 		/// Update hand size displays
 		/// </summary>
 		/// <param name="player1HandSize">Player 1 (human) hand size</param>
-		/// <param name="player2HandSize">Player 2 (computer) hand size</param>
+		/// <param name="player2HandSize">Player 2 (opponent) hand size</param>
 		public virtual void UpdateHandSizeDisplay (int player1HandSize, int player2HandSize) {
 			if (Player1HandSizeText != null) {
 				Player1HandSizeText.text = $"Your Cards: {player1HandSize}";
 			}
 
 			if (Player2HandSizeText != null) {
-				Player2HandSizeText.text = $"Computer Cards: {player2HandSize}";
+				Player2HandSizeText.text = $"Opponent Cards: {player2HandSize}";
 			}
 		}
 
@@ -309,7 +309,7 @@ namespace TakiGame {
                 case TurnState.PlayerTurn:
                     return "Your Turn";
                 case TurnState.ComputerTurn:
-                    return "Computer's Turn";
+                    return "Opponent's Turn";
                 case TurnState.Neutral:
                     return "Game Setup";
                 default:
@@ -350,13 +350,13 @@ namespace TakiGame {
         }
 
 		/// <summary>
-		/// Show computer action message (Opponent thinking, actions)
-		/// UPDATED: Now uses computerMessageText instead of gameMessageText
+		/// Show opponent action message (Opponent thinking, actions)
+		/// UPDATED: Now uses opponentMessageText instead of gameMessageText
 		/// </summary>
 		/// <param name="message">Message to show</param>
-		public virtual void ShowComputerMessage(string message) {
-            if (ComputerMessageText != null) {
-                ComputerMessageText.text = message;
+		public virtual void ShowOpponentMessage(string message) {
+            if (OpponentMessageText != null) {
+                OpponentMessageText.text = message;
             }
         }
 
@@ -380,20 +380,20 @@ namespace TakiGame {
         }
 
 		/// <summary>
-		/// Show computer message with duration to prevent overwrites
+		/// Show opponent message with duration to prevent overwrites
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
-		public virtual void ShowComputerMessageTimed(string message, float duration = 3.0f) {
-            if (ComputerMessageText != null) {
-                ComputerMessageText.text = message;
-                TakiLogger.LogUI($"Computer message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
+		public virtual void ShowOpponentMessageTimed(string message, float duration = 3.0f) {
+            if (OpponentMessageText != null) {
+                OpponentMessageText.text = message;
+                TakiLogger.LogUI($"Opponent message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
 
                 if (duration > 0) {
 					// Cancel any existing clear operations
-					CancelInvoke (nameof(ClearComputerMessage));
+					CancelInvoke (nameof(ClearOpponentMessage));
 					// Schedule clear
-					Invoke (nameof(ClearComputerMessage), duration);
+					Invoke (nameof(ClearOpponentMessage), duration);
                 }
             }
         }
@@ -409,12 +409,12 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Clear computer message
+		/// Clear opponent message
 		/// </summary>
-		protected virtual void ClearComputerMessage() {
-            if (ComputerMessageText != null) {
-                ComputerMessageText.text = "";
-				TakiLogger.LogUI ("Computer message cleared", TakiLogger.LogLevel.Trace);
+		protected virtual void ClearOpponentMessage() {
+            if (OpponentMessageText != null) {
+                OpponentMessageText.text = "";
+				TakiLogger.LogUI ("Opponent message cleared", TakiLogger.LogLevel.Trace);
 			}
 		}
 
@@ -422,7 +422,7 @@ namespace TakiGame {
 		/// Show opponent action feedback
 		/// </summary>
 		public virtual void ShowOpponentAction (string action) {
-			ShowComputerMessage ($"Opponent {action}");
+			ShowOpponentMessage ($"Opponent {action}");
 			TakiLogger.LogNetwork ($"Opponent action displayed: {action}", TakiLogger.LogLevel.Trace);
 		}
 
@@ -466,6 +466,111 @@ namespace TakiGame {
 		#endregion
 
 		#region Special Card Effects
+
+		/// <summary>
+		/// PHASE 8B: Enhanced sequence progress messaging
+		/// </summary>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="cardCount">Number of cards played</param>
+		/// <param name="initiator">Who started the sequence</param>
+		public void ShowSequenceProgressMessage (CardColor sequenceColor, int cardCount, PlayerType initiator) {
+			string message;
+
+			if (cardCount == 1) {
+				// First card in sequence
+				message = initiator == PlayerType.Human ?
+					$"TAKI Sequence started! Play {sequenceColor} cards or End Sequence" :
+					$"AI started TAKI sequence for {sequenceColor} cards";
+			} else {
+				// Sequence continues
+				message = initiator == PlayerType.Human ?
+					$"Sequence continues! {cardCount} cards played, keep playing {sequenceColor} or End Sequence" :
+					$"AI sequence continues: {cardCount} cards of {sequenceColor}";
+			}
+
+			if (initiator == PlayerType.Human) {
+				ShowPlayerMessageTimed (message, 0f); // Permanent until sequence ends
+			} else {
+				ShowOpponentMessageTimed (message, 4.0f);
+			}
+		}
+
+		/// <summary>
+		/// Show sequence ended message
+		/// </summary>
+		/// <param name="finalCardCount">Number of cards in final sequence</param>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="who">Who ended the sequence</param>
+		public virtual void ShowSequenceEndedMessage (int finalCardCount, CardColor sequenceColor, PlayerType who) {
+
+			string playerMessage = who == PlayerType.Human ?
+				$"Sequence ended! You played {finalCardCount} {sequenceColor} cards" :
+				$"";
+
+			string computerMessage = who == PlayerType.Computer ?
+				$"Opponent ended sequence: {finalCardCount} {sequenceColor} cards" :
+				"";
+
+			ShowPlayerMessageTimed (playerMessage, 3.0f);
+			ShowOpponentMessageTimed (computerMessage, 3.0f);
+
+			// Clear sequence status
+			HideTakiSequenceStatus ();
+		}
+
+		/// <summary>
+		/// Show sequence progress message during TAKI sequence
+		/// </summary>
+		/// <param name="cardCount">Current number of cards in sequence</param>
+		/// <param name="sequenceColor">Color of the sequence</param>
+		/// <param name="who">Who is playing the sequence</param>
+		public virtual void ShowSequenceProgressMessage (int cardCount, CardColor sequenceColor, PlayerType
+		who) {
+			TakiLogger.LogUI ($"Sequence progress: {cardCount} {sequenceColor} cards by {who}",
+		TakiLogger.LogLevel.Info);
+
+			// Default implementation - basic message
+			ShowPlayerMessageTimed ($"TAKI Sequence: {cardCount} {sequenceColor} cards played", 2.0f);
+		}
+
+		/// <summary>
+		/// Show special card effect message with appropriate routing
+		/// </summary>
+		/// <param name="cardType">Type of special card</param>
+		/// <param name="playedBy">Who played the card</param>
+		/// <param name="effectDescription">Description of the effect</param>
+		public virtual void ShowSpecialCardEffect (CardType cardType, PlayerType playedBy, string effectDescription) {
+			TakiLogger.LogUI ($"Special card effect: {cardType} by {playedBy} - {effectDescription}", TakiLogger.LogLevel.Info);
+
+			// Default implementation - basic message
+			ShowPlayerMessageTimed ($"{cardType} played: {effectDescription}", 4.0f);
+		}
+
+		/// <summary>
+		/// Show PlusTwo chain progress message
+		/// </summary>
+		/// <param name="chainCount">Number of PlusTwo cards in chain</param>
+		/// <param name="accumulatedDraw">Total cards to draw</param>
+		/// <param name="who">Who added to the chain</param>
+		public virtual void ShowChainProgressMessage (int chainCount, int accumulatedDraw, PlayerType who) {
+			TakiLogger.LogUI ($"Chain progress: {chainCount} PlusTwo cards by {who}, draw {accumulatedDraw}",
+		TakiLogger.LogLevel.Info);
+
+			// Default implementation - basic message
+			ShowPlayerMessageTimed ($"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw}", 3.0f);
+		}
+
+		/// <summary>
+		/// Show PlusTwo chain broken message
+		/// </summary>
+		/// <param name="cardsDrawn">Total cards that were drawn</param>
+		/// <param name="who">Who broke the chain by drawing</param>
+		public virtual void ShowChainBrokenMessage (int cardsDrawn, PlayerType who) {
+			TakiLogger.LogUI ($"Chain broken: {cardsDrawn} cards drawn by {who}", TakiLogger.LogLevel.Info);
+
+			// Default implementation - basic message
+			ShowPlayerMessageTimed ($"PlusTwo chain broken: Drew {cardsDrawn} cards", 3.0f);
+		}
 
 		/// <summary>
 		/// Show PlusTwo chain status with progressive messaging 
@@ -617,7 +722,7 @@ namespace TakiGame {
 
 			// Show pause message to user
 			ShowPlayerMessage ("Game Paused");
-            ShowComputerMessage("Game Paused");
+            ShowOpponentMessage("Game Paused");
 
 			// Pause button should still be available (it becomes Continue when paused)
 			if (PauseButton != null) {
@@ -684,7 +789,7 @@ namespace TakiGame {
 
 			// Clear messages
 			ShowPlayerMessage ("Setting up game...");
-			ShowComputerMessage ("");
+			ShowOpponentMessage ("");
 
 			TakiLogger.LogUI ("Base UI reset for new game complete");
 		}
@@ -753,7 +858,7 @@ namespace TakiGame {
             TakiLogger.LogDiagnostics("=== BASE UI STATE DEBUG ===");
             TakiLogger.LogDiagnostics($"Turn indicator: '{(TurnIndicatorText != null ? TurnIndicatorText.text : "NULL")}'");
             TakiLogger.LogDiagnostics($"Player message: '{(PlayerMessageText != null ? PlayerMessageText.text : "NULL")}'");
-            TakiLogger.LogDiagnostics($"Computer message: '{(ComputerMessageText != null ? ComputerMessageText.text : "NULL")}'");
+            TakiLogger.LogDiagnostics($"Opponent message: '{(OpponentMessageText != null ? OpponentMessageText.text : "NULL")}'");
             TakiLogger.LogDiagnostics($"Color selection active: {IsColorSelectionActive}");
             TakiLogger.LogDiagnostics($"Button States: {GetButtonStateSummary()}");
         }
