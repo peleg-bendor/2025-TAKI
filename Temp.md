@@ -2,13 +2,11 @@
 #region Core Properties and Fields
 // Essential game state, configuration, and component references
 - Header attributes and tooltips for Inspector fields
-- gameState, turnManager, computerAI, gameplayUI (component references)
-- singlePlayerUI, multiPlayerUI, useNewUIArchitecture (new UI architecture)
+- gameState, turnManager, computerAI (component references)
+- singlePlayerUI, multiPlayerUI (new UI architecture)
 - deckManager, startingPlayer, playerHand (game setup)
-- playerHandManager, computerHandManager (legacy hand managers)
-- singlePlayerPlayerHandManager, singlePlayerComputerHandManager (per-screen hand managers)
-- multiPlayerPlayer1HandManager, multiPlayerPlayer2HandManager (multiplayer hand managers)
-- usePerScreenHandManagers (architecture flag)
+- singleplayerPlayerHandManager, singleplayerOpponentHandManager (per-screen singleplayer hand managers)
+- multiplayerPlayerHandManager, multiplayerOpponentHandManager (per-screen multiplayer hand managers)
 - pauseManager, gameEndManager, exitValidationManager (flow managers)
 - networkGameManager (multiplayer)
 - logLevel, productionMode (logging configuration)

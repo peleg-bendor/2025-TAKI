@@ -1665,7 +1665,7 @@ I think I should remove these too:
 ```
 Sounds good? Is it too risky? I dont think we should be keeping our legacy stuff around at this point, it kind of just gets in the way, and make integrationg the new architecture confusing and over complicated, dont you think?
 
-
+Aggressive approach to remove legacy from `GameManager.cs`. You can compare `CLAUDE.md` to 'Temp.md` - I removed and renamed some things - I need you to update `CLAUDE.md` to reflect that and rflect our plan and approach.
 
 
 

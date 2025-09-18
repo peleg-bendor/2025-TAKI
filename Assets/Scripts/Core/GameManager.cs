@@ -46,25 +46,13 @@ namespace TakiGame {
 		public DeckManager deckManager;
 
 		[Header ("UI Architecture")]
-		[Tooltip ("LEGACY - Gameplay UI updates (being replaced by screen-specific managers)")]
-		public GameplayUIManager gameplayUI;
-
 		[Tooltip ("UI manager for Screen_SinglePlayerGame")]
 		public SinglePlayerUIManager singlePlayerUI;
 
 		[Tooltip ("UI manager for Screen_MultiPlayerGame")]
 		public MultiPlayerUIManager multiPlayerUI;
 
-		[Tooltip ("Enable new UI architecture (set to true after Inspector assignments complete)")]
-		public bool useNewUIArchitecture = true;
-
 		[Header ("Hand Manager Architecture")]
-		[Tooltip ("LEGACY: Hand manager for player cards - use for SinglePlayer only")]
-		public HandManager playerHandManager;
-
-		[Tooltip ("LEGACY: Hand manager for computer cards - use for SinglePlayer only")]
-		public HandManager opponentHandManager;
-
 		[Tooltip ("Player hand manager for Screen_SinglePlayerGame")]
 		public HandManager singleplayerPlayerHandManager;
 
@@ -72,13 +60,10 @@ namespace TakiGame {
 		public HandManager singleplayerOpponentHandManager;
 
 		[Tooltip ("Player 1 hand manager for Screen_MultiPlayerGame")]
-		public HandManager multiPlayerPlayer1HandManager;
+		public HandManager multiplayerPlayerHandManager;
 
 		[Tooltip ("Player 2 hand manager for Screen_MultiPlayerGame")]
-		public HandManager multiPlayerPlayer2HandManager;
-
-		[Tooltip ("Enable per-screen HandManager architecture (set to true after Inspector assignments)")]
-		public bool usePerScreenHandManagers = true;
+		public HandManager multiplayerOpponentHandManager;
 
 		[Header ("Game Setup")]
 		[Tooltip ("Starting player for new games")]
@@ -228,8 +213,8 @@ namespace TakiGame {
 				return playerHandManager;
 			}
 
-			if (isMultiplayerMode && multiPlayerPlayer1HandManager != null) {
-				return multiPlayerPlayer1HandManager;
+			if (isMultiplayerMode && multiplayerPlayerHandManager != null) {
+				return multiplayerPlayerHandManager;
 			} else if (!isMultiplayerMode && singleplayerPlayerHandManager != null) {
 				return singleplayerPlayerHandManager;
 			}
@@ -249,8 +234,8 @@ namespace TakiGame {
 				return opponentHandManager;
 			}
 
-			if (isMultiplayerMode && multiPlayerPlayer2HandManager != null) {
-				return multiPlayerPlayer2HandManager;
+			if (isMultiplayerMode && multiplayerOpponentHandManager != null) {
+				return multiplayerOpponentHandManager;
 			} else if (!isMultiplayerMode && singleplayerOpponentHandManager != null) {
 				return singleplayerOpponentHandManager;
 			}
@@ -390,13 +375,13 @@ namespace TakiGame {
 					isValid = false;
 				}
 
-				if (multiPlayerPlayer1HandManager == null) {
-					TakiLogger.LogError ("GameManager: MultiPlayerPlayer1HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+				if (multiplayerPlayerHandManager == null) {
+					TakiLogger.LogError ("GameManager: MultiplayerPlayerHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
 
-				if (multiPlayerPlayer2HandManager == null) {
-					TakiLogger.LogError ("GameManager: MultiPlayerPlayer2HandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
+				if (multiplayerOpponentHandManager == null) {
+					TakiLogger.LogError ("GameManager: MultiplayerOpponentHandManager not assigned but per-screen HandManager architecture is enabled!", TakiLogger.LogCategory.System);
 					isValid = false;
 				}
 

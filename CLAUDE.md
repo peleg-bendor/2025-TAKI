@@ -355,19 +355,17 @@ if (gameplayUI != null) {  // Legacy check
 
 ## **🎯 REVISED SYSTEMATIC CLEANUP PLAN** - Top-Down Approach ✅
 
-### **📋 GameManager.cs Organization Structure**
+### **📋 GameManager.cs Organization Structure (Clean Architecture)**
 
 ```csharp
 #region Core Properties and Fields
 // Essential game state, configuration, and component references
 - Header attributes and tooltips for Inspector fields
-- gameState, turnManager, computerAI, gameplayUI (component references)
-- singlePlayerUI, multiPlayerUI, useNewUIArchitecture (new UI architecture)
+- gameState, turnManager, computerAI (component references)
+- singlePlayerUI, multiPlayerUI (new UI architecture)
 - deckManager, startingPlayer, playerHand (game setup)
-- playerHandManager, computerHandManager (legacy hand managers)
-- singlePlayerPlayerHandManager, singlePlayerComputerHandManager (per-screen hand managers)
-- multiPlayerPlayer1HandManager, multiPlayerPlayer2HandManager (multiplayer hand managers)
-- usePerScreenHandManagers (architecture flag)
+- singleplayerPlayerHandManager, singleplayerOpponentHandManager (per-screen singleplayer hand managers)
+- multiplayerPlayerHandManager, multiplayerOpponentHandManager (per-screen multiplayer hand managers)
 - pauseManager, gameEndManager, exitValidationManager (flow managers)
 - networkGameManager (multiplayer)
 - logLevel, productionMode (logging configuration)
@@ -599,48 +597,52 @@ if (gameplayUI != null) {  // Legacy check
 
 This structure groups related functionality together while maintaining a logical flow from core setup through gameplay mechanics to external integrations and debugging tools.
 
-### **📋 PHASE 1: GameManager.cs Migration** (Current Phase)
-**Goal**: Methodically migrate all `gameplayUI` dependencies in GameManager.cs to new architecture
+### **📋 PHASE 1: Aggressive Legacy Removal** (Current Phase)
+**Goal**: Complete elimination of all legacy UI architecture from GameManager.cs
 
-**Why This Approach is Superior**:
-- **Top-Down (Consumer-Driven)**: Start with actual usage → drive architecture from real needs
-- **Immediate Progress**: Make tangible improvements right away
-- **Test-Driven Migration**: Each change can be verified immediately
-- **Natural Discovery**: Missing methods become obvious when GameManager needs them
+**🚨 AGGRESSIVE APPROACH ADOPTED**:
+- **All legacy components removed**: No `gameplayUI`, `useNewUIArchitecture`, `usePerScreenHandManagers` flags
+- **Clean hand manager naming**: `singleplayerPlayerHandManager`, `singleplayerOpponentHandManager`, etc.
+- **Force complete migration**: Remove legacy first, then fix what breaks
+- **No dual architecture confusion**: Only new UI architecture remains
 
 **Migration Strategy**:
-1. **Target the 14 known gameplayUI references** in GameManager.cs:
-   - **Event Connections** (lines 809-815): `gameplayUI.OnPlayCardClicked += ...` (5 handlers)
-   - **Event Disconnections** (lines 904-908): `gameplayUI.OnPlayCardClicked -= ...` (5 handlers)
-   - **Direct Method Calls** (lines 2014, 2053, 2412, 2441): `gameplayUI.ShowTakiSequenceStatus()`, etc.
+1. **✅ Legacy Cleanup COMPLETE**:
+   - ❌ Removed `gameplayUI` (GameplayUIManager reference)
+   - ❌ Removed `useNewUIArchitecture` flag
+   - ❌ Removed `usePerScreenHandManagers` flag
+   - ❌ Removed legacy hand manager references (`playerHandManager`, `opponentHandManager`)
+   - ✅ Clean hand manager naming adopted
 
-2. **Methodical Conversion Process**:
-   - **One call at a time**: Convert `gameplayUI.Method()` → `GetActiveUI()?.Method()`
-   - **Handle missing methods**: If method doesn't exist in BaseGameplayUIManager → add it
-   - **Test immediately**: Verify both singleplayer and multiplayer still work
-   - **Document progress**: Track which calls have been migrated
+2. **🎯 Current Task**: Fix compilation errors and missing method calls:
+   - Convert any remaining legacy calls to `GetActiveUI()?.Method()`
+   - Add missing methods to BaseGameplayUIManager as needed
+   - Test both singleplayer and multiplayer functionality
+   - Ensure all UI interactions use new architecture
 
 3. **Expected Outcomes**:
-   - **BaseGameplayUIManager** gets any missing methods it actually needs
-   - **GameManager** fully uses new architecture
-   - **Legacy dependencies** are eliminated systematically
-   - **Real usage patterns** drive what methods are truly needed
+   - **Clean, single architecture**: No legacy fallbacks or confusion
+   - **Forced completeness**: All methods MUST exist in new architecture
+   - **Immediate clarity**: What's missing becomes obvious immediately
+   - **No regression risk**: Can't accidentally use removed legacy system
 
-### **📋 PHASE 2: Legacy Cleanup** (Next Phase)
-**Goal**: Clean up unused legacy methods and remove GameplayUIManager.cs
+### **📋 PHASE 2: Final Legacy Cleanup** (Next Phase)
+**Goal**: Complete removal of GameplayUIManager.cs and verify architecture completeness
 
 **Approach**:
-- After GameManager migration, any methods in legacy GameplayUIManager.cs that were never needed become obvious candidates for removal
-- **Usage-driven cleanup**: Only keep what's actually used, remove what's not
+- **Remove GameplayUIManager.cs entirely** once GameManager migration is complete
+- **Verify all UI methods exist** in BaseGameplayUIManager that GameManager actually needs
+- **Test complete functionality** in both singleplayer and multiplayer modes
+- **Document remaining missing methods** from original 9-method analysis if any are still needed
 
-### **📋 PHASE 3: Final Integration** (Future Phase)
-**Goal**: Complete any remaining original 9-method requirements and final validation
+### **📋 PHASE 3: Architecture Validation** (Future Phase)
+**Goal**: Final testing and documentation update
 
-**This top-down approach ensures**:
-- **Real needs drive architecture** (not theoretical requirements)
-- **Immediate validation** after each change
-- **No accidental removal** of needed functionality
-- **Clean migration path** from legacy to new architecture
+**This aggressive approach ensures**:
+- **Single source of truth**: Only new UI architecture exists
+- **Complete migration**: No partial or dual systems
+- **Clear error messages**: Missing functionality becomes obvious immediately
+- **Clean codebase**: No confusion about which system to use
 
 ### **Additional Discovery: Orphaned Method Integration**
 
@@ -654,6 +656,13 @@ This structure groups related functionality together while maintaining a logical
 ✅ **BaseGameplayUIManager.cs** - Clean base implementation with Template Method pattern
 ✅ **SinglePlayerUIManager.cs** - Context-aware overrides for Human vs AI logic
 ✅ **MultiPlayerUIManager.cs** - Context-aware overrides for network/local player logic
-⏳ **GameManager.cs** - Remove legacy `gameplayUI` dependencies (HIGH PRIORITY)
+✅ **GameManager.cs** - Legacy component references removed (🎯 CURRENT: Fix compilation errors)
+⏳ **GameplayUIManager.cs** - Complete removal after GameManager migration
 ⏳ **DeckUIManager.cs** - Investigate orphaned ResetUIForNewGame() integration (deferred)
+
+## **🎯 CURRENT STATUS: Aggressive Legacy Removal Applied**
+
+**✅ COMPLETED**: All legacy UI architecture components removed from GameManager.cs
+**🎯 ACTIVE**: Fix compilation errors and ensure all GameManager UI calls use `GetActiveUI()` pattern
+**📋 NEXT**: Remove GameplayUIManager.cs completely once compilation errors resolved
 
