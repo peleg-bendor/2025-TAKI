@@ -76,9 +76,8 @@ namespace TakiGame {
 				TakiLogger.LogDebug ("GameManager.gameState: " + (gameManager.gameState != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 				TakiLogger.LogDebug ("GameManager.turnManager: " + (gameManager.turnManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 				TakiLogger.LogDebug ("GameManager.computerAI: " + (gameManager.computerAI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
-				TakiLogger.LogDebug ("GameManager.playerHandManager: " + (gameManager.playerHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
-				TakiLogger.LogDebug ("GameManager.opponentHandManager: " + (gameManager.opponentHandManager != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
-				TakiLogger.LogDebug ("GameManager.gameplayUI: " + (gameManager.gameplayUI != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.GetActivePlayerHandManager(): " + (gameManager.GetActiveOpponentHandManager () != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
+				TakiLogger.LogDebug ("GameManager.GetActiveUI(): " + (gameManager.GetActiveUI() != null ? "OK" : "NULL"), TakiLogger.LogCategory.Diagnostics);
 			}
 		}
 
@@ -177,7 +176,7 @@ namespace TakiGame {
 				}
 
 				// Check selected card
-				CardData selectedCard = gameManager.playerHandManager?.GetSelectedCard ();
+				CardData selectedCard = gameManager.GetActivePlayerHandManager ()?.GetSelectedCard ();
 				if (selectedCard != null) {
 					TakiLogger.LogDebug ("Selected card: " + selectedCard.GetDisplayText (), TakiLogger.LogCategory.Diagnostics);
 				} else {

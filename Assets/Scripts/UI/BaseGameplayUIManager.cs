@@ -256,6 +256,7 @@ namespace TakiGame {
 
             if (TurnIndicatorText != null) {
                 string turnMessage = GetTurnMessage(turnState);
+				TurnIndicatorText.text = turnMessage;
 				TakiLogger.LogUI ($"Turn indicator text: '{turnMessage}'", TakiLogger.LogLevel.Trace);
 			}
 
@@ -724,6 +725,19 @@ namespace TakiGame {
                     break;
             }
         }
+
+		/// <summary>
+		/// Clean UI before winner announcement
+		/// </summary>
+		public void CleanUIBeforeWinnerAnnouncement () {
+
+			ClearPlayerMessage ();
+			ClearOpponentMessage ();
+
+			// Disable all action buttons on game over
+			UpdateStrictButtonStates (false, false, false);
+			TakiLogger.LogGameState ("Game over - all buttons disabled", TakiLogger.LogLevel.Debug);
+		}
 
 		/// <summary>
 		/// Handle UI state when game is paused

@@ -243,25 +243,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Show winner announcement for singleplayer
-		/// </summary>
-		public void ShowWinnerAnnouncement (PlayerType winner) {
-			string winnerText = winner == PlayerType.Human ?
-								"You Win!" : "Computer Wins!";
-
-			if (turnIndicatorText != null) {
-				turnIndicatorText.text = winnerText;
-			}
-
-			ShowPlayerMessage ("");
-			ShowOpponentMessage ("");
-
-			// Disable all action buttons on game over
-			UpdateStrictButtonStates (false, false, false);
-			TakiLogger.LogGameState ("SinglePlayer game over - all buttons disabled");
-		}
-
-		/// <summary>
 		/// Show computer difficulty selection feedback
 		/// </summary>
 		public void ShowDifficultyFeedback (string difficulty) {

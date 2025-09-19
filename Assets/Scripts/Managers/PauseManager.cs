@@ -23,9 +23,6 @@ namespace TakiGame {
 		[Tooltip ("Reference to BasicComputerAI for AI pause/resume")]
 		public BasicComputerAI computerAI;
 
-		[Tooltip ("Reference to GameplayUIManager for UI state updates")]
-		public GameplayUIManager gameplayUI; // DEPRECATED: Use GetActiveUI() instead
-
 		[Tooltip ("Reference to MenuNavigation for screen transitions")]
 		public MenuNavigation menuNavigation;
 
@@ -279,11 +276,6 @@ namespace TakiGame {
 
 			if (computerAI == null) {
 				computerAI = FindObjectOfType<BasicComputerAI> ();
-			}
-
-			// DEPRECATED: gameplayUI field no longer used - GameManager.GetActiveUI() provides active UI manager
-			if (gameplayUI == null) {
-				gameplayUI = FindObjectOfType<GameplayUIManager> (); // Legacy fallback for Inspector assignment
 			}
 
 			if (menuNavigation == null) {

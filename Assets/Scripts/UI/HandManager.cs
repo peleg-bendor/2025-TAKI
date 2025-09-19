@@ -80,7 +80,6 @@ namespace TakiGame {
 
 			// DIAGNOSTIC: Check GameManager UI architecture setup
 			TakiLogger.LogSystem ($"HandManager {gameObject.name}: DIAGNOSTIC - GameManager found, checking UI architecture...");
-			TakiLogger.LogSystem ($"  - useNewUIArchitecture: {gameManager.useNewUIArchitecture}");
 			TakiLogger.LogSystem ($"  - singlePlayerUI: {(gameManager.singlePlayerUI != null ? "ASSIGNED" : "NULL")}");
 			TakiLogger.LogSystem ($"  - multiPlayerUI: {(gameManager.multiPlayerUI != null ? "ASSIGNED" : "NULL")}");
 
@@ -117,7 +116,6 @@ namespace TakiGame {
 
 			// DIAGNOSTIC: Check GameManager UI architecture setup
 			TakiLogger.LogSystem ($"HandManager {gameObject.name}: DIAGNOSTIC - GameManager found, checking UI architecture...");
-			TakiLogger.LogSystem ($"  - useNewUIArchitecture: {gameManager.useNewUIArchitecture}");
 			TakiLogger.LogSystem ($"  - singlePlayerUI: {(gameManager.singlePlayerUI != null ? "ASSIGNED" : "NULL")}");
 			TakiLogger.LogSystem ($"  - multiPlayerUI: {(gameManager.multiPlayerUI != null ? "ASSIGNED" : "NULL")}");
 

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace TakiGame {
 	/// <summary>
@@ -374,22 +376,12 @@ namespace TakiGame {
 				pauseManager.gameState = gameState;
 				pauseManager.turnManager = turnManager;
 				pauseManager.computerAI = computerAI;
-				if (isMultiplayerMode && multiPlayerUI != null) {
-					pauseManager.gameplayUI = multiPlayerUI;
-				} else if (!isMultiplayerMode && singlePlayerUI != null) {
-					pauseManager.gameplayUI = singlePlayerUI;
-				}
 				// pauseManager.menuNavigation will be found automatically
 			}
 
 			if (gameEndManager != null) {
 				gameEndManager.gameManager = this;
 				gameEndManager.gameState = gameState;
-				if (isMultiplayerMode && multiPlayerUI != null) {
-					gameEndManager.gameplayUI = multiPlayerUI;
-				} else if (!isMultiplayerMode && singlePlayerUI != null) {
-					gameEndManager.gameplayUI = singlePlayerUI;
-				}
 				// gameEndManager.menuNavigation will be found automatically
 			}
 
@@ -2732,11 +2724,11 @@ namespace TakiGame {
 			GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
 			GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {cardIdentifier}");
 
-			// MILESTONE 1: Update opponent hand count (simulate card removal)
-			if (opponentHandManager != null && opponentHandManager.IsOpponentHand) {
-				int currentCount = opponentHandManager.NetworkOpponentHandCount;
+			var activeOpponentHandManager = GetActiveOpponentHandManager ();
+			if (activeOpponentHandManager?.IsOpponentHand == true) {
+				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
 				if (currentCount > 0) {
-					opponentHandManager.UpdateNetworkOpponentHandCount (currentCount - 1);
+					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount - 1);
 					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount - 1}");
 				}
 			}
@@ -2765,11 +2757,12 @@ namespace TakiGame {
 			GetActiveUI ()?.ShowOpponentMessage ("Opponent drew a card");
 
 			// MILESTONE 1: Update opponent hand count (simulate card addition)
-			if (opponentHandManager != null && opponentHandManager.IsOpponentHand) {
-				int currentCount = opponentHandManager.NetworkOpponentHandCount;
-				opponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
-				TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
-			}
+			var activeOpponentHandManager = GetActiveOpponentHandManager ();
+			if (activeOpponentHandManager?.IsOpponentHand == true) {
+				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
+				activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
+				TakiLogger.LogNetwork ($"Updated opponent hand count: { currentCount + 1}");
+		    }
 
 			// MILESTONE 1: Simulate deck count update
 			// TODO: In next milestone, update actual deck counts
@@ -2871,7 +2864,7 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ("Updating all UI with network support");
 
 			// MILESTONE 1 FIX: Respect network privacy when updating UI
-			if (isMultiplayerMode && opponentHandManager != null && opponentHandManager.IsOpponentHand) {
+			if (isMultiplayerMode && GetActiveOpponentHandManager ()?.IsOpponentHand == true) {
 				// For opponent hands in multiplayer, don't override the privacy display
 				// Only update UI elements that don't conflict with card back display
 				TakiLogger.LogNetwork ("Network mode: Updating UI while preserving opponent hand privacy");
@@ -2884,7 +2877,7 @@ namespace TakiGame {
 
 				// Update hand size displays without touching hand cards
 				int localHandSize = playerHand?.Count ?? 0;
-				int opponentHandSize = opponentHandManager?.NetworkOpponentHandCount ?? 0;
+				int opponentHandSize = GetActiveOpponentHandManager ()?.NetworkOpponentHandCount ?? 0;
 				GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
 
 				TakiLogger.LogNetwork ($"UI updated safely: Local={localHandSize}, Opponent={opponentHandSize}");
@@ -2898,14 +2891,11 @@ namespace TakiGame {
 
 			// MILESTONE 1: Additional network-specific UI updates
 			if (isMultiplayerMode && networkGameManager != null) {
-				// Update turn display for multiplayer
-				GetActiveUI ()?.UpdateTurnDisplayMultiplayer (networkGameManager.IsMyTurn);
-
 				// Sync hand counts for network display (already done above)
 				SynchronizeNetworkHandCounts ();
 			}
 		}
-
+		
 		/// <summary>
 		/// MILESTONE 1: Synchronize hand counts for network display
 		/// </summary>
@@ -2913,16 +2903,19 @@ namespace TakiGame {
 			if (!isMultiplayerMode) return;
 
 			// Update local player hand count display
-			if (playerHandManager != null && gameplayUI != null) {
+			var activePlayerHandManager = GetActivePlayerHandManager ();
+			if (activePlayerHandManager != null) {
 				int localHandSize = playerHand.Count;
-				GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, opponentHandManager?.NetworkOpponentHandCount ?? 0);
+				int opponentHandSize = GetActiveOpponentHandManager ()?.NetworkOpponentHandCount ?? 0;
+				GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
 			}
 
 			// Ensure opponent hand count is properly displayed
-			if (opponentHandManager != null && opponentHandManager.IsOpponentHand) {
+			var activeOpponentHandManager = GetActiveOpponentHandManager ();
+			if (activeOpponentHandManager?.IsOpponentHand == true) {
 				// Hand count should already be updated by NetworkGameManager
 				// This ensures UI consistency
-				TakiLogger.LogNetwork ($"Network hand count sync: Local={playerHand.Count}, Opponent={opponentHandManager.NetworkOpponentHandCount}");
+				TakiLogger.LogNetwork ($"Network hand count sync: Local ={ playerHand.Count}, Opponent ={ activeOpponentHandManager.NetworkOpponentHandCount}");
 			}
 		}
 
@@ -2968,7 +2961,7 @@ namespace TakiGame {
 			}
 
 			// Refresh playable cards for player hand
-			if (newTurnState == TurnState.PlayerTurn && playerHandManager != null) {
+			if (newTurnState == TurnState.PlayerTurn && GetActivePlayerHandManager () != null) {
 				Invoke (nameof (RefreshPlayerHandStates), 0.1f);
 			}
 		}
@@ -2997,7 +2990,7 @@ namespace TakiGame {
 				gameEndManager.ProcessGameEnd (winner);
 			} else {
 				// Fallback to existing logic if GameEndManager not available
-				GetActiveUI ()?.ShowWinnerAnnouncement (winner);
+				GetActiveUI ()?.CleanUIBeforeWinnerAnnouncement ();
 			}
 
 			OnGameEnded?.Invoke (winner);
@@ -3035,7 +3028,7 @@ namespace TakiGame {
 			TakiLogger.LogGameState ($"Card added to TAKI sequence: now {cardCount} cards");
 
 			// Update UI to show updated sequence status
-			if (gameplayUI != null && gameState != null) {
+			if (gameState != null) {
 				bool isPlayerTurn = gameState.IsPlayerTurn;
 				CardColor sequenceColor = gameState.TakiSequenceColor;
 				GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, cardCount, isPlayerTurn);
@@ -3427,13 +3420,15 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ($"Multiplayer Mode: {isMultiplayerMode}");
 			TakiLogger.LogDiagnostics ($"Local Hand Size: {playerHand.Count}");
 
-			if (playerHandManager != null) {
-				TakiLogger.LogDiagnostics ($"Player Hand Manager - Network: {playerHandManager.IsNetworkGame}, Size: {playerHandManager.HandSize}");
+			var activePlayerHandManager = GetActivePlayerHandManager (); 
+			if (activePlayerHandManager != null) {
+				TakiLogger.LogDiagnostics ($"Player Hand Manager - Network: {activePlayerHandManager.IsNetworkGame}, Size: {activePlayerHandManager.HandSize}");
 			}
 
-			if (opponentHandManager != null) {
-				TakiLogger.LogDiagnostics ($"Computer Hand Manager - Network: {opponentHandManager.IsNetworkGame}, Opponent: {opponentHandManager.IsOpponentHand}");
-				TakiLogger.LogDiagnostics ($"Opponent Hand Count: {opponentHandManager.NetworkOpponentHandCount}");
+			var activeOpponentHandManager = GetActiveOpponentHandManager (); 
+			if (activeOpponentHandManager != null) {
+				TakiLogger.LogDiagnostics ($"Computer Hand Manager - Network: {activeOpponentHandManager.IsNetworkGame}, Opponent: {activeOpponentHandManager.IsOpponentHand}");
+				TakiLogger.LogDiagnostics ($"Opponent Hand Count: {activeOpponentHandManager.NetworkOpponentHandCount}");
 			}
 
 			if (networkGameManager != null) {
@@ -3459,16 +3454,6 @@ namespace TakiGame {
 			if (networkGameManager != null) {
 				TakiLogger.LogDiagnostics (GetNetworkGameStatus ());
 			}
-		}
-
-		/// <summary>
-		/// MILESTONE 1: Force network hand synchronization for debugging
-		/// </summary>
-		[ContextMenu ("Force Network Hand Sync")]
-		public void ForceNetworkHandSync () {
-			TakiLogger.LogDiagnostics ("=== FORCING NETWORK HAND SYNC ===");
-			SynchronizeNetworkHandCounts ();
-			UpdateAllUIWithNetworkSupport ();
 		}
 
 		[ContextMenu ("Debug TAKI Sequence State")]
@@ -3504,8 +3489,9 @@ namespace TakiGame {
 		/// </summary>
 		[ContextMenu ("Debug Selected Card Type")]
 		public void DebugSelectedCardType () {
-			if (playerHandManager != null) {
-				CardData selectedCard = playerHandManager.GetSelectedCard ();
+			var activePlayerHandManager = GetActivePlayerHandManager ();
+			if (activePlayerHandManager != null) {
+				CardData selectedCard = activePlayerHandManager.GetSelectedCard ();
 				if (selectedCard != null) {
 					TakiLogger.LogDiagnostics ($"=== SELECTED CARD DEBUG ===");
 					TakiLogger.LogDiagnostics ($"Card display: {selectedCard.GetDisplayText ()}");
@@ -3520,22 +3506,6 @@ namespace TakiGame {
 			} else {
 				TakiLogger.LogDiagnostics ("PlayerHandManager is null");
 			}
-		}
-
-		/// <summary>
-		/// DEBUGGING: Force a new game start for testing
-		/// </summary>
-		[ContextMenu ("Force New Game Start")]
-		public void ForceNewGameStart () {
-			TakiLogger.LogDiagnostics ("FORCING NEW GAME START");
-
-			if (!areSystemsInitialized) {
-				TakiLogger.LogDiagnostics ("Initializing systems...");
-				InitializeSinglePlayerSystems ();
-			}
-
-			TakiLogger.LogDiagnostics ("Starting new game...");
-			StartNewSinglePlayerGame ();
 		}
 
 		[ContextMenu ("Log Turn Flow State")]
@@ -3565,33 +3535,6 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ($"State description: {GetSpecialCardStateDescription ()}");
 		}
 
-		/// <summary>
-		/// Debug method to force reset STOP flag
-		/// </summary> 
-		[ContextMenu ("Force Reset STOP Flag")]
-		public void ForceResetStopFlag () {
-			TakiLogger.LogDiagnostics ("FORCE RESETTING STOP FLAG");
-			shouldSkipNextTurn = false;
-			TakiLogger.LogDiagnostics ($"STOP flag now: {shouldSkipNextTurn}");
-		}
-
-		/// <summary>
-		/// DEBUGGING: Method to test STOP card functionality
-		/// </summary>
-		[ContextMenu ("Test STOP Card Effect")]
-		public void TestStopCardEffect () {
-			TakiLogger.LogDiagnostics ("=== TESTING STOP CARD EFFECT ===");
-
-			// Simulate STOP card being played
-			shouldSkipNextTurn = true;
-			stopCardPlayer = PlayerType.Human;
-
-			TakiLogger.LogDiagnostics ($"STOP flag set: {shouldSkipNextTurn}");
-			TakiLogger.LogDiagnostics ($"STOP player: {stopCardPlayer}");
-
-			GetActiveUI ()?.ShowPlayerMessage ("TEST: STOP flag set - now click END TURN");
-		}
-
 		/// <summary> 
 		/// DEBUGGING: Method to check STOP flag state
 		/// </summary>
@@ -3602,44 +3545,6 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ($"stopCardPlayer: {stopCardPlayer}");
 			TakiLogger.LogDiagnostics ($"Current turn state: {gameState?.turnState}");
 			TakiLogger.LogDiagnostics ($"Can player end turn: {canPlayerEndTurn}");
-		}
-
-		/// <summary>
-		/// PHASE 7: Debug method to force reset special card state
-		/// </summary>
-		[ContextMenu ("Force Reset Special Card State")]
-		public void ForceResetSpecialCardState () {
-			TakiLogger.LogDiagnostics ("FORCE RESETTING SPECIAL CARD STATE");
-			ResetSpecialCardState ();
-			LogSpecialCardState ();
-		}
-
-		/// <summary>
-		/// DEBUGGING: Manual turn trigger for testing
-		/// </summary>
-		[ContextMenu ("Trigger Computer Turn")]
-		public void TriggerComputerTurnManually () {
-			TakiLogger.LogDiagnostics ("MANUAL COMPUTER TURN TRIGGER");
-			OnComputerTurnReady ();
-		}
-
-		/// <summary>
-		/// Force UI sync - call this to fix button states after manual testing
-		/// </summary>
-		[ContextMenu ("Force UI Sync")]
-		public void ForceUISync () {
-			TakiLogger.LogDiagnostics ("FORCING UI SYNCHRONIZATION");
-
-			if (gameState == null) {
-				TakiLogger.LogError ("Cannot sync UI - missing gameState component", TakiLogger.LogCategory.System);
-				return;
-			}
-
-			// Force button state update based on current turn state
-			bool shouldEnableButtons = gameState.CanPlayerAct ();
-			GetActiveUI ()?.UpdateButtonStates (shouldEnableButtons);
-
-			TakiLogger.LogDiagnostics ($"UI synced - Turn: {gameState.turnState}, Buttons enabled: {shouldEnableButtons}");
 		}
 
 		#endregion

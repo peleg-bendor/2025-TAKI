@@ -357,11 +357,6 @@ namespace TakiGame {
 				gameManager.deckManager.deckUI.UpdateDiscardPileDisplay (topDiscardCard);
 			}
 
-			// Update gameplay UI with deck status message (using existing methods)
-			if (gameManager.GetActiveUI() != null) {
-				gameManager.GetActiveUI().ShowDeckSyncStatus ($"Draw: {drawPileCount}, Discard: {discardPileCount}");
-			}
-
 			TakiLogger.LogNetwork ("Multiplayer deck display updated successfully");
 		}
 
@@ -462,11 +457,6 @@ namespace TakiGame {
 			if (gameManager != null && gameManager.gameState != null) {
 				TurnState newTurnState = _isMyTurn ? TurnState.PlayerTurn : TurnState.ComputerTurn;
 				gameManager.gameState.ChangeTurnState (newTurnState);
-
-				// Update UI
-				if (gameManager.GetActiveUI() != null) {
-					gameManager.GetActiveUI().UpdateTurnDisplayMultiplayer (_isMyTurn);
-				}
 			}
 
 			if (_isFirstTurn) {
@@ -548,7 +538,10 @@ namespace TakiGame {
 		/// Process action from remote player
 		/// </summary>
 		void ProcessRemoteAction (Player player, object moveData) {
-			if (gameManager == null) return;
+			if (gameManager == null) {
+				TakiLogger.LogError ("NetworkGameManager: ProcessRemoteAction - gameManager is null!", TakiLogger.LogCategory.Network);
+				return;
+			}
 
 			if (moveData is NetworkMoveData networkMove) {
 				switch (networkMove.actionType) {

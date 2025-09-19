@@ -29,9 +29,6 @@ namespace TakiGame {
 		[Tooltip ("Reference to MenuNavigation for screen transitions")]
 		public MenuNavigation menuNavigation;
 
-		[Tooltip ("Reference to GameplayUIManager for UI updates")]
-		public GameplayUIManager gameplayUI; // DEPRECATED: Use GetActiveUI() instead
-
 		[Header ("Game End Settings")]
 		[Tooltip ("Time to display winner before showing options")]
 		public float winnerDisplayTime = 2.0f;
@@ -97,7 +94,7 @@ namespace TakiGame {
 
 			// First, show winner in gameplay UI for a moment
 			if (gameManager.GetActiveUI() != null) {
-				gameManager.GetActiveUI().ShowWinnerAnnouncement (winner);
+				gameManager.GetActiveUI().CleanUIBeforeWinnerAnnouncement ();
 			}
 
 			// Wait for winner display time
@@ -323,11 +320,6 @@ namespace TakiGame {
 
 			if (menuNavigation == null) {
 				menuNavigation = FindObjectOfType<MenuNavigation> ();
-			}
-
-			// DEPRECATED: gameplayUI field no longer used - GameManager.GetActiveUI() provides active UI manager
-			if (gameplayUI == null) {
-				gameplayUI = FindObjectOfType<GameplayUIManager> (); // Legacy fallback for Inspector assignment
 			}
 
 			// Find UI references if not assigned

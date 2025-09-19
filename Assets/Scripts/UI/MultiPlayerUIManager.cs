@@ -257,37 +257,6 @@ namespace TakiGame {
         #region Multiplayer-Specific Methods
 
         /// <summary>
-        /// Update turn display for multiplayer
-        /// </summary>
-        public void UpdateTurnDisplayMultiplayer(bool isLocalPlayerTurn) {
-            if (turnIndicatorText != null) {
-                if (isLocalPlayerTurn) {
-                    turnIndicatorText.text = "Your Turn";
-                } else {
-                    turnIndicatorText.text = "Opponent's Turn";
-                }
-            }
-
-            if (isLocalPlayerTurn) {
-                GameManager gameManager = FindObjectOfType<GameManager>();
-                bool gameReady = gameManager != null && gameManager.IsNetworkReady;
-
-                if (gameReady) {
-                    UpdateStrictButtonStates(true, true, false);
-                    ShowPlayerMessage("Your turn - play a card or draw");
-                } else {
-                    UpdateStrictButtonStates(false, false, false);
-                    ShowPlayerMessage("Setting up game...");
-                }
-            } else {
-                UpdateStrictButtonStates(false, false, false);
-                ShowPlayerMessage("Waiting for opponent...");
-            }
-
-            TakiLogger.LogNetwork($"Multiplayer turn display updated: LocalTurn={isLocalPlayerTurn}");
-        }
-
-        /// <summary>
         /// Update hand size display for multiplayer
         /// </summary>
         public void UpdateHandSizeDisplayMultiplayer(int localHandSize, int opponentHandSize) {
@@ -300,14 +269,6 @@ namespace TakiGame {
         public void ShowNetworkStatus(string status) {
             ShowPlayerMessageTimed($"Network: {status}", 3.0f);
             TakiLogger.LogNetwork($"Network status displayed: {status}");
-        }
-
-        /// <summary>
-        /// Show deck synchronization status
-        /// </summary>
-        public void ShowDeckSyncStatus (string message) {
-            ShowOpponentMessageTimed ($"Deck: {message}", 2.0f);
-            TakiLogger.LogNetwork ($"Deck sync status: {message}");
         }
 
         /// <summary>
@@ -396,38 +357,6 @@ namespace TakiGame {
             TakiLogger.LogNetwork($"Waiting for opponent: {action}");
         }
 
-        /// <summary>
-        /// Enhanced UpdateAllDisplays with network awareness
-        /// </summary>
-        public void UpdateAllDisplaysWithNetwork(TurnState turnState, GameStatus gameStatus, InteractionState interactionState, CardColor activeColor) {
-            UpdateAllDisplays(turnState, gameStatus, interactionState, activeColor);
-
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (gameManager != null && gameManager.networkGameManager != null) {
-                bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
-                UpdateTurnDisplayMultiplayer(isMyTurn);
-            }
-
-            TakiLogger.LogNetwork("All displays updated with network support");
-        }
-
-        /// <summary>
-        /// Show winner announcement for multiplayer
-        /// </summary>
-        public void ShowWinnerAnnouncementMultiplayer(bool localPlayerWon) {
-            string winnerText = localPlayerWon ? "You Win!" : "Opponent Wins!";
-
-            if (turnIndicatorText != null) {
-                turnIndicatorText.text = winnerText;
-            }
-
-            ShowPlayerMessage(localPlayerWon ? "Congratulations!" : "Better luck next time!");
-            ShowOpponentMessage(localPlayerWon ? "You won the match!" : "Opponent won the match!");
-
-            UpdateStrictButtonStates(false, false, false);
-            TakiLogger.LogNetwork($"Multiplayer game over - LocalWon: {localPlayerWon}");
-        }
-
         #endregion
 
         #region Debug Methods
@@ -456,7 +385,6 @@ namespace TakiGame {
             ShowOpponentAction("played Red 5");
             ShowTurnTransitionMultiplayer(true, "drew a card");
             ShowOpponentHandPrivacy(6);
-            ShowDeckSyncStatus("synchronized");
 
             TakiLogger.LogDiagnostics("MultiPlayer message test complete - check UI text elements");
         }

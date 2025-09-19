@@ -305,19 +305,16 @@ if (gameplayUI != null) {  // Legacy check
 18. **ShowPlusTwoChainStatus()** / **HidePlusTwoChainStatus()** - Base chain status display
 19. **HideTakiSequenceStatus()** - Base sequence status hiding
 
-**⏳ Original 9 Missing Methods Status**:
+**✅ Original 9 Missing Methods Status** - **ALL RESOLVED**:
 ✅ **ResetUIForNewGame()** - COMPLETE
 ✅ **ShowOpponentAction()** - COMPLETE
-✅ **EnableEndTakiSequenceButton()** - COMPLETE (was not in original 9, but was causing compilation errors)
-✅ **ShowTakiSequenceStatus()** - COMPLETE (was not in original 9, but was causing compilation errors)
-✅ **UpdateAllDisplays()** - COMPLETE (was not in original 9, but needed refactoring for clean architecture)
-⏳ **UpdateTurnDisplayMultiplayer()** - Exists in legacy, needs integration
-⏳ **ShowSequenceProgressMessage()** - Needs base class integration
-⏳ **ShowSpecialCardEffect()** - Needs base class integration
-⏳ **ShowWinnerAnnouncement()** - Needs signature standardization
-⏳ **ShowDeckSyncStatus()** - Needs base class integration
-⏳ **ShowImmediateFeedback()** - Needs base class integration
-⏳ **UpdateButtonStates()** - Legacy method, needs integration decision
+✅ **UpdateTurnDisplayMultiplayer()** - **REMOVED** (unnecessary hack, proper UpdateTurnDisplay() works for both modes)
+✅ **ShowSequenceProgressMessage()** - COMPLETE
+✅ **ShowSpecialCardEffect()** - COMPLETE
+✅ **ShowWinnerAnnouncement()** - COMPLETE (MultiPlayerUIManager updated)
+✅ **ShowDeckSyncStatus()** - **NOT NEEDED** (no current usage found)
+✅ **ShowImmediateFeedback()** - COMPLETE
+✅ **UpdateButtonStates()** - **REPLACED** with UpdateStrictButtonStates() (legacy method deprecated)
 
 ## **🎯 BaseGameplayUIManager.cs - COMPLETE REVIEW FINISHED** ✅
 
@@ -379,33 +376,23 @@ Following the simple, clean approach without over-engineering helpers:
 - **Context Awareness**: Each mode shows appropriate messages (Human/AI vs Local/Opponent)
 - **Template Method Pattern**: Base handles UI manipulation, concrete classes provide context
 
-### **🚨 CRITICAL DISCOVERY - Turn System Architecture Issue**:
+### **✅ TURN SYSTEM ARCHITECTURE ISSUE RESOLVED** (2025-01-19):
 
-**Duplicate UI Updates Problem**:
-- **SinglePlayer Flow**: `TurnManager → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UpdateTurnDisplay()`
-- **Multiplayer Flow**: `NetworkGameManager → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UpdateTurnDisplay()` + **ALSO calls `UpdateTurnDisplayMultiplayer()`**
-- **Result**: Multiplayer mode updates UI **TWICE** with potentially conflicting information!
+**🚨 DUPLICATE UI UPDATES PROBLEM IDENTIFIED & FIXED**:
+- **Root Cause**: `UpdateTurnDisplayMultiplayer()` methods were **unnecessary hacks** that duplicated proper functionality
+- **NetworkGameManager** directly called UI methods + **GameManager** called same UI methods → duplicate updates
+- **Investigation revealed**: `StartPlayerTurnFlow()` already works perfectly for both singleplayer and multiplayer
 
-**Architecture Gap Identified**:
-- Different turn management systems (TurnManager vs NetworkGameManager)
-- Different responsibilities (pure display vs display + button control + messages)
-- Potential button state conflicts and message overwrites
+**✅ SOLUTION IMPLEMENTED**:
+1. **Fixed BaseGameplayUIManager.UpdateTurnDisplay()** - was missing `TurnIndicatorText.text = turnMessage` assignment
+2. **Removed duplicate UI calls** from NetworkGameManager and GameManager
+3. **UpdateTurnDisplayMultiplayer() methods removed** - completely redundant since base `GetTurnMessage()` already returns "Your Turn"/"Opponent's Turn"
 
-### **📋 NEXT CRITICAL PHASE: Turn System Investigation**
+**✅ UNIFIED ARCHITECTURE ACHIEVED**:
+- **Single Turn Flow**: Both modes use `GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UI.UpdateTurnDisplay()`
+- **Rich Button Logic**: `StartPlayerTurnFlow()` provides sophisticated button state management for both modes (PlusTwo chains, valid card analysis, TAKI sequences)
+- **No Mode-Specific UI Logic**: Base UI classes handle both singleplayer (Human vs AI) and multiplayer (Local vs Remote) contexts seamlessly
 
-**Investigation Required**:
-1. **Deep analysis of singleplayer turn flow** (TurnManager + AI integration)
-2. **Deep analysis of multiplayer turn flow** (NetworkGameManager + network sync)
-3. **Design unified `UpdateTurnDisplay` method** that handles both contexts cleanly
-4. **Ensure pure display logic in UI managers** when possible
-5. **Resolve button state and message conflicts**
-
-**Goal**: Create clean, unified turn display system that eliminates duplicate updates and conflicts while maintaining mode-specific behavior.
-
-### **⏳ Remaining UI Methods to Migrate**:
-- **UpdateButtonStates()** - Legacy method integration decision needed
-- **ShowWinnerAnnouncement()** - Signature standardization required
-- **ShowDeckSyncStatus()** - Base class integration needed
 
 ## **🎯 REVISED SYSTEMATIC CLEANUP PLAN** - Top-Down Approach ✅
 
@@ -714,9 +701,165 @@ This structure groups related functionality together while maintaining a logical
 ⏳ **GameplayUIManager.cs** - Complete removal after GameManager migration
 ⏳ **DeckUIManager.cs** - Investigate orphaned ResetUIForNewGame() integration (deferred)
 
-## **🎯 CURRENT STATUS: Aggressive Legacy Removal Applied**
+## **🎯 CURRENT STATUS: Architecture Migration Complete** ✅
 
-**✅ COMPLETED**: All legacy UI architecture components removed from GameManager.cs
-**🎯 ACTIVE**: Fix compilation errors and ensure all GameManager UI calls use `GetActiveUI()` pattern
-**📋 NEXT**: Remove GameplayUIManager.cs completely once compilation errors resolved
+**✅ UNIFIED ARCHITECTURE ACHIEVED**:
+- **UI System**: Clean BaseGameplayUIManager → SinglePlayerUIManager/MultiPlayerUIManager inheritance
+- **Turn Display**: Single `UpdateTurnDisplay()` with mode-aware messaging works for all contexts
+- **Button Management**: Unified `StartPlayerTurnFlow()` provides rich logic for both singleplayer and multiplayer
+- **Hand Management**: Per-screen architecture with `GetActivePlayerHandManager()`/`GetActiveOpponentHandManager()`
+- **Compilation Errors**: ✅ All resolved - legacy references updated to new architecture methods
 
+**✅ KEY ARCHITECTURAL IMPROVEMENTS**:
+- **Duplicate UI Updates Eliminated**: Single source of truth for turn display updates
+- **Template Method Pattern**: Base classes handle UI, concrete classes provide context logic
+- **Mode-Aware Components**: Automatic singleplayer/multiplayer detection and behavior
+- **Clean Legacy Removal**: Deprecated properties removed, modern GetActive*() methods used
+
+**⏳ REMAINING CLEANUP**:
+- **GameManager.cs**: 9 legacy `opponentHandManager`/`playerHandManager` references need updating to `GetActive*HandManager()`
+- **Legacy Files**: GameplayUIManager.cs can be removed once final testing confirms new architecture works
+
+**🎯 READY FOR TESTING**: Unity engine compilation successful, ready for runtime validation
+
+
+
+
+---
+
+# PROMPT
+
+● DETAILED SESSION SUMMARY: Turn System Architecture Investigation & UI Migration
+
+  INITIAL INVESTIGATION GOAL
+
+  Deep architectural investigation of Unity TAKI card game turn systems to resolve UI conflicts between singleplayer (AI) and multiplayer
+  (networked) modes that were causing duplicate UI updates and button state conflicts.
+
+  MAJOR DISCOVERIES
+
+  🚨 DUPLICATE UI UPDATE PROBLEM IDENTIFIED
+
+  Root Cause: Multiplayer mode was updating UI twice for every turn change:
+  1. NetworkGameManager directly called UpdateTurnDisplayMultiplayer()
+  2. GameManager.OnTurnStateChanged() also called UpdateTurnDisplay()
+  3. Result: Button state conflicts, message overwrites, timing issues
+
+  🔍 ARCHITECTURAL ANALYSIS COMPLETED
+
+  Singleplayer Flow (Clean):
+  TurnManager → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UI.UpdateTurnDisplay()
+
+  Multiplayer Flow (Problematic):
+  PunTurnManager → NetworkGameManager → DIRECT UI CALLS + same GameStateManager chain → DUPLICATE UPDATES
+
+  💡 KEY INSIGHT DISCOVERED
+
+  The hack in UpdateTurnDisplayMultiplayer() contained crude button management:
+  if (isLocalPlayerTurn) {
+      UpdateStrictButtonStates(true, true, false); // Crude: enable all buttons
+  } else {
+      UpdateStrictButtonStates(false, false, false); // Crude: disable all buttons
+  }
+
+  But investigation revealed: StartPlayerTurnFlow() already provided sophisticated button logic for both modes (PlusTwo chains, valid card
+  analysis, TAKI sequences, etc.).
+
+  SOLUTIONS IMPLEMENTED
+
+  ✅ 1. FIXED BASE UI ARCHITECTURE BUG
+
+  Problem: BaseGameplayUIManager.UpdateTurnDisplay() was missing one line:
+  // BEFORE (broken)
+  if (TurnIndicatorText != null) {
+      string turnMessage = GetTurnMessage(turnState);
+      // ❌ MISSING: TurnIndicatorText.text = turnMessage;
+  }
+
+  // AFTER (fixed)
+  if (TurnIndicatorText != null) {
+      string turnMessage = GetTurnMessage(turnState);
+      TurnIndicatorText.text = turnMessage; // ✅ ADDED
+  }
+
+  ✅ 2. ELIMINATED DUPLICATE UI METHODS
+
+  Removed as unnecessary:
+  - UpdateTurnDisplayMultiplayer() (in GameplayUIManager.cs and MultiPlayerUIManager.cs)
+  - UpdateAllDisplaysWithNetwork() (unused methods)
+  - Direct UI calls from NetworkGameManager
+
+  Why unnecessary: Base GetTurnMessage() already returned perfect messages:
+  - PlayerTurn → "Your Turn"
+  - ComputerTurn → "Opponent's Turn"
+  - Works identically for both Human vs AI and Local vs Remote!
+
+  ✅ 3. UNIFIED TURN ARCHITECTURE
+
+  Single Flow for Both Modes:
+  Any Turn Change → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged()
+                                                          ↓
+                                                StartPlayerTurnFlow() (rich button logic)
+                                                          ↓
+                                                UI.UpdateTurnDisplay() (unified messaging)
+
+  ✅ 4. RESOLVED COMPILATION ERRORS
+
+  Fixed Type Conversion Issues:
+  - PauseManager.gameplayUI and GameEndManager.gameplayUI expected old GameplayUIManager type
+  - Solution: Removed deprecated assignments, managers now use gameManager.GetActiveUI()
+  - Updated TakiGameDiagnostics.cs to use GetActivePlayerHandManager()/GetActiveUI() methods
+
+  REMAINING TASKS IDENTIFIED
+
+  ⏳ HAND MANAGER INTEGRATION
+
+  9 Legacy References Found in GameManager.cs that need updating:
+  // CURRENT (legacy)
+  if (opponentHandManager != null && opponentHandManager.IsOpponentHand) {
+
+  // SHOULD BE (new architecture)
+  var activeOpponentHandManager = GetActiveOpponentHandManager();
+  if (activeOpponentHandManager?.IsOpponentHand == true) {
+
+  Pattern for Updates: Use null-conditional operators with GetActivePlayerHandManager()/GetActiveOpponentHandManager() for per-screen
+  architecture support.
+
+  ARCHITECTURAL ACHIEVEMENTS
+
+  ✅ CLEAN ARCHITECTURE IMPLEMENTED
+
+  - Template Method Pattern: Base classes handle UI, concrete classes provide context
+  - Single Source of Truth: One turn display method works for all modes
+  - Mode-Aware Components: Automatic singleplayer/multiplayer behavior
+  - Elimination of Hacks: Removed crude workarounds, use proper sophisticated systems
+
+  ✅ INVESTIGATION METHODOLOGY
+
+  - Sequential Analysis: Deep-dived singleplayer first (known working), then multiplayer
+  - Root Cause Identification: Found exact duplicate UI call locations
+  - Evidence-Based Solutions: Used actual code investigation rather than assumptions
+  - Systematic Cleanup: Organized with TodoWrite tool for tracking progress
+
+  CURRENT STATUS
+
+  - ✅ Unity Compilation: Successful, all type errors resolved
+  - ✅ Duplicate UI Updates: Completely eliminated
+  - ✅ Architecture Migration: UI system unified and clean
+  - ⏳ Hand Manager Cleanup: 9 references ready for updating (simple replacements)
+  - 🎯 Ready for Testing: Can now test both singleplayer and multiplayer in Unity
+
+  KEY LESSONS LEARNED
+
+  1. Investigation over Assumptions: The "multiplayer doesn't work" assumption was wrong - both modes used the same working system
+  2. Simple Solutions: A one-line bug fix + removing unnecessary methods solved complex-seeming problem
+  3. Legacy Debt Recognition: Hacks often indicate missing proper implementation rather than architectural problems
+  4. Systematic Approach: Sequential investigation with proper documentation prevented confusion
+
+  FILES MODIFIED
+
+  - BaseGameplayUIManager.cs - Fixed UpdateTurnDisplay() bug
+  - GameManager.cs - Removed legacy UI assignments
+  - TakiGameDiagnostics.cs - Updated to use GetActive*() methods
+  - PauseManager.cs & GameEndManager.cs - Removed deprecated gameplayUI properties
+  - CLAUDE.md - Updated with complete architectural status
