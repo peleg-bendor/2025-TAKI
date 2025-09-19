@@ -1758,7 +1758,24 @@ Read: `investigating.md`
 I didn't change anything, for now. I think it's wiser to aproach this reigion at the end. in general, I think I will focus on pause, restart, and end game at the end. I want to first make sure that both the singleplayer and multiplayer first time games function properly.
 Tell me if there is something critical here that needs our attention now.
 
+I think that in our UIManagers we want them to stick to purerly display logic **if/when possible**. So, can we have a neutral `UpdateTurnDisplay` method in `BaseGameplayUIManager`, that recives information about whose turn it is, player or opponent (or even neutral if at start or end or something), and simply updates "TurnIndicatorText".
+Then, for a singleplayer game, we need to see how the turn system works, what needs to be done, which other managers might be involved, is there anything special happening in regard to it being singleplayer (does the fact that our opponent is AI have any effect).
+Then, for a multiplayer game, we need to see how the turn system works, what needs to be done, which other managers might be involved, is there anything special happening in regard to it being multiplayer (does the fact that this in with network and with 2 human players have any effect).
+This needs to be a serious and deep investigation - turn logic is very important! And that is why: 
+1. We should first properly update `CLAUDE.md`.
+2. I am considering the benefits of starting a new thread, since this one is already a little long, and we are approchhing a newish topic. on the other hand you might already have usefull context. Can you advise on what you think might be better, and can you tell me how "cluttered" your context/info is?
 
+
+
+
+Start the new thread with:
+
+Read `CLAUDE.md` to understand the project context and current status.
+WORKING STYLE:
+- Let me lead the conversation - don't take actions without discussing first
+- Pass everything by me before reading files or implementing changes
+- Be token-efficient - don't read/search speculatively
+I need to do a deep architectural investigation of the turn systems in my Unity TAKI card game. The project has both singleplayer (with AI) and multiplayer (networked) modes, and I've discovered they have fundamentally different turn management flows that are causing UI conflicts. I want to understand both systems deeply so I can design a clean, unified approach.
 
 
 `GameplayUIManager.cs`
@@ -1767,6 +1784,9 @@ Tell me if there is something critical here that needs our attention now.
 `MultiPlayerUIManager.cs`
 
 `GameManager.cs`
+`NetworkGameManager.cs`
+`CLAUDE.md`
+
 
 ## region- `...`:
 

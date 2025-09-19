@@ -353,6 +353,60 @@ if (gameplayUI != null) {  // Legacy check
 - **Direct calls**: 4 remaining direct legacy calls need conversion to `GetActiveUI()?.Method()`
 - **This explains**: Why legacy GameplayUIManager can't be removed yet
 
+## **🎯 CURRENT STATUS: UI Architecture Migration Phase (2025-01-19)**
+
+### **✅ MAJOR PROGRESS - UI Method Migration with 3-Method Pattern**:
+
+**✅ 3-Method Pattern Successfully Established**:
+Following the simple, clean approach without over-engineering helpers:
+
+**Core Pattern**:
+- **BaseGameplayUIManager**: Virtual method with basic default implementation
+- **SinglePlayerUIManager**: Override with Human vs AI context logic
+- **MultiPlayerUIManager**: Override with Local vs Opponent network-aware logic
+
+**✅ Methods Successfully Migrated**:
+1. **ShowSpecialCardEffect(CardType, PlayerType, string)** - Context-aware special card messaging
+2. **ShowSequenceEndedMessage(int, CardColor, PlayerType)** - TAKI sequence completion feedback
+3. **ShowSequenceProgressMessage(int, CardColor, PlayerType)** - TAKI sequence progress updates
+4. **ShowChainProgressMessage(int, int, PlayerType)** - PlusTwo chain progress tracking
+5. **ShowChainBrokenMessage(int, PlayerType)** - PlusTwo chain break notifications
+6. **ShowImmediateFeedback(string, bool)** - High-priority urgent messaging
+
+**✅ Architectural Benefits Achieved**:
+- **Clean Separation**: UI display logic vs business context logic
+- **No Over-Engineering**: Simple 3-method approach without complex helpers
+- **Context Awareness**: Each mode shows appropriate messages (Human/AI vs Local/Opponent)
+- **Template Method Pattern**: Base handles UI manipulation, concrete classes provide context
+
+### **🚨 CRITICAL DISCOVERY - Turn System Architecture Issue**:
+
+**Duplicate UI Updates Problem**:
+- **SinglePlayer Flow**: `TurnManager → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UpdateTurnDisplay()`
+- **Multiplayer Flow**: `NetworkGameManager → GameStateManager.ChangeTurnState() → GameManager.OnTurnStateChanged() → UpdateTurnDisplay()` + **ALSO calls `UpdateTurnDisplayMultiplayer()`**
+- **Result**: Multiplayer mode updates UI **TWICE** with potentially conflicting information!
+
+**Architecture Gap Identified**:
+- Different turn management systems (TurnManager vs NetworkGameManager)
+- Different responsibilities (pure display vs display + button control + messages)
+- Potential button state conflicts and message overwrites
+
+### **📋 NEXT CRITICAL PHASE: Turn System Investigation**
+
+**Investigation Required**:
+1. **Deep analysis of singleplayer turn flow** (TurnManager + AI integration)
+2. **Deep analysis of multiplayer turn flow** (NetworkGameManager + network sync)
+3. **Design unified `UpdateTurnDisplay` method** that handles both contexts cleanly
+4. **Ensure pure display logic in UI managers** when possible
+5. **Resolve button state and message conflicts**
+
+**Goal**: Create clean, unified turn display system that eliminates duplicate updates and conflicts while maintaining mode-specific behavior.
+
+### **⏳ Remaining UI Methods to Migrate**:
+- **UpdateButtonStates()** - Legacy method integration decision needed
+- **ShowWinnerAnnouncement()** - Signature standardization required
+- **ShowDeckSyncStatus()** - Base class integration needed
+
 ## **🎯 REVISED SYSTEMATIC CLEANUP PLAN** - Top-Down Approach ✅
 
 ### **📋 GameManager.cs Organization Structure (Clean Architecture)**
