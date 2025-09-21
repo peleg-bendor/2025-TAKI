@@ -219,6 +219,50 @@ namespace TakiGame {
 			return null;
 		}
 
+		/// <summary>
+		/// Check if all active HandManagers are fully initialized
+		/// </summary>
+		/// <returns>True if all required HandManagers are initialized</returns>
+		private bool AreHandManagersInitialized() {
+			if (isMultiplayerMode) {
+				// Check multiplayer HandManagers
+				bool playerInitialized = multiplayerPlayerHandManager != null && multiplayerPlayerHandManager.IsFullyInitialized;
+				bool opponentInitialized = multiplayerOpponentHandManager != null && multiplayerOpponentHandManager.IsFullyInitialized;
+
+				TakiLogger.LogSystem($"HandManager initialization check - Player: {playerInitialized}, Opponent: {opponentInitialized}");
+				return playerInitialized && opponentInitialized;
+			} else {
+				// Check singleplayer HandManagers
+				bool playerInitialized = singleplayerPlayerHandManager != null && singleplayerPlayerHandManager.IsFullyInitialized;
+				bool opponentInitialized = singleplayerOpponentHandManager != null && singleplayerOpponentHandManager.IsFullyInitialized;
+
+				TakiLogger.LogSystem($"HandManager initialization check - Player: {playerInitialized}, Opponent: {opponentInitialized}");
+				return playerInitialized && opponentInitialized;
+			}
+		}
+
+		/// <summary>
+		/// Wait for all HandManagers to be initialized using coroutine
+		/// </summary>
+		/// <returns>Coroutine that completes when all HandManagers are ready</returns>
+		private System.Collections.IEnumerator WaitForHandManagersInitialization() {
+			TakiLogger.LogSystem("Waiting for HandManager initialization...");
+
+			float timeout = 10f; // 10 second timeout
+			float elapsed = 0f;
+
+			while (!AreHandManagersInitialized() && elapsed < timeout) {
+				yield return new WaitForEndOfFrame(); // Wait one frame
+				elapsed += Time.unscaledDeltaTime;
+			}
+
+			if (AreHandManagersInitialized()) {
+				TakiLogger.LogSystem("All HandManagers initialized successfully!");
+			} else {
+				TakiLogger.LogError($"HandManager initialization timeout after {timeout}s", TakiLogger.LogCategory.System);
+			}
+		}
+
 		#endregion
 
 		#region Unity Lifecycle
@@ -674,9 +718,16 @@ namespace TakiGame {
 
 		/// <summary>
 		/// PUBLIC METHOD: Start a new multiplayer game - Called by MenuNavigation
-		/// ENHANCED: Unified structure with single-player (initialize → reset → start)
+		/// ENHANCED: Now waits for HandManager initialization before proceeding
 		/// </summary>
 		public void StartNewMultiPlayerGame () {
+			StartCoroutine(StartNewMultiPlayerGameCoroutine());
+		}
+
+		/// <summary>
+		/// Coroutine version of StartNewMultiPlayerGame that waits for HandManager initialization
+		/// </summary>
+		private System.Collections.IEnumerator StartNewMultiPlayerGameCoroutine() {
 			// Initialize systems if not already done
 			if (!areSystemsInitialized) {
 				InitializeMultiPlayerSystems ();
@@ -686,7 +737,16 @@ namespace TakiGame {
 
 			if (networkGameManager == null) {
 				TakiLogger.LogError ("Cannot start multiplayer game: NetworkGameManager not assigned!", TakiLogger.LogCategory.System);
-				return;
+				yield break;
+			}
+
+			// CRITICAL: Wait for HandManager initialization before proceeding
+			yield return StartCoroutine(WaitForHandManagersInitialization());
+
+			// Verify HandManagers are ready before continuing
+			if (!AreHandManagersInitialized()) {
+				TakiLogger.LogError("Cannot start multiplayer game: HandManagers failed to initialize", TakiLogger.LogCategory.System);
+				yield break;
 			}
 
 			// Reset all systems for new game (mode-aware - won't clear hands in multiplayer)

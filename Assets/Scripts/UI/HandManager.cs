@@ -53,6 +53,15 @@ namespace TakiGame {
 		private GameManager gameManager;
 		private BaseGameplayUIManager activeUI;
 
+		// Initialization tracking
+		private bool isFullyInitialized = false;
+
+		/// <summary>
+		/// Returns true when HandManager has completed its full initialization
+		/// (GameManager found and activeUI connected)
+		/// </summary>
+		public bool IsFullyInitialized => isFullyInitialized;
+
 		void Awake () {
 			// DIAGNOSTIC: Log that HandManager is initializing
 			TakiLogger.LogSystem ($"HandManager {gameObject.name}: Awake() called - HandManager initializing...");
@@ -91,6 +100,14 @@ namespace TakiGame {
 			} else {
 				TakiLogger.LogUI ($"HandManager {gameObject.name}: Connected to active UI manager: {activeUI.GetType().Name}");
 			}
+
+			// Mark as fully initialized when we have both GameManager and activeUI
+			isFullyInitialized = (gameManager != null && activeUI != null);
+			if (isFullyInitialized) {
+				TakiLogger.LogSystem ($"HandManager {gameObject.name}: Initialization COMPLETE");
+			} else {
+				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Initialization INCOMPLETE - GameManager: {gameManager != null}, ActiveUI: {activeUI != null}", TakiLogger.LogCategory.System);
+			}
 		}
 
 		/// <summary>
@@ -126,6 +143,12 @@ namespace TakiGame {
 				TakiLogger.LogWarning ($"  DIAGNOSTIC: This means GetActiveUI() returned null - check the diagnostic info above!", TakiLogger.LogCategory.System);
 			} else {
 				TakiLogger.LogUI ($"HandManager {gameObject.name}: Connected to active UI manager on-demand: {activeUI.GetType().Name}");
+			}
+
+			// Update initialization status after on-demand setup
+			isFullyInitialized = (gameManager != null && activeUI != null);
+			if (isFullyInitialized) {
+				TakiLogger.LogSystem ($"HandManager {gameObject.name}: On-demand initialization COMPLETE");
 			}
 		}
 

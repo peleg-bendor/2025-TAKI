@@ -75,14 +75,17 @@ Scene_Menu
 - ✅ Singleplayer mode complete and stable
 - ✅ Multiplayer core systems implemented
 - ✅ Network synchronization architecture ready
-- 🎯 **Current**: Debugging multiplayer issues via logs
+- ✅ HandManager initialization timing issue RESOLVED
+- 🎯 **Current**: Network card assignment bug - player gets 0 cards instead of 8
 
 ## My Prompt to you:
 - Read `investigating.md`.
 
 ## Todo List
 - [ ] **Investigate multiplayer logs** - analyze issues in MOST_RECENT_RUN_LOGS_SIMPLE.md
-- [ ] Debug and resolve identified multiplayer problems
+- [x] ✅ HandManager initialization timing issue - RESOLVED
+- [ ] **Debug network card assignment** - why does playerHand get 0 cards?
+- [ ] Fix card distribution in multiplayer mode
 - [ ] Test complete multiplayer functionality
 - [ ] Final architecture validation
 
