@@ -60,7 +60,7 @@ namespace TakiGame {
             }
 
 			TakiLogger.LogInfo($"New UI Architecture starting", TakiLogger.LogCategory.UI);
-            ConnectButtonEvents();
+            // NOTE: ConnectButtonEvents() now called by GameManager when mode is activated
             SetupInitialState();
         }
 
@@ -170,6 +170,79 @@ namespace TakiGame {
 			}
 
 			TakiLogger.LogSystem ("All button events connected with strict flow validation", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary>
+		/// Disconnect button events to prevent event pollution when switching modes
+		/// </summary>
+		protected virtual void DisconnectButtonEvents() {
+			TakiLogger.LogUI("Disconnecting button events to prevent mode conflicts...");
+
+			if (PlayCardButton != null) {
+				PlayCardButton.onClick.RemoveAllListeners();
+				TakiLogger.LogSystem("Play Card button events disconnected", TakiLogger.LogLevel.Trace);
+			}
+
+			if (DrawCardButton != null) {
+				DrawCardButton.onClick.RemoveAllListeners();
+				TakiLogger.LogSystem("Draw Card button events disconnected", TakiLogger.LogLevel.Trace);
+			}
+
+			if (EndTurnButton != null) {
+				EndTurnButton.onClick.RemoveAllListeners();
+				TakiLogger.LogSystem("End Turn button events disconnected", TakiLogger.LogLevel.Trace);
+			}
+
+			if (EndTakiSequenceButton != null) {
+				EndTakiSequenceButton.onClick.RemoveAllListeners();
+				TakiLogger.LogSystem("End TAKI Sequence button events disconnected", TakiLogger.LogLevel.Trace);
+			}
+
+			// Color selection buttons
+			if (SelectRedButton != null) {
+				SelectRedButton.onClick.RemoveAllListeners();
+			}
+			if (SelectBlueButton != null) {
+				SelectBlueButton.onClick.RemoveAllListeners();
+			}
+			if (SelectGreenButton != null) {
+				SelectGreenButton.onClick.RemoveAllListeners();
+			}
+			if (SelectYellowButton != null) {
+				SelectYellowButton.onClick.RemoveAllListeners();
+			}
+
+			TakiLogger.LogSystem("All button events disconnected - mode switch safe", TakiLogger.LogLevel.Debug);
+		}
+
+		/// <summary>
+		/// Activate this UI manager for the current game mode - called by GameManager
+		/// </summary>
+		public virtual void ActivateForMode() {
+			TakiLogger.LogUI($"Activating {GetType().Name} for current game mode");
+
+			// Double-check we should be active (safety measure)
+			if (!ShouldBeActive()) {
+				TakiLogger.LogWarning($"{GetType().Name} asked to activate but not appropriate for current mode!", TakiLogger.LogCategory.UI);
+				return;
+			}
+
+			// Connect button events for this mode
+			ConnectButtonEvents();
+
+			TakiLogger.LogUI($"{GetType().Name} activated successfully");
+		}
+
+		/// <summary>
+		/// Deactivate this UI manager when switching away from its mode - called by GameManager
+		/// </summary>
+		public virtual void DeactivateFromMode() {
+			TakiLogger.LogUI($"Deactivating {GetType().Name} from current game mode");
+
+			// Disconnect button events to prevent pollution
+			DisconnectButtonEvents();
+
+			TakiLogger.LogUI($"{GetType().Name} deactivated successfully");
 		}
 
 		/// <summary>

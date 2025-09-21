@@ -511,18 +511,37 @@ namespace TakiGame {
 			TakiLogger.LogSystem ($"singlePlayerUI: {(singlePlayerUI != null ? "ASSIGNED" : "NULL")}", TakiLogger.LogLevel.Debug);
 			TakiLogger.LogSystem ($"multiPlayerUI: {(multiPlayerUI != null ? "ASSIGNED" : "NULL")}", TakiLogger.LogLevel.Debug);
 
-			if (isMultiplayerMode && multiPlayerUI != null) {
-				multiPlayerUI.OnPlayCardClicked += OnPlayCardButtonClicked;
-				multiPlayerUI.OnDrawCardClicked += OnDrawCardButtonClicked;
-				multiPlayerUI.OnEndTurnClicked += OnEndTurnButtonClicked;
-				multiPlayerUI.OnColorSelected += OnColorSelectedByPlayer;
-				multiPlayerUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
-			} else if (!isMultiplayerMode && singlePlayerUI != null) {
-				singlePlayerUI.OnPlayCardClicked += OnPlayCardButtonClicked;
-				singlePlayerUI.OnDrawCardClicked += OnDrawCardButtonClicked;
-				singlePlayerUI.OnEndTurnClicked += OnEndTurnButtonClicked;
-				singlePlayerUI.OnColorSelected += OnColorSelectedByPlayer;
-				singlePlayerUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
+			// Deactivate inactive UI manager first (prevent event pollution)
+			if (isMultiplayerMode) {
+				// Deactivate single player UI
+				if (singlePlayerUI != null) {
+					singlePlayerUI.DeactivateFromMode();
+				}
+
+				// Activate and connect multiplayer UI
+				if (multiPlayerUI != null) {
+					multiPlayerUI.ActivateForMode();
+					multiPlayerUI.OnPlayCardClicked += OnPlayCardButtonClicked;
+					multiPlayerUI.OnDrawCardClicked += OnDrawCardButtonClicked;
+					multiPlayerUI.OnEndTurnClicked += OnEndTurnButtonClicked;
+					multiPlayerUI.OnColorSelected += OnColorSelectedByPlayer;
+					multiPlayerUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
+				}
+			} else {
+				// Deactivate multiplayer UI
+				if (multiPlayerUI != null) {
+					multiPlayerUI.DeactivateFromMode();
+				}
+
+				// Activate and connect single player UI
+				if (singlePlayerUI != null) {
+					singlePlayerUI.ActivateForMode();
+					singlePlayerUI.OnPlayCardClicked += OnPlayCardButtonClicked;
+					singlePlayerUI.OnDrawCardClicked += OnDrawCardButtonClicked;
+					singlePlayerUI.OnEndTurnClicked += OnEndTurnButtonClicked;
+					singlePlayerUI.OnColorSelected += OnColorSelectedByPlayer;
+					singlePlayerUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
+				}
 			}
 
 			TakiLogger.LogSystem ("=== UI MANAGER EVENTS CONNECTION COMPLETE ===", TakiLogger.LogLevel.Debug);
@@ -534,13 +553,17 @@ namespace TakiGame {
 		private void DisconnectUIManagerEvents (BaseGameplayUIManager uiManager, string managerName) {
 			if (uiManager == null) return;
 
+			// Disconnect Action events (GameManager level)
 			uiManager.OnPlayCardClicked -= OnPlayCardButtonClicked;
 			uiManager.OnDrawCardClicked -= OnDrawCardButtonClicked;
 			uiManager.OnEndTurnClicked -= OnEndTurnButtonClicked;
 			uiManager.OnColorSelected -= OnColorSelectedByPlayer;
 			uiManager.OnEndTakiSequenceClicked -= OnEndTakiSequenceButtonClicked;
 
-			TakiLogger.LogSystem ($"Event handlers disconnected from {managerName}");
+			// Deactivate UI manager (includes button event disconnection)
+			uiManager.DeactivateFromMode();
+
+			TakiLogger.LogSystem ($"Event handlers disconnected and UI manager deactivated for {managerName}");
 		}
 
 		/// <summary>
