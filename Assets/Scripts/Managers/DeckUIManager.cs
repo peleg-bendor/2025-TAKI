@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 namespace TakiGame {
 	/// <summary>
@@ -9,16 +9,16 @@ namespace TakiGame {
 	/// </summary>
 	public class DeckUIManager : MonoBehaviour {
 
-		[Header ("Deck Count UI")]
-		[Tooltip ("DrawPileCountText - shows number of cards in draw pile")]
-		public TextMeshProUGUI drawPileCountText;
+		//[Header ("Deck Count UI")]
+		//[Tooltip ("DrawPileCountText - shows number of cards in draw pile")]
+		//public TextMeshProUGUI drawPileCountText;
 
-		[Tooltip ("DiscardPileCountText - shows number of cards in discard pile")]
-		public TextMeshProUGUI discardPileCountText;
+		//[Tooltip ("DiscardPileCountText - shows number of cards in discard pile")]
+		//public TextMeshProUGUI discardPileCountText;
 
-		[Header ("Deck Event Messages")]
-		[Tooltip ("DeckMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
-		public TextMeshProUGUI deckMessageText;
+		//[Header ("Deck Event Messages")]
+		//[Tooltip ("DeckMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
+		//public TextMeshProUGUI deckMessageText;
 
 		[Header ("MILESTONE: Per-Screen Architecture Support")]
 		[Header ("Singleplayer UI References")]
@@ -45,27 +45,6 @@ namespace TakiGame {
 		[Tooltip ("PileManager component for visual pile cards")]
 		public PileManager pileManager;
 
-		[Header ("Deck Visual Panels")]
-		[Tooltip ("DrawPilePanel - visual container for draw pile")]
-		public Transform drawPilePanel;
-
-		[Tooltip ("DiscardPilePanel - visual container for discard pile")]
-		public Transform discardPilePanel;
-
-		[Header ("Singleplayer Visual Panels")]
-		[Tooltip ("Singleplayer DrawPilePanel - optional, falls back to drawPilePanel")]
-		public Transform singlePlayerDrawPilePanel;
-
-		[Tooltip ("Singleplayer DiscardPilePanel - optional, falls back to discardPilePanel")]
-		public Transform singlePlayerDiscardPilePanel;
-
-		[Header ("Multiplayer Visual Panels")]
-		[Tooltip ("Multiplayer DrawPilePanel - required for multiplayer mode")]
-		public Transform multiPlayerDrawPilePanel;
-
-		[Tooltip ("Multiplayer DiscardPilePanel - required for multiplayer mode")]
-		public Transform multiPlayerDiscardPilePanel;
-
 		[Header ("Message Settings")]
 		[Tooltip ("How long to display temporary deck messages")]
 		public float messageDisplayTime = 2.0f;
@@ -88,8 +67,8 @@ namespace TakiGame {
 				return singlePlayerDrawPileCountText;
 			}
 
-			// Fallback to legacy reference
-			return drawPileCountText;
+			TakiLogger.LogError ("DeckUIManager: GetActiveDrawPileCountText - not found! null Draw Pile Count Text!", TakiLogger.LogCategory.Deck);
+			return null;
 		}
 
 		/// <summary>
@@ -104,8 +83,8 @@ namespace TakiGame {
 				return singlePlayerDiscardPileCountText;
 			}
 
-			// Fallback to legacy reference
-			return discardPileCountText;
+			TakiLogger.LogError ("DeckUIManager: GetActiveDiscardPileCountText - not found! null Discard Pile Count Text!", TakiLogger.LogCategory.Deck);
+			return null;
 		}
 
 		/// <summary>
@@ -120,40 +99,8 @@ namespace TakiGame {
 				return singlePlayerDeckMessageText;
 			}
 
-			// Fallback to legacy reference
-			return deckMessageText;
-		}
-
-		/// <summary>
-		/// Get the appropriate draw pile panel based on current game mode
-		/// </summary>
-		private Transform GetActiveDrawPilePanel() {
-			bool isMultiplayer = IsMultiplayerMode();
-
-			if (isMultiplayer && multiPlayerDrawPilePanel != null) {
-				return multiPlayerDrawPilePanel;
-			} else if (!isMultiplayer && singlePlayerDrawPilePanel != null) {
-				return singlePlayerDrawPilePanel;
-			}
-
-			// Fallback to legacy reference
-			return drawPilePanel;
-		}
-
-		/// <summary>
-		/// Get the appropriate discard pile panel based on current game mode
-		/// </summary>
-		private Transform GetActiveDiscardPilePanel() {
-			bool isMultiplayer = IsMultiplayerMode();
-
-			if (isMultiplayer && multiPlayerDiscardPilePanel != null) {
-				return multiPlayerDiscardPilePanel;
-			} else if (!isMultiplayer && singlePlayerDiscardPilePanel != null) {
-				return singlePlayerDiscardPilePanel;
-			}
-
-			// Fallback to legacy reference
-			return discardPilePanel;
+			TakiLogger.LogError ("DeckUIManager: GetActiveDeckMessageText - not found! null Deck Message Text!", TakiLogger.LogCategory.Deck);
+			return null;
 		}
 
 		/// <summary>
@@ -233,9 +180,14 @@ namespace TakiGame {
 		/// Clear temporary deck message and restore previous
 		/// </summary>
 		void ClearTemporaryMessage () {
-			if (deckMessageText != null) {
-				deckMessageText.text = originalMessage;
+			bool isMultiplayer = IsMultiplayerMode ();
+
+			if (isMultiplayer && multiPlayerDeckMessageText != null) {
+				multiPlayerDeckMessageText.text = originalMessage;
+			} else if (!isMultiplayer && singlePlayerDeckMessageText != null) {
+				singlePlayerDeckMessageText.text = originalMessage;
 			}
+
 			hasTemporaryMessage = false;
 			messageTimer = 0f;
 		}
@@ -329,8 +281,12 @@ namespace TakiGame {
 		/// <param name="message">Permanent message</param>
 		public void SetPermanentMessage (string message) {
 			originalMessage = message;
-			if (!hasTemporaryMessage && deckMessageText != null) {
-				deckMessageText.text = message;
+			bool isMultiplayer = IsMultiplayerMode ();
+
+			if (!hasTemporaryMessage && isMultiplayer && multiPlayerDeckMessageText != null) {
+				multiPlayerDeckMessageText.text = message;
+			} else if (!hasTemporaryMessage && !isMultiplayer && singlePlayerDeckMessageText != null) {
+				singlePlayerDeckMessageText.text = message;
 			}
 		}
 
@@ -338,9 +294,14 @@ namespace TakiGame {
 		/// Clear all messages
 		/// </summary>
 		public void ClearAllMessages () {
-			if (deckMessageText != null) {
-				deckMessageText.text = "";
+			bool isMultiplayer = IsMultiplayerMode ();
+
+			if (!hasTemporaryMessage && isMultiplayer && multiPlayerDeckMessageText != null) {
+				multiPlayerDeckMessageText.text = "";
+			} else if (!hasTemporaryMessage && !isMultiplayer && singlePlayerDeckMessageText != null) {
+				singlePlayerDeckMessageText.text = "";
 			}
+
 			originalMessage = "";
 			hasTemporaryMessage = false;
 			messageTimer = 0f;
@@ -365,7 +326,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <returns>True if basic UI elements are present</returns>
 		public bool HasRequiredUIElements () {
-			bool hasElements = drawPileCountText != null && discardPileCountText != null;
+			bool hasElements = GetActiveDrawPileCountText () != null && GetActiveDiscardPileCountText () != null;
 
 			if (pileManager == null) {
 				TakiLogger.LogWarning ("DeckUIManager: PileManager not assigned - pile visuals will not work!", TakiLogger.LogCategory.Deck);
@@ -379,7 +340,7 @@ namespace TakiGame {
 
 		// Properties 
 		public bool HasActiveMessage => hasTemporaryMessage;
-		public string CurrentMessage => deckMessageText?.text ?? "";
+		public string CurrentMessage => GetActiveDeckMessageText ()?.text ?? "";
 		public bool HasPileManager => pileManager != null;
 		public bool HasVisualPiles => pileManager?.HasDrawPileVisual == true || pileManager?.HasDiscardPileVisual == true;
 	}

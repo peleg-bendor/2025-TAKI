@@ -13,13 +13,6 @@ namespace TakiGame {
 		[Tooltip ("Prefab for creating pile card displays")]
 		public GameObject cardPrefab;
 
-		[Tooltip ("Draw pile container - shows face-down card")]
-		public Transform drawPileContainer;
-
-		[Tooltip ("Discard pile container - shows top card face-up")]
-		public Transform discardPileContainer;
-
-		[Header ("MILESTONE: Per-Screen Architecture Support")]
 		[Header ("Singleplayer Pile Containers")]
 		[Tooltip ("Singleplayer Draw pile container - optional, falls back to drawPileContainer")]
 		public Transform singlePlayerDrawPileContainer;
@@ -55,8 +48,8 @@ namespace TakiGame {
 				return singlePlayerDrawPileContainer;
 			}
 
-			// Fallback to legacy reference
-			return drawPileContainer;
+			TakiLogger.LogError ("PileManager: GetActiveDrawPileContainer - One/Both of the DrawPileContainers is NULL!", TakiLogger.LogCategory.Deck);
+			return null;
 		}
 
 		/// <summary>
@@ -71,8 +64,8 @@ namespace TakiGame {
 				return singlePlayerDiscardPileContainer;
 			}
 
-			// Fallback to legacy reference
-			return discardPileContainer;
+			TakiLogger.LogError ("PileManager: GetActiveDiscardPileContainer - One/Both of the DiscardPileContainers is NULL!", TakiLogger.LogCategory.Deck);
+			return null;
 		}
 
 		/// <summary>
