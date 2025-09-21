@@ -9,17 +9,6 @@ namespace TakiGame {
 	/// </summary>
 	public class DeckUIManager : MonoBehaviour {
 
-		//[Header ("Deck Count UI")]
-		//[Tooltip ("DrawPileCountText - shows number of cards in draw pile")]
-		//public TextMeshProUGUI drawPileCountText;
-
-		//[Tooltip ("DiscardPileCountText - shows number of cards in discard pile")]
-		//public TextMeshProUGUI discardPileCountText;
-
-		//[Header ("Deck Event Messages")]
-		//[Tooltip ("DeckMessageText - ONLY for deck-specific events (loading, shuffling, etc.)")]
-		//public TextMeshProUGUI deckMessageText;
-
 		[Header ("MILESTONE: Per-Screen Architecture Support")]
 		[Header ("Singleplayer UI References")]
 		[Tooltip ("Singleplayer DrawPileCountText - optional, falls back to drawPileCountText")]

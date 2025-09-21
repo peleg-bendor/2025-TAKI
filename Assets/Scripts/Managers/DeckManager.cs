@@ -45,14 +45,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Force UI update after initial loading (called with small delay)
-		/// </summary>
-		void ForceInitialUIUpdate () {
-			UpdateUI ();
-			TakiLogger.LogDeck ($"Forced UI update - Draw: {DrawPileCount}, Discard: {DiscardPileCount}", TakiLogger.LogLevel.Trace);
-		}
-
-		/// <summary>
 		/// Auto-initialize deck when cards are loaded (for immediate play readiness)
 		/// </summary>
 		void AutoInitializeDeck () {

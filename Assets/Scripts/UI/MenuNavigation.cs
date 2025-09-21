@@ -102,11 +102,14 @@ namespace TakiGame {
 		void OnMultiplayerGameReady () {
 			TakiLogger.LogInfo ("Multiplayer game ready - transitioning to game screen", TakiLogger.LogCategory.Multiplayer);
 
+			// Use loading screen transition like singleplayer (instead of direct activation)
+			StartCoroutine (ShowScreenTemporarily (LoadingScreen, MultiPlayerGameScreen, clearStack: true));
+
 			// Go directly to multiplayer game screen
-			SetScreenAndClearStack (MultiPlayerGameScreen);
+			//SetScreenAndClearStack (MultiPlayerGameScreen);
 
 			// Start multiplayer game
-			StartMultiPlayerGame ();
+			//StartMultiPlayerGame ();
 		}
 
 		/// <summary>

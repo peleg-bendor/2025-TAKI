@@ -1,3 +1,123 @@
+  **Scene Hierarchy**:
+  ```
+  Scene_Menu ✅ COMPLETE + MULTIPLAYER ENHANCED
+  ├── Main Camera
+  ├── Canvas
+  │   ├── Screen_MainMenu
+  │   ├── Screen_StudentInfo
+  │   ├── Screen_SinglePlayer
+  │   ├── Screen_MultiPlayer - [PHASE 1 COMPLETE - PERFECT MATCHMAKING]
+  │   ├── Screen_SinglePlayerGame - FULLY FUNCTIONAL
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel - HandManager
+  │   │   │   └── Player1ActionPanel
+  │   │   │       ├── Btn_Player1PlayCard
+  │   │   │       ├── Btn_Player1DrawCard
+  │   │   │       ├── Btn_Player1EndTurn
+  │   │   │       └── Player1HandSizePanel
+  │   │   │           └── Player1HandSizeText
+  │   │   ├── Player2Panel (Computer) - HandManager
+  │   │   │   ├── Player2HandPanel
+  │   │   │   └── Player2ActionPanel
+  │   │   │       ├── Player2MessageText
+  │   │   │       └── Player2HandSizePanel
+  │   │   │           └── Player2HandSizeText
+  │   │   ├── GameBoardPanel
+  │   │   │   ├── DrawPilePanel
+  │   │   │   │   └── DrawPileCountText
+  │   │   │   ├── DiscardPilePanel
+  │   │   │   │   └── DiscardPileCountText
+  │   │   │   └── Btn_Player1EndTakiSequence
+  │   │   ├── MainGameInfoPanel
+  │   │   │   ├── GameMessageText
+  │   │   │   ├── chainStatusText
+  │   │   │   └── takiSequenceStatusText
+  │   │   ├── SideInfoPanel
+  │   │   │   ├── TurnIndicatorText
+  │   │   │   └── DeckMessageText
+  │   │   ├── ColorSelectionPanel
+  │   │   │   ├── Btn_SelectRed
+  │   │   │   ├── Btn_SelectBlue
+  │   │   │   ├── Btn_SelectGreen
+  │   │   │   └── Btn_SelectYellow
+  │   │   ├── CurrentColorIndicator
+  │   │   ├── Btn_Exit - SAFE EXIT
+  │   │   ├── Btn_Pause - FULL PAUSE SYSTEM
+  │   │   └── Screen_GameEnd - PROFESSIONAL END
+  │   ├── Screen_MultiPlayerGame
+  │   │   ├── Player1Panel (Human)
+  │   │   │   ├── Player1HandPanel
+  │   │   │   ├── Player1ActionPanel
+  │   │   │   │   ├── Btn_Player1PlayCard
+  │   │   │   │   ├── Btn_Player1DrawCard
+  │   │   │   │   ├── Btn_Player1EndTurn
+  │   │   │   │   └── Player1HandSizePanel
+  │   │   │   │       └── Player1HandSizeText
+  │   │   │   └── Player1InfoPanel
+  │   │   │       ├── Player1TimerPanel
+  │   │   │       │   └── Player1TimerText
+  │   │   │       └── Player1MessagePanel
+  │   │   │           └── Player1MessageText
+  │   │   ├── Player2Panel (Human)
+  │   │   │   ├── Player2HandPanel
+  │   │   │   ├── Player2ActionPanel
+  │   │   │   │   ├── Btn_Player2PlayCard
+  │   │   │   │   ├── Btn_Player2DrawCard
+  │   │   │   │   ├── Btn_Player2EndTurn
+  │   │   │   │   └── Player2HandSizePanel
+  │   │   │   │       └── Player2HandSizeText
+  │   │   │   └── Player2InfoPanel
+  │   │   │       ├── Player2TimerPanel
+  │   │   │       │   └── Player2TimerText
+  │   │   │       └── Player2MessagePanel
+  │   │   │           └── Player2MessageText
+  │   │   ├── GameBoardPanel
+  │   │   │   ├── DrawPilePanel
+  │   │   │   │   └── DrawPileCountText
+  │   │   │   ├── DiscardPilePanel
+  │   │   │   │   └── DiscardPileCountText
+  │   │   │   └── Btn_Player1EndTakiSequence
+  │   │   ├── MainGameInfoPanel
+  │   │   │   ├── GameMessageText
+  │   │   │   ├── chainStatusText
+  │   │   │   └── takiSequenceStatusText
+  │   │   ├── SideInfoPanel
+  │   │   │   ├── TurnIndicatorText
+  │   │   │   └── DeckMessageText
+  │   │   ├── ColorSelectionPanel
+  │   │   │   ├── Btn_SelectRed
+  │   │   │   ├── Btn_SelectBlue
+  │   │   │   ├── Btn_SelectGreen
+  │   │   │   └── Btn_SelectYellow
+  │   │   ├── CurrentColorIndicator
+  │   │   ├── Btn_Exit
+  │   │   ├── Btn_Pause
+  │   │   └── Screen_GameEnd
+  │   ├── Screen_Settings
+  │   ├── Screen_ExitValidation - COMPREHENSIVE CLEANUP
+  │   ├── Screen_Paused - STATE PRESERVATION
+  │   ├── Screen_GameEnd - WINNER ANNOUNCEMENT
+  │   ├── Screen_Loading
+  │   └── Screen_Exiting
+  ├── EventSystem
+  ├── MenuNavigation [Components: Menu Navigation (Script)]
+  ├── BackgroundMusic  [Components: Dont Destroy On Load (Script)]
+  ├── SFXController
+  ├── DeckManager [Components: Deck Manager (Script), Deck (Script), Card Data Loader (Script), Deck UI Manager (Script), Game Setup Manager
+  (Script), Pile Manager (Script)]
+  ├── GameManager [Components: Game Manager (Script), Game State Manager (Script), Turn Manager (Script), Basic Computer AI (Script), Gameplay
+   UI Manager (Script), Taki Game Diagnostics (Script), Pause Manager (Script), Game End Manager (Script), Exit Validation Manager (Script),
+  Pun Turn Manager (Script), Photon View (Script), Network Game Manager (Script), Single Player UI Manager (Script), Multi Player UI Manager (Script)]
+  └── MultiplayerMenuLogic [Components: Multiplayer Menu Logic (Script)]
+
+  ```
+
+
+
+
+
+
+
 # 🎯 **UPDATED IMPLEMENTATION PLAN: Real Cards with Privacy Display**
 
 ## **📋 CURRENT PROGRESS STATUS**
@@ -1885,6 +2005,41 @@ Got it and I have now done exactly that, thanks! You can read `Most recent run L
 
 
 
+Our status: 
+- Right now we finished integrating the new architecture: Instead of using `GameplayUIManager.cs`, we completely switched over to using `BaseGameplayUIManager.cs` and its inheriting `SinglePlayerUIManager.cs` and `MultiPlayerUIManager.cs`. No OBVIUS ERRORS as of now, log wise.
+- We checked and made sure, a singleplayer mode game works  properly!
+- Right now I can already see some very obvieus issues in a multiplayer game in the logs. But before approching the I want to modify `CLAUDE.md`:
+  - `CLAUDE.md` is very cluttered from different updates in different thimes and areas.
+  - We need to remove redundant, confusing and cluttered areas and parts.
+  - It needs to help point us, not scatter us.
+  - It needs to have the following:
+    - A small summary of what this project is
+    - MY WORKING STYLE:
+      - Let me lead the conversation - don't take actions without discussing first
+      - Pass everything by me before reading files or implementing changes
+      - Be token-efficient - don't read/search speculatively
+    - A pointer to informative markdown files:
+      - `MOST_RECENT_RUN_LOGS_SIMPLE.md`: 
+        - Where I paste the most recent logs when I run a game in the unity engine, has only the log messages themselves.
+      - `MOST_RECENT_RUN_LOGS_DITAILED.md`: 
+        - Where I paste the most recent logs when I run a game in the unity engine, this is pasted straight from the `Vonsole` so it is much longer and with much details. Do not read this file and waste a bunch of tokens for no reason unless there's a real need, ask me before doing so.
+      - `investigating.md`: 
+        - Will often be where I right down my detailed investigation and right my notes to you (more freely than I can do in prompts)
+      - `Temp.md`:
+        - This file has probably no importance unless I point out to you to check it out, it's a place I can more freely place temporary notes.
+    - A description of our architecture, inspector and scene hierarchy 
+      - You can find the scene hierarchy in `Temp.md`
+    - A list of all of our scripts, each can have notes, but only if really important/needed, and what's relevant for us.
+    - A simple list to track out proggress, but nothing to seiriues, can even be a line for each 
+    - A todo list! Can have indentations if needed
+      - Our next task will be diving into the logs
+    - An area for side notes.
+
+
+
+
+
+
 `GameplayUIManager.cs`
 `BaseGameplayUIManager.cs`
 `SinglePlayerUIManager.cs`
@@ -1904,3 +2059,7 @@ Got it and I have now done exactly that, thanks! You can read `Most recent run L
 #### My proposal:
 ```csharp
 ```
+
+
+`^(?!\[).*\n`
+

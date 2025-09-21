@@ -38,27 +38,27 @@ namespace TakiGame {
 		}
 
 		// Current log level - can be changed at runtime
-		public static LogLevel currentLogLevel = LogLevel.Info;
+		public static LogLevel currentLogLevel = LogLevel.Trace;
 
 		// Production mode toggle - minimal logging for release
 		public static bool isProductionMode = false;
 
 		// Per-category log levels (hardcoded configuration)
 		private static readonly Dictionary<LogCategory, LogLevel> categoryLogLevels = new Dictionary<LogCategory, LogLevel> {
-			{ LogCategory.TurnFlow, LogLevel.Debug },
-			{ LogCategory.CardPlay, LogLevel.Debug },
-			{ LogCategory.GameState, LogLevel.Debug },
-			{ LogCategory.TurnManagement, LogLevel.Debug },
-			{ LogCategory.UI, LogLevel.Debug },
-			{ LogCategory.AI, LogLevel.Debug },
-			{ LogCategory.Deck, LogLevel.Debug },
-			{ LogCategory.Rules, LogLevel.Debug },
-			{ LogCategory.System, LogLevel.Debug },
+			{ LogCategory.TurnFlow, LogLevel.Trace },
+			{ LogCategory.CardPlay, LogLevel.Trace },
+			{ LogCategory.GameState, LogLevel.Trace },
+			{ LogCategory.TurnManagement, LogLevel.Trace},
+			{ LogCategory.UI, LogLevel.Trace },
+			{ LogCategory.AI, LogLevel.Trace },
+			{ LogCategory.Deck, LogLevel.Trace },
+			{ LogCategory.Rules, LogLevel.Trace },
+			{ LogCategory.System, LogLevel.Trace },
 			{ LogCategory.Diagnostics, LogLevel.Trace },
 			{ LogCategory.Investigation, LogLevel.Trace },
-			{ LogCategory.SpecialCards, LogLevel.Debug },
-			{ LogCategory.Network, LogLevel.Debug },
-			{ LogCategory.Multiplayer, LogLevel.Debug }
+			{ LogCategory.SpecialCards, LogLevel.Trace },
+			{ LogCategory.Network, LogLevel.Trace },
+			{ LogCategory.Multiplayer, LogLevel.Trace }
 		};
 
 		// Category-specific logging methods
