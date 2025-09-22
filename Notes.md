@@ -2037,6 +2037,64 @@ Our status:
 
 
 
+I made changes in (check them out):
+- `StartAITurnAfterStop`
+- `TriggerAITurnAfterStop`
+- `MakeOpponentDrawCards` - removed, since it's never being used
+- `OnAICardSelected`
+- `OnAIDrawCard`
+- `HandleAISpecialCardEffects`
+
+I belive changes need to be made:
+- Maybe we can build a method in `GameManager` that identifies if the player vs opponent for multiplayer. Or maybe we already have something like that in `NetworkGameManager.cs`? Whose responsebility should this be?
+- `ProcessStopSkipEffect` for example - built for only singeplayer mode, human vs computer
+- We need to discuss on the responsibilities
+
+
+- So `IsOpponentTurn` means that: 
+  - If we are in Multiplayer mode, then `IsOpponentTurn` returns: 
+    - True if `networkGameManager?.IsMyTurn == false`
+    - False if `networkGameManager?.IsMyTurn == true`
+  - If we are in Singleplayer mode, then `IsOpponentTurn` returns: 
+    - True if `gameState?.CurrentTurn == TurnState.ComputerTurn`
+    - False if `gameState?.CurrentTurn != TurnState.ComputerTurn`
+- So `ShouldProcessOpponentAction` means that: 
+  - If we are in Multiplayer mode, then `ShouldProcessOpponentAction` returns: 
+    - True if `IsOpponentTurn`
+    - False if `!IsOpponentTurn`
+  - If we are in Singleplayer mode, then `ShouldProcessOpponentAction` returns: 
+    - True if `ShouldUseAI`
+    - False if `!ShouldUseAI`
+- Did I get these right?
+- Maybe `ShouldUseAI` should already include the condition `computerAI != null`?
+   - Instead of `public bool ShouldUseAI => !isMultiplayerMode && IsOpponentTurn;`
+   - Can we have it be `public bool ShouldUseAI => !isMultiplayerMode && IsOpponentTurn && computerAI != null;`?
+
+Yes, I think so. But - `IsOpponentTurn` is involved with both modes, but only called by multiplayer mode??
+
+I'm a little confused. Let's say that right now, we know and want our opponent needs to play a card, what happens? I'm talking about high-level.
+If we have `ShouldProcessOpponentAction`, do we use `ShouldUseAI` anywhere?
+
+
+```csharp
+public bool ShouldUseAI => !isMultiplayerMode && gameState?.IsComputerTurn == true && computerAI != null;
+
+public bool IsWaitingForOpponent => isMultiplayerMode && networkGameManager?.IsMyTurn == false;
+
+// Usage:
+
+if (ShouldUseAI) {
+    // Singleplayer: AI acts
+    computerAI.MakeDecision(topCard);
+} else if (IsWaitingForOpponent) {
+    // Multiplayer: Show waiting UI, set timeouts
+    TakiLogger.LogNetwork("Waiting for remote opponent");
+    GetActiveUI()?.ShowOpponentMessage("Opponent's turn...");
+    // Maybe: StartOpponentTimeout(30f);
+}
+```
+
+
 
 
 

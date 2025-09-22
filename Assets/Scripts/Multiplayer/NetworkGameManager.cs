@@ -54,7 +54,7 @@ namespace TakiGame {
 		/// MILESTONE 1: Initialize shared deck with master/client coordination
 		/// Master creates deck, clients receive synchronized state
 		/// </summary>
-		void InitializeSharedDeck () {
+		void   InitializeSharedDeck () {
 			TakiLogger.LogNetwork ("=== INITIALIZING SHARED DECK ===");
 
 			if (PhotonNetwork.IsMasterClient) {
@@ -78,7 +78,7 @@ namespace TakiGame {
 			}
 
 			TakiLogger.LogNetwork ("Master client setting up deck - simplified approach");
-
+			
 			// Use existing deck setup logic
 			var gameState = gameManager.deckManager.SetupInitialGame ();
 

@@ -77,20 +77,41 @@ Scene_Menu
 - ✅ Network synchronization architecture ready
 - ✅ HandManager initialization timing issue RESOLVED
 - ✅ Button event architecture FIXED - mode-aware activation/deactivation
-- 🎯 **Current**: Network card assignment bug - player gets 0 cards instead of 8
+- ✅ **Network card assignment bug ROOT CAUSE IDENTIFIED** - AI calls during multiplayer mode
+- 🎯 **Current**: Implement centralized GameManager properties for clean AI vs network logic
+
+## Architecture Solution Designed
+**Problem**: AI methods called during multiplayer mode, causing:
+- `computerAI.AddCardsToHand()` gives AI 16 cards (8 + 8)
+- `playerHand` gets 0 cards instead of 8
+- Multiple other AI calls without multiplayer checks
+
+**Solution**: Two centralized GameManager properties:
+```csharp
+public bool ShouldUseAI => !isMultiplayerMode && gameState?.IsComputerTurn == true && computerAI != null;
+public bool IsWaitingForOpponent => isMultiplayerMode && networkGameManager?.IsMyTurn == false;
+```
+
+**Locations needing fixes** (GameManager.cs lines):
+- 1277: `StartAITurnAfterStop` ✅ FIXED
+- 2260: `computerAI.AddCardsToHand(drawnCards)`
+- 2314: `computerAI.MakeDecision(topCard)`
+- 2447: `computerAI.AddCardToHand(singleDrawnCard)`
+- 2491: `computerAI.AddCardToHand(drawnCard)`
+- 2768: `computerAI.MakeDecision(topCard)`
+- 2786: `computerAI.MakeDecision(sequenceTopCard)`
 
 ## My Prompt to you:
-- Read `MOST_RECENT_RUN_LOGS_SIMPLE.md`.
-- Read 'Temp.md`, you can see our Scene Hierarchy, each screen has its own buttons.
+- Read `investigating.md`.
+- We will be replacing all problematic AI calls with the new centralized properties.
 
 ## Todo List
-- [ ] **Investigate multiplayer logs** - analyze issues in MOST_RECENT_RUN_LOGS_SIMPLE.md
-- [x] ✅ HandManager initialization timing issue - RESOLVED
-- [x] ✅ Button event pollution fix - mode-aware UI management COMPLETE
-- [ ] **Debug network card assignment** - why does playerHand get 0 cards?
-- [ ] Fix card distribution in multiplayer mode
-- [ ] Test complete multiplayer functionality
-- [ ] Final architecture validation
+- [x] ✅ Root cause analysis - AI/multiplayer conflict IDENTIFIED
+- [x] ✅ Architecture design - centralized GameManager properties DESIGNED
+- [ ] **Implement centralized properties** - Add ShouldUseAI and IsWaitingForOpponent to GameManager
+- [ ] **Fix all problematic AI calls** - Replace with new properties (7 locations)
+- [ ] **Test multiplayer card assignment** - Verify players get 8 cards each
+- [ ] **Validate logging integration** - Ensure proper network vs AI logging
 
 ## Side Notes
 - **No Unicode**: Avoid special characters in code/files

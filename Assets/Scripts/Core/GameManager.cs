@@ -165,6 +165,10 @@ namespace TakiGame {
 		public bool IsNetworkReady => isMultiplayerMode && networkGameManager != null && networkGameManager.IsDeckInitialized;
 		public bool IsMyNetworkTurn => isMultiplayerMode && networkGameManager != null && networkGameManager.IsMyTurn;
 
+		// Mode-aware usage properties
+		public bool ShouldUseAI => !isMultiplayerMode && gameState?.IsComputerTurn == true && computerAI != null;
+		public bool IsWaitingForOpponent => isMultiplayerMode && networkGameManager?.IsMyTurn == false;
+
 		#endregion
 
 		#region Architecture Management
@@ -1242,6 +1246,11 @@ namespace TakiGame {
 		void StartAITurnAfterStop () {
 			TakiLogger.LogTurnFlow ("=== STARTING AI TURN AFTER STOP EFFECT ===", TakiLogger.LogLevel.Debug);
 
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("StartAITurnAfterStop should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			// Ensure game state shows computer turn
 			if (gameState == null) {
 				TakiLogger.LogError ("GameManager: StartAITurnAfterStop - gameState is NULL!", TakiLogger.LogCategory.TurnFlow);
@@ -1272,6 +1281,11 @@ namespace TakiGame {
 		/// </summary>
 		void TriggerAITurnAfterStop () {
 			TakiLogger.LogAI ("=== AI MAKING DECISION FOR STOP BENEFIT TURN ===", TakiLogger.LogLevel.Debug);
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("TriggerAITurnAfterStop should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard != null && computerAI != null) {
@@ -2249,28 +2263,6 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Make opponent draw cards
-		/// </summary>
-		/// <param name="count">Number of cards to draw</param>
-		void MakeOpponentDrawCards (int count) {
-			if (gameState.IsPlayerTurn) {
-				// Computer draws cards
-				List<CardData> drawnCards = deckManager.DrawCards (count);
-				if (computerAI != null) {
-					computerAI.AddCardsToHand (drawnCards);
-				}
-				TakiLogger.LogCardPlay ($"Computer drew {drawnCards.Count} cards");
-			} else {
-				// Player draws cards
-				List<CardData> drawnCards = deckManager.DrawCards (count);
-				playerHand.AddRange (drawnCards);
-				TakiLogger.LogCardPlay ($"Player drew {drawnCards.Count} cards");
-			}
-
-			UpdateAllUI ();
-		}
-
-		/// <summary>
 		/// PHASE 7: Get direction change note for 2-player game
 		/// </summary>
 		/// <param name="newDirection">New turn direction</param>
@@ -2319,6 +2311,11 @@ namespace TakiGame {
 		/// </summary> 
 		void OnAICardSelected (CardData card) {
 			TakiLogger.LogAI ("=== AI SELECTED CARD (CHAIN AWARE + SEQUENCE AWARE): " + (card != null ? card.GetDisplayText () : "NULL") + " ===");
+			
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("OnAICardSelected should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			if (card == null || computerAI == null) {
 				TakiLogger.LogError ("AI selected null card or computerAI is null!", TakiLogger.LogCategory.AI);
@@ -2422,6 +2419,11 @@ namespace TakiGame {
 		/// </summary>
 		void OnAIDrawCard () {
 			TakiLogger.LogAI ("=== AI DRAWING CARD (CHAIN AWARE) ===");
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("OnAIDrawCard should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			if (deckManager == null || computerAI == null) {
 				TakiLogger.LogError ("AI draw card but components are null!", TakiLogger.LogCategory.AI);
@@ -2536,6 +2538,11 @@ namespace TakiGame {
 		void HandleAISpecialCardEffects (CardData card) {
 			TakiLogger.LogAI ($"=== AI HANDLING TURN FLOW for {card.GetDisplayText ()} ===");
 			TakiLogger.LogAI ("Note: Core special card effects already handled by main HandleSpecialCardEffects method");
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("HandleAISpecialCardEffects should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			// CRITICAL FIX: Check if we're in a TAKI sequence
 			bool inTakiSequence = gameState.IsInTakiSequence;
