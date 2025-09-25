@@ -1770,7 +1770,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] PHOTON DEBUG: CurrentRoom=a7df479d-7a16-4acb-b357-b4ff627cc07d
+[NET] PHOTON DEBUG: CurrentRoom=de7bf9fa-47c4-4775-9ce7-22f954b8567c
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -1954,7 +1954,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Blue Plus
+[DECK] Drew card: Yellow Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -1969,7 +1969,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Green 1
+[DECK] Drew card: Blue 6
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -1984,7 +1984,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Wild ChangeColor
+[DECK] Drew card: Green 9
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -1992,126 +1992,6 @@ TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
 TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
 TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
 TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Red Plus
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Yellow Plus
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Green 8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Green 8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Blue 8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Red 5
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Blue Taki
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
-TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[DECK] Drew card: Blue 9
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
-TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
-TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
-TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
 TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
 TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
 TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
@@ -2126,7 +2006,7 @@ TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/
 TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
 TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
 TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
-TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
 TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
 TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
 TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
@@ -2134,7 +2014,67 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Green ChangeDirection
+[DECK] Drew card: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Blue 5
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Red Taki
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Blue Stop
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:93)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Red 3
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2149,7 +2089,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Red PlusTwo
+[DECK] Drew card: Red Taki
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2164,7 +2104,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Red 1
+[DECK] Drew card: Red Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2179,7 +2119,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Yellow 6
+[DECK] Drew card: Blue 7
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2194,7 +2134,67 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Drew card: Red 8
+[DECK] Drew card: Red 9
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Yellow ChangeDirection
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Wild SuperTaki
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Yellow 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DrawCard () (at Assets/Scripts/Managers/Deck.cs:86)
+TakiGame.Deck:DrawCards (int) (at Assets/Scripts/Managers/Deck.cs:100)
+TakiGame.GameSetupManager:DrawInitialHand (int) (at Assets/Scripts/Managers/GameSetupManager.cs:125)
+TakiGame.GameSetupManager:SetupInitialGame () (at Assets/Scripts/Managers/GameSetupManager.cs:94)
+TakiGame.DeckManager:SetupInitialGame () (at Assets/Scripts/Managers/DeckManager.cs:302)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:108)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[DECK] Drew card: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2208,7 +2208,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Top discard card updated: Red 8
+[DECK] Top discard card updated: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogDeck (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:112)
@@ -2223,7 +2223,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Discarded card: Red 8
+[DECK] Discarded card: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2236,7 +2236,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[STATE] Starting card: Red 8
+[STATE] Starting card: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
@@ -2260,7 +2260,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[STATE] Active color changed: Wild -> Red
+[STATE] Active color changed: Wild -> Green
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogGameState (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:84)
@@ -2784,7 +2784,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Yellow Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2803,7 +2803,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Blue 6 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2822,7 +2822,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Green 9 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2841,7 +2841,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2860,7 +2860,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2879,7 +2879,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2898,7 +2898,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -2917,7 +2917,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -3363,7 +3363,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Deck Message: Starting card: Red 8
+[DECK] Deck Message: Starting card: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogDeck (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:112)
@@ -3378,7 +3378,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] SetupInitialGame successful: P1=8, P2=8, Start=Red 8
+[NET] SetupInitialGame successful: P1=8, P2=8, Start=Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3389,7 +3389,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Blue Plus -> Blue_Plus
+[NET] Serializing card: Yellow Stop -> Yellow_Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3400,7 +3400,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Green 1 -> Green_1
+[NET] Serializing card: Blue 6 -> Blue_6
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3411,111 +3411,12 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Wild ChangeColor -> Wild_ChangeColor
+[NET] Serializing card: Green 9 -> Green_9
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
 TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
 TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Red Plus -> Red_Plus
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Yellow Plus -> Yellow_Plus
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Green 8 -> Green_8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Green 8 -> Green_8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Blue 8 -> Blue_8
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Hand serialized: 8 cards -> 78 characters
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:489)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Red 5 -> Red_5
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Blue Taki -> Blue_Taki
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
-TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
-TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
-TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
-UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
-
-[NET] Serializing card: Blue 9 -> Blue_9
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
 TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
 TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
@@ -3526,13 +3427,68 @@ UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
 TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
-TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
 TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
 TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Green ChangeDirection -> Green_ChangeDirection
+[NET] Serializing card: Green 3 -> Green_3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Blue 5 -> Blue_5
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Red Taki -> Red_Taki
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Blue Stop -> Blue_Stop
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Hand serialized: 8 cards -> 69 characters
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:489)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:113)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Red 3 -> Red_3
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3543,7 +3499,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Red PlusTwo -> Red_PlusTwo
+[NET] Serializing card: Red Taki -> Red_Taki
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3554,7 +3510,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Red 1 -> Red_1
+[NET] Serializing card: Red Stop -> Red_Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3565,7 +3521,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Serializing card: Yellow 6 -> Yellow_6
+[NET] Serializing card: Blue 7 -> Blue_7
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3576,7 +3532,51 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Hand serialized: 8 cards -> 80 characters
+[NET] Serializing card: Red 9 -> Red_9
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Yellow ChangeDirection -> Yellow_ChangeDirection
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Wild SuperTaki -> Wild_SuperTaki
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Serializing card: Yellow 3 -> Yellow_3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SerializeHand (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:482)
+TakiGame.NetworkGameManager:SetupMasterDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:114)
+TakiGame.NetworkGameManager:InitializeSharedDeck () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:86)
+TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:68)
+TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[NET] Hand serialized: 8 cards -> 83 characters
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3597,7 +3597,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Starting Card ID: Red_8
+[NET] Starting Card ID: Green_1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3617,7 +3617,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Player 1 Hand (serialized): Blue_Plus|Green_1|Wild_ChangeColor|Red_Plus|Yellow_Plus|Green_8|Green_8|Blue_8
+[NET] Player 1 Hand (serialized): Yellow_Stop|Blue_6|Green_9|Yellow_5|Green_3|Blue_5|Red_Taki|Blue_Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3627,7 +3627,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Player 2 Hand (serialized): Red_5|Blue_Taki|Blue_9|Yellow_5|Green_ChangeDirection|Red_PlusTwo|Red_1|Yellow_6
+[NET] Player 2 Hand (serialized): Red_3|Red_Taki|Red_Stop|Blue_7|Red_9|Yellow_ChangeDirection|Wild_SuperTaki|Yellow_3
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3795,7 +3795,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] DIAGNOSTIC: Player1Hand[0]: Blue Plus
+[NET] DIAGNOSTIC: Player1Hand[0]: Yellow Stop
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3817,7 +3817,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] DIAGNOSTIC: Player2Hand[0]: Red 5
+[NET] DIAGNOSTIC: Player2Hand[0]: Red 3
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -3961,7 +3961,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Yellow Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -3975,7 +3975,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Blue 6 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -3989,7 +3989,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Green 9 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4003,7 +4003,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4017,7 +4017,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4031,7 +4031,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4045,7 +4045,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4059,7 +4059,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4211,7 +4211,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Red 5, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red 3, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4228,7 +4228,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Blue Taki, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red Taki, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4245,7 +4245,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Blue 9, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red Stop, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4262,7 +4262,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Yellow 5, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Blue 7, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4279,7 +4279,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Green ChangeDirection, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red 9, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4296,7 +4296,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Red PlusTwo, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow ChangeDirection, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4313,7 +4313,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Red 1, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Wild SuperTaki, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4330,7 +4330,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] CardController: Enhanced initialization - Card: Yellow 6, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow 3, FaceUp: False, Privacy: True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4651,7 +4651,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Red 8
+[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
@@ -4673,7 +4673,7 @@ TakiGame.NetworkGameManager:StartNetworkGame () (at Assets/Scripts/Multiplayer/N
 TakiGame.GameManager/<StartNewMultiPlayerGameCoroutine>d__99:MoveNext () (at Assets/Scripts/Core/GameManager.cs:783)
 UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
 
-[DECK] Top discard card updated: Red 8
+[DECK] Top discard card updated: Green 1
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogDeck (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:112)
@@ -4718,7 +4718,7 @@ TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLog
 TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:929)
 
-[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Yellow Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4726,7 +4726,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Blue 6 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4734,7 +4734,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Green 9 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4742,7 +4742,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4750,7 +4750,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4758,7 +4758,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4766,7 +4766,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4774,7 +4774,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4782,7 +4782,7 @@ TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at 
 TakiGame.GameManager:CountPlayableCards () (at Assets/Scripts/Core/GameManager.cs:1707)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:938)
 
-[TURN] Player has 5 valid cards, may PLAY or DRAW a card
+[TURN] Player has 2 valid cards, may PLAY or DRAW a card
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
@@ -4907,7 +4907,7 @@ TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scrip
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4188)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Yellow Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4917,7 +4917,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Blue 6 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4927,7 +4927,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Green 9 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4937,7 +4937,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4947,7 +4947,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4957,7 +4957,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4967,7 +4967,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4977,7 +4977,7 @@ TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 TakiGame.GameManager:StartPlayerTurnFlow () (at Assets/Scripts/Core/GameManager.cs:953)
 
-[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -4993,7 +4993,7 @@ TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLog
 TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4188)
 
-[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Yellow Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5002,7 +5002,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Blue 6 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5011,7 +5011,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Green 9 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5020,7 +5020,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5029,7 +5029,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5038,7 +5038,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 5 on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5047,7 +5047,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5056,7 +5056,7 @@ TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.c
 TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
 TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
 
-[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue Stop on Green 1 with active color Green = False
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5110,7 +5110,7 @@ ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/p
 Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
 Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
 
-[UI] Player selected visual card: Green 8
+[UI] Player selected visual card: Red Taki
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
@@ -5119,7 +5119,66 @@ TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Sc
 TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
 UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
 
-[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Red Taki on Green 1 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4211)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4213)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4213)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4213)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4213)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Player selected visual card: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4208)
+TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
+TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
@@ -5207,7 +5266,7 @@ TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameMana
 TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
 UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
 
-[CARD] Attempting to play selected card: Green 8
+[CARD] Attempting to play selected card: Green 3
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogCardPlay (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:77)
@@ -5216,106 +5275,1650 @@ TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameMana
 TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
 UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
 
-Exception: Write failed. Custom type not found: TakiGame.NetworkMoveData
-ExitGames.Client.Photon.Protocol18.WriteCustomType (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:741)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:99)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
-ExitGames.Client.Photon.Protocol18.WriteHashtable (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:434)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:132)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
-ExitGames.Client.Photon.Protocol18.WriteParameterTable (ExitGames.Client.Photon.StreamBuffer stream, ExitGames.Client.Photon.ParameterDictionary parameters) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:241)
-ExitGames.Client.Photon.Protocol18.SerializeOperationRequest (ExitGames.Client.Photon.StreamBuffer stream, System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary parameters, System.Boolean setType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:276)
-ExitGames.Client.Photon.PeerBase.SerializeOperationToMessage (System.Byte opCode, ExitGames.Client.Photon.ParameterDictionary parameters, ExitGames.Client.Photon.EgMessageType messageType, System.Boolean encrypt) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:688)
-ExitGames.Client.Photon.PhotonPeer.SendOperation (System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary operationParameters, ExitGames.Client.Photon.SendOptions sendOptions) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1871)
-Photon.Realtime.LoadBalancingPeer.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingPeer.cs:1024)
-Photon.Realtime.LoadBalancingClient.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2320)
-Photon.Pun.PhotonNetwork.RaiseEvent (System.Byte eventCode, System.Object eventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonUnityNetworking/Code/PhotonNetwork.cs:2328)
-Photon.Pun.UtilityScripts.PunTurnManager.SendMove (System.Object move, System.Boolean finished) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:181)
-TakiGame.NetworkGameManager.SendCardPlay (TakiGame.CardData card) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:623)
-TakiGame.GameManager.SendLocalCardPlayToNetwork (TakiGame.CardData cardToPlay) (at Assets/Scripts/Core/GameManager.cs:3580)
-TakiGame.GameManager.OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
-TakiGame.GameManager.OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
-TakiGame.BaseGameplayUIManager.<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
-UnityEngine.Events.InvokableCall.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
-UnityEngine.Events.UnityEvent.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
-UnityEngine.UI.Button.Press () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:70)
-UnityEngine.UI.Button.OnPointerClick (UnityEngine.EventSystems.PointerEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:114)
-UnityEngine.EventSystems.ExecuteEvents.Execute (UnityEngine.EventSystems.IPointerClickHandler handler, UnityEngine.EventSystems.BaseEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:57)
-UnityEngine.EventSystems.ExecuteEvents.Execute[T] (UnityEngine.GameObject target, UnityEngine.EventSystems.BaseEventData eventData, UnityEngine.EventSystems.ExecuteEvents+EventFunction`1[T1] functor) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:272)
-UnityEngine.EventSystems.EventSystem:Update() (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[UI] Player deselected card
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
-TakiGame.GameManager:OnPlayerCardSelected (TakiGame.CardController) (at Assets/Scripts/Core/GameManager.cs:4202)
-TakiGame.HandManager:HandleCardSelection (TakiGame.CardController) (at Assets/Scripts/UI/HandManager.cs:424)
-TakiGame.CardController:OnCardButtonClicked () (at Assets/Scripts/UI/CardController.cs:475)
-UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[TURN] === DRAW CARD BUTTON CLICKED ===
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
-TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:97)
-UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[TURN] Button enabled state: True
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
-TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:98)
-UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[TURN] Button interactable: True
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
-TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:99)
-UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[TURN] === DRAW CARD BUTTON CLICKED (MULTIPLAYER) ===
-UnityEngine.Debug:Log (object)
-TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
-TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
-TakiGame.GameManager:OnDrawCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1380)
-TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:108)
-UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
-
-[NET] === MULTIPLAYER DRAW CARD CLICKED ===
+[NET] === PLAYER 1 FINISHED TURN 1 ===
 UnityEngine.Debug:Log (object)
 TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
 TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
-TakiGame.GameManager:OnDrawCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3674)
-TakiGame.GameManager:OnDrawCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1381)
-TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:108)
+TakiGame.NetworkGameManager:OnPlayerFinished (Photon.Realtime.Player,int,object) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:574)
+Photon.Pun.UtilityScripts.PunTurnManager:ProcessOnEvent (byte,object,int) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:240)
+Photon.Pun.UtilityScripts.PunTurnManager:SendMove (object,bool) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:189)
+TakiGame.NetworkGameManager:SendCardPlay (TakiGame.CardData) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:623)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3580)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
 UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
 
-Exception: Write failed. Custom type not found: TakiGame.NetworkMoveData
-ExitGames.Client.Photon.Protocol18.WriteCustomType (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:741)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:99)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
-ExitGames.Client.Photon.Protocol18.WriteHashtable (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:434)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:132)
-ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
-ExitGames.Client.Photon.Protocol18.WriteParameterTable (ExitGames.Client.Photon.StreamBuffer stream, ExitGames.Client.Photon.ParameterDictionary parameters) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:241)
-ExitGames.Client.Photon.Protocol18.SerializeOperationRequest (ExitGames.Client.Photon.StreamBuffer stream, System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary parameters, System.Boolean setType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:276)
-ExitGames.Client.Photon.PeerBase.SerializeOperationToMessage (System.Byte opCode, ExitGames.Client.Photon.ParameterDictionary parameters, ExitGames.Client.Photon.EgMessageType messageType, System.Boolean encrypt) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:688)
-ExitGames.Client.Photon.PhotonPeer.SendOperation (System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary operationParameters, ExitGames.Client.Photon.SendOptions sendOptions) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1871)
-Photon.Realtime.LoadBalancingPeer.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingPeer.cs:1024)
-Photon.Realtime.LoadBalancingClient.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2320)
-Photon.Pun.PhotonNetwork.RaiseEvent (System.Byte eventCode, System.Object eventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonUnityNetworking/Code/PhotonNetwork.cs:2328)
-Photon.Pun.UtilityScripts.PunTurnManager.SendMove (System.Object move, System.Boolean finished) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:181)
-TakiGame.NetworkGameManager.SendCardDraw () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:638)
-TakiGame.GameManager.SendLocalCardDrawToNetwork () (at Assets/Scripts/Core/GameManager.cs:3600)
-TakiGame.GameManager.OnDrawCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3715)
-TakiGame.GameManager.OnDrawCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1381)
-TakiGame.BaseGameplayUIManager.<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:108)
-UnityEngine.Events.InvokableCall.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
-UnityEngine.Events.UnityEvent.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
-UnityEngine.UI.Button.Press () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:70)
-UnityEngine.UI.Button.OnPointerClick (UnityEngine.EventSystems.PointerEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:114)
-UnityEngine.EventSystems.ExecuteEvents.Execute (UnityEngine.EventSystems.IPointerClickHandler handler, UnityEngine.EventSystems.BaseEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:57)
-UnityEngine.EventSystems.ExecuteEvents.Execute[T] (UnityEngine.GameObject target, UnityEngine.EventSystems.BaseEventData eventData, UnityEngine.EventSystems.ExecuteEvents+EventFunction`1[T1] functor) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:272)
-UnityEngine.EventSystems.EventSystem:Update() (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+[NET] Sent card play: Green_3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:SendCardPlay (TakiGame.CardData) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:624)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3580)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Sent card play to network: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3581)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3584)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3584)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3584)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:SendLocalCardPlayToNetwork (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:3584)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[CARD] PLAYING CARD WITH STRICT FLOW: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogCardPlay (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:77)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1572)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Green 3 on Green 1 with active color Green = True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1592)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[DECK] Top discard card updated: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogDeck (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:112)
+TakiGame.DeckUIManager:UpdateDiscardPileDisplay (TakiGame.CardData) (at Assets/Scripts/Managers/DeckUIManager.cs:263)
+TakiGame.DeckManager:<ConnectEvents>b__15_1 (TakiGame.CardData) (at Assets/Scripts/Managers/DeckManager.cs:90)
+TakiGame.Deck:DiscardCard (TakiGame.CardData) (at Assets/Scripts/Managers/Deck.cs:126)
+TakiGame.DeckManager:DiscardCard (TakiGame.CardData) (at Assets/Scripts/Managers/DeckManager.cs:281)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1610)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[DECK] Discarded card: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogInfo (string,TakiGame.TakiLogger/LogCategory) (at Assets/Scripts/TakiLogger.cs:184)
+TakiGame.Deck:DiscardCard (TakiGame.CardData) (at Assets/Scripts/Managers/Deck.cs:127)
+TakiGame.DeckManager:DiscardCard (TakiGame.CardData) (at Assets/Scripts/Managers/DeckManager.cs:281)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1610)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === CALLING HandleSpecialCardEffects WITH SEQUENCE AWARENESS ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1631)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === HANDLING SPECIAL CARD EFFECTS for Green 3 ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1737)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Card type: Number
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1744)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Card name: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1745)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] SEQUENCE CONTEXT: In sequence=False, Last card=False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1752)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] SPECIAL EFFECT ACTIVATION: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1753)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] NUMBER card - no special effects
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:HandleSpecialCardEffects (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1921)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1633)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === HandleSpecialCardEffects COMPLETED ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1634)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === CALLING LogCardEffectRules ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1641)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === CARD EFFECT ANALYSIS: Green 3 ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2119)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] NUMBER CARD: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] RULE: Basic card - no special effects
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2124)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] TURN FLOW: Player must END TURN after playing
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2125)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] IMPLEMENTATION: Standard single-action turn completion
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2126)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2127)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2127)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2127)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2127)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === CARD EFFECT ANALYSIS COMPLETE ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:LogCardEffectRules (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:2228)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1642)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] === LogCardEffectRules COMPLETED ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1643)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:263)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:264)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Player1 UI updated: Your Cards: 7
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:268)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Player2 UI updated: Opponent Cards: 0
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:276)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Multiplayer hand sizes updated: Local=7, Opponent=0
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:282)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4120)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] === UPDATING ALL DISPLAYS (BASE) ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:758)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] === UPDATING TURN DISPLAY for PlayerTurn ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:330)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:760)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Turn indicator text: 'Your Turn'
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:335)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:760)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Turn display updated - button states controlled by strict flow system
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:340)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:760)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] ENABLE TAKI DEBUG: EnableEndTakiSequenceButton called with enable=False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.MultiPlayerUIManager:EnableEndTakiSequenceButton (bool) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:161)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:787)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] ENABLE TAKI DEBUG: Disabling button (enable=false)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.MultiPlayerUIManager:EnableEndTakiSequenceButton (bool) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:173)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:787)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] End TAKI Sequence button DISABLED & HIDDEN
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:EnableEndTakiSequenceButton (bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:707)
+TakiGame.MultiPlayerUIManager:EnableEndTakiSequenceButton (bool) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:174)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:787)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] TAKI sequence status hidden
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:HideTakiSequenceStatus () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:747)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:788)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Handling active game state
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:HandleActiveState (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:860)
+TakiGame.BaseGameplayUIManager:UpdateAllDisplays (TakiGame.TurnState,TakiGame.GameStatus,TakiGame.InteractionState,TakiGame.CardColor) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:799)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4123)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4139)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4139)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4139)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4139)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Chain status hidden
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:HidePlusTwoChainStatus () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:696)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4139)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Yellow Stop on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue 6 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Green 9 on Green 3 with active color Green = True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Yellow 5 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue 5 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Red Taki on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue Stop on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:299)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Hand display updated: 7 cards, Network=True, Opponent=False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.HandManager:UpdateHandDisplay (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:304)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4159)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Updated player hand display: 7 cards
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4160)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Showing 8 opponent cards with privacy mode
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:636)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Red 3, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Red Taki, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Red Stop, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Blue 7, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Red 9, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Yellow ChangeDirection, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Wild SuperTaki, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] CardController: Enhanced initialization - Card: Yellow 3, FaceUp: False, Privacy: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.CardController:InitializeCardEnhanced (TakiGame.CardData,TakiGame.HandManager,bool,bool) (at Assets/Scripts/UI/CardController.cs:137)
+TakiGame.HandManager:CreateCardPrefabEnhanced (TakiGame.CardData,int,bool) (at Assets/Scripts/UI/HandManager.cs:708)
+TakiGame.HandManager:CreateCardPrefabsWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:673)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:645)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:263)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:654)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:264)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:654)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Player1 UI updated: Your Cards: 7
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:268)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:654)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Player2 UI updated: Opponent Cards: 8
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:276)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:654)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Multiplayer hand sizes updated: Local=7, Opponent=8
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.MultiPlayerUIManager:UpdateHandSizeDisplay (int,int) (at Assets/Scripts/UI/MultiPlayerUIManager.cs:282)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:654)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Opponent hand displayed with privacy: 8 real cards as card backs
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.HandManager:ShowOpponentHandWithPrivacy (System.Collections.Generic.List`1<TakiGame.CardData>) (at Assets/Scripts/UI/HandManager.cs:657)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:731)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Hand display updated (enhanced): 8 cards, Privacy=True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.HandManager:UpdateHandDisplayEnhanced (System.Collections.Generic.List`1<TakiGame.CardData>,bool) (at Assets/Scripts/UI/HandManager.cs:737)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4168)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] Updated opponent hand display (multiplayer): 8 cards with privacy
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.GameManager:UpdateVisualHands () (at Assets/Scripts/Core/GameManager.cs:4169)
+TakiGame.GameManager:UpdateAllUI () (at Assets/Scripts/Core/GameManager.cs:4144)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1646)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[UI] REFRESHING PLAYER HAND STATES
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4188)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Yellow Stop on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue 6 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Green 9 on Green 3 with active color Green = True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Yellow 5 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue 5 on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Red Taki on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[RULES] Move validation: Blue Stop on Green 3 with active color Green = False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogRules (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:119)
+TakiGame.GameStateManager:IsValidMove (TakiGame.CardData,TakiGame.CardData) (at Assets/Scripts/Managers/GameStateManager.cs:402)
+TakiGame.HandManager:UpdatePlayableStates () (at Assets/Scripts/UI/HandManager.cs:551)
+TakiGame.HandManager:RefreshPlayableStates () (at Assets/Scripts/UI/HandManager.cs:609)
+TakiGame.GameManager:RefreshPlayerHandStates () (at Assets/Scripts/Core/GameManager.cs:4192)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1647)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] === HANDLING POST-CARD-PLAY TURN FLOW for Green 3 ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:961)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] NORMAL CARD TURN FLOW - Single action, must end turn
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1101)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] === FORCE ENABLING END TURN BUTTON ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:315)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Action was successful - player must now END TURN
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:316)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] === UPDATING STRICT BUTTON STATES ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:277)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] PLAY: DISABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:278)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] DRAW: DISABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:279)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] END TURN: ENABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:280)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Play Card button updated: DISABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:289)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Draw Card button updated: DISABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:294)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] End Turn button updated: ENABLED
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:299)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Strict button state update complete
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateStrictButtonStates (bool,bool,bool) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:307)
+TakiGame.BaseGameplayUIManager:ForceEnableEndTurn () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:319)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1109)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1110)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1110)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1110)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1110)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] Normal turn flow: Must END TURN after single action
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.GameManager:HandlePostCardPlayTurnFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1112)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1650)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[TURN] CARD PLAY COMPLETE - Turn flow handled based on card type
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.GameManager:PlayCardWithStrictFlow (TakiGame.CardData) (at Assets/Scripts/Core/GameManager.cs:1667)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3655)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] Multiplayer card play completed: Green 3
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.GameManager:OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3657)
+TakiGame.GameManager:OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager:<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.EventSystems.EventSystem:Update () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)
+
+[NET] === TURN 2 BEGINS ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:547)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[NET] Is my turn: False
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogNetwork (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:154)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:559)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[STATE] Turn state changed: PlayerTurn -> ComputerTurn
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogGameState (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:84)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:88)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[STATE] Turn state changed to ComputerTurn
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogGameState (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:84)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3975)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:181)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:182)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:183)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogSystem (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:126)
+TakiGame.GameManager:GetActiveUI () (at Assets/Scripts/Core/GameManager.cs:186)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[UI] === UPDATING TURN DISPLAY for ComputerTurn ===
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:330)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[UI] Turn indicator text: 'Opponent's Turn'
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogUI (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:98)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:335)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
+
+[TURN] Turn display updated - button states controlled by strict flow system
+UnityEngine.Debug:Log (object)
+TakiGame.TakiLogger:Log (TakiGame.TakiLogger/LogCategory,string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:216)
+TakiGame.TakiLogger:LogTurnFlow (string,TakiGame.TakiLogger/LogLevel) (at Assets/Scripts/TakiLogger.cs:70)
+TakiGame.BaseGameplayUIManager:UpdateTurnDisplay (TakiGame.TurnState) (at Assets/Scripts/UI/BaseGameplayUIManager.cs:340)
+TakiGame.GameManager:OnTurnStateChanged (TakiGame.TurnState) (at Assets/Scripts/Core/GameManager.cs:3978)
+TakiGame.GameStateManager:ChangeTurnState (TakiGame.TurnState) (at Assets/Scripts/Managers/GameStateManager.cs:89)
+TakiGame.NetworkGameManager:OnTurnBegins (int) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:564)
+Photon.Pun.UtilityScripts.PunTurnManager:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:275)
+Photon.Realtime.InRoomCallbacksContainer:OnRoomPropertiesUpdate (ExitGames.Client.Photon.Hashtable) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:4517)
+Photon.Realtime.LoadBalancingClient:ReadoutProperties (ExitGames.Client.Photon.Hashtable,ExitGames.Client.Photon.Hashtable,int) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2365)
+Photon.Realtime.LoadBalancingClient:OnEvent (ExitGames.Client.Photon.EventData) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3508)
+ExitGames.Client.Photon.PeerBase:DeserializeMessageAndCallback (ExitGames.Client.Photon.StreamBuffer) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:904)
+ExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/EnetPeer.cs:595)
+ExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands () (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1779)
+Photon.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)
+Photon.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)
 

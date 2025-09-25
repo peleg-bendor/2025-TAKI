@@ -615,9 +615,9 @@ namespace TakiGame {
 
 			string cardId = GetCardIdentifier (card);
 
-			var moveData = new NetworkMoveData {
-				actionType = "PLAY_CARD",
-				cardIdentifier = cardId
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "PLAY_CARD"},
+				{"cardIdentifier", cardId}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -630,9 +630,9 @@ namespace TakiGame {
 		public void SendCardDraw () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "DRAW_CARD",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "DRAW_CARD"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -645,9 +645,9 @@ namespace TakiGame {
 		public void SendColorSelection (CardColor selectedColor) {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "COLOR_SELECTION",
-				cardIdentifier = selectedColor.ToString ()
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "COLOR_SELECTION"},
+				{"cardIdentifier", selectedColor.ToString ()}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -660,9 +660,9 @@ namespace TakiGame {
 		public void SendEndTurn () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "END_TURN",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "END_TURN"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -675,9 +675,9 @@ namespace TakiGame {
 		public void SendEndTakiSequence () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "END_TAKI_SEQUENCE",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "END_TAKI_SEQUENCE"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -690,9 +690,9 @@ namespace TakiGame {
 		public void SendStopEffect () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "STOP_EFFECT",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "STOP_EFFECT"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -705,9 +705,9 @@ namespace TakiGame {
 		public void SendDirectionChange () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "DIRECTION_CHANGE",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "DIRECTION_CHANGE"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -720,9 +720,9 @@ namespace TakiGame {
 		public void SendChainBreak () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "CHAIN_BREAK",
-				cardIdentifier = ""
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "CHAIN_BREAK"},
+				{"cardIdentifier", ""}
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -735,9 +735,9 @@ namespace TakiGame {
 		public void SendPlusTwoEffect (int chainCount, int drawCount) {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
-			var moveData = new NetworkMoveData {
-				actionType = "PLUS_TWO_EFFECT",
-				cardIdentifier = $"{chainCount},{drawCount}" // Encode chain info in identifier
+			var moveData = new ExitGames.Client.Photon.Hashtable {
+				{"actionType", "PLUS_TWO_EFFECT"},
+				{"cardIdentifier", $"{chainCount},{drawCount}"} // Encode chain info in identifier
 			};
 
 			turnMgr.SendMove (moveData, true);
@@ -753,20 +753,23 @@ namespace TakiGame {
 				return;
 			}
 
-			if (moveData is NetworkMoveData networkMove) {
-				switch (networkMove.actionType) {
+			if (moveData is ExitGames.Client.Photon.Hashtable networkMove) {
+				string actionType = (string)networkMove["actionType"];
+				string cardIdentifier = (string)networkMove["cardIdentifier"];
+
+				switch (actionType) {
 					case "PLAY_CARD":
-						gameManager.ProcessNetworkCardPlay (networkMove.cardIdentifier, player.ActorNumber);
+						gameManager.ProcessNetworkCardPlay (cardIdentifier, player.ActorNumber);
 						break;
 					case "DRAW_CARD":
 						gameManager.ProcessNetworkCardDraw (player.ActorNumber);
 						break;
 					case "COLOR_SELECTION":
 						// Parse color from string and process
-						if (System.Enum.TryParse<CardColor> (networkMove.cardIdentifier, out CardColor selectedColor)) {
+						if (System.Enum.TryParse<CardColor> (cardIdentifier, out CardColor selectedColor)) {
 							gameManager.ProcessNetworkColorSelection (selectedColor, player.ActorNumber);
 						} else {
-							TakiLogger.LogError ($"Invalid color selection received: {networkMove.cardIdentifier}", TakiLogger.LogCategory.Network);
+							TakiLogger.LogError ($"Invalid color selection received: {cardIdentifier}", TakiLogger.LogCategory.Network);
 						}
 						break;
 					case "END_TURN":
@@ -786,12 +789,12 @@ namespace TakiGame {
 						break;
 					case "PLUS_TWO_EFFECT":
 						// Parse chain info from cardIdentifier
-						if (!string.IsNullOrEmpty (networkMove.cardIdentifier)) {
-							string[] parts = networkMove.cardIdentifier.Split (',');
+						if (!string.IsNullOrEmpty (cardIdentifier)) {
+							string[] parts = cardIdentifier.Split (',');
 							if (parts.Length == 2 && int.TryParse (parts[0], out int chainCount) && int.TryParse (parts[1], out int drawCount)) {
 								gameManager.ProcessNetworkPlusTwoEffect (chainCount, drawCount, player.ActorNumber);
 							} else {
-								TakiLogger.LogError ($"Invalid PlusTwo effect data: {networkMove.cardIdentifier}", TakiLogger.LogCategory.Network);
+								TakiLogger.LogError ($"Invalid PlusTwo effect data: {cardIdentifier}", TakiLogger.LogCategory.Network);
 							}
 						} else {
 							TakiLogger.LogError ("PlusTwo effect received with empty data", TakiLogger.LogCategory.Network);

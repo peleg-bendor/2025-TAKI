@@ -140,6 +140,32 @@ bool iInitiatedSequence = (sequenceInitiatorActor == myActorNumber);
 
 **Result**: ✅ Button only enabled for the player who actually initiated the TAKI sequence
 
+### **Network Serialization Fix:**
+**Problem**: `Exception: Write failed. Custom type not found: TakiGame.NetworkMoveData` when clicking Play/Draw buttons
+**Root Cause**: Photon PUN2 couldn't serialize the custom `NetworkMoveData` class over network
+
+**Solution Applied**: Replace `NetworkMoveData` with `ExitGames.Client.Photon.Hashtable`
+- **NetworkGameManager.cs**: Updated all Send methods (SendCardPlay, SendCardDraw, etc.) to use Hashtable
+- **ProcessRemoteAction**: Updated to receive and parse Hashtable data instead of NetworkMoveData
+- **Project pattern**: Already used Hashtable in `MultiplayerMenuLogic.cs` for room properties
+
+**Implementation**:
+```csharp
+// OLD (BROKEN): Custom type not registered with Photon
+var moveData = new NetworkMoveData {
+    actionType = "PLAY_CARD",
+    cardIdentifier = cardId
+};
+
+// NEW (WORKING): Native Photon serialization
+var moveData = new ExitGames.Client.Photon.Hashtable {
+    {"actionType", "PLAY_CARD"},
+    {"cardIdentifier", cardId}
+};
+```
+
+**Result**: ✅ Network card play/draw actions now work without serialization errors!
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
 ✅ **Multiplayer**: Complete & Working - All systems operational
@@ -147,6 +173,7 @@ bool iInitiatedSequence = (sequenceInitiatorActor == myActorNumber);
 - UI display: Correct hand counts ✅
 - Game logic: Card validation & turns ✅
 - Network sync: RPC communication ✅
+- **Network serialization: FIXED** ✅
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -155,7 +182,8 @@ bool iInitiatedSequence = (sequenceInitiatorActor == myActorNumber);
 - [x] ✅ UpdateVisualHands fix - No longer assumes AI exists in multiplayer
 - [x] ✅ **FIXED: Multiplayer card assignment bug** - Reference equality issue resolved
 - [x] ✅ **FIXED: Btn_Player1EndTakiSequence state synchronization** - ActorNumber-based network logic
-- [ ] ✅ **Multiplayer testing** - Game functionality
+- [x] ✅ **FIXED: Network serialization bug** - NetworkMoveData → Hashtable conversion
+- [x] ✅ **Multiplayer testing** - Game functionality verified
 
 ## Side Notes
 - **No Unicode**: Avoid special characters in code/files
