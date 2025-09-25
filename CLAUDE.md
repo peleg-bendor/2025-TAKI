@@ -216,6 +216,34 @@ if (deckManager != null) {
 
 **Result**: ✅ **Draw pile synchronization**: Both clients show consistent draw pile counts (93→92) when opponent draws cards
 
+### **Client Draw/Play Issue Fix:**
+**Problem**: Client could not draw or play cards - received "Cannot draw card: Game not active or not player turn" even when it was client's turn
+**Root Cause**: `isGameActive` field was never set to `true` in multiplayer mode, causing validation `if (!isGameActive || !gameState.CanPlayerAct())` to fail
+
+**Solution Applied**: Added proper game activation after multiplayer initialization
+- **GameManager.cs**: Added `SetGameActive(bool active)` method for network game activation
+- **NetworkGameManager.SetupLocalMultiplayerHands()**: Call `gameManager.SetGameActive(true)` after successful hands setup
+- **Validation fix**: Client now passes game active validation checks
+
+**Debug Process**: Added temporary logging to isolate the exact failing condition:
+```csharp
+// Debug revealed: isGameActive=False, but CanPlayerAct=True
+TakiLogger.LogNetwork($"DRAW VALIDATION DEBUG: isGameActive={gameActiveCheck}, CanPlayerAct={canPlayerActCheck}");
+TakiLogger.LogNetwork($"DRAW VALIDATION DEBUG: gameStatus={gameState.gameStatus}, turnState={gameState.turnState}, interactionState={gameState.interactionState}");
+```
+
+**Implementation**:
+```csharp
+// NEW: Proper multiplayer game activation
+// In NetworkGameManager.SetupLocalMultiplayerHands():
+if (gameManager != null) {
+    gameManager.SetGameActive(true);
+    TakiLogger.LogNetwork("Game activated after multiplayer hands setup");
+}
+```
+
+**Result**: ✅ **Client card actions**: Both master and client can now draw and play basic cards successfully
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
 ✅ **Multiplayer**: Complete & Working - All systems operational
@@ -226,6 +254,7 @@ if (deckManager != null) {
 - **Network serialization: FIXED** ✅
 - **Opponent hand display: FIXED** ✅ Consistent count synchronization with proper card back sprites
 - **Draw pile synchronization: FIXED** ✅ Draw pile counts stay synchronized across clients
+- **Client card actions: FIXED** ✅ Both master and client can draw and play basic cards
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -237,6 +266,7 @@ if (deckManager != null) {
 - [x] ✅ **FIXED: Network serialization bug** - NetworkMoveData → Hashtable conversion
 - [x] ✅ **FIXED: Opponent hand display synchronization** - Real card data synchronization with consistent display architecture
 - [x] ✅ **FIXED: Draw pile synchronization** - Added DecrementDrawPileCount() for network card draw processing
+- [x] ✅ **FIXED: Client draw/play issue** - Added SetGameActive() method and proper multiplayer game activation
 - [x] ✅ **Multiplayer testing** - Game functionality verified
 
 ## Side Notes

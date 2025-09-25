@@ -378,6 +378,12 @@ namespace TakiGame {
 			}
 
 			TakiLogger.LogNetwork ("Multiplayer hands setup complete - simplified approach successful");
+
+			// FIXED: Set game as active after successful multiplayer setup
+			if (gameManager != null) {
+				gameManager.SetGameActive(true);
+				TakiLogger.LogNetwork ("Game activated after multiplayer hands setup");
+			}
 		}
 
 		/// <summary>

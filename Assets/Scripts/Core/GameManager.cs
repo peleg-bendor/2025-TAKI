@@ -752,6 +752,16 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// NETWORK: Set game active state for multiplayer mode
+		/// Called by NetworkGameManager after successful initialization
+		/// </summary>
+		/// <param name="active">Whether the game should be active</param>
+		public void SetGameActive(bool active) {
+			isGameActive = active;
+			TakiLogger.LogNetwork ($"Game active state changed to: {active}");
+		}
+
+		/// <summary>
 		/// Coroutine version of StartNewMultiPlayerGame that waits for HandManager initialization
 		/// </summary>
 		private System.Collections.IEnumerator StartNewMultiPlayerGameCoroutine() {
