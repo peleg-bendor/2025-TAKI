@@ -956,6 +956,14 @@ namespace TakiGame {
 				cardControllers.Any (controller => controller != null && controller.IsPrivacyMode);
 		}
 
+		/// <summary>
+		/// INTERNAL USE: Get real cards for game logic (bypasses privacy for UpdateVisualHands)
+		/// WARNING: Only for internal GameManager use - do not expose to UI or network
+		/// </summary>
+		public List<CardData> GetRealCardsForGameLogic () {
+			return new List<CardData> (currentHand);
+		}
+
 		#endregion
 
 		#region Debug and Diagnostics - Enhanced with Network Info

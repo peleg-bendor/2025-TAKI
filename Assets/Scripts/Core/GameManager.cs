@@ -791,11 +791,17 @@ namespace TakiGame {
 			// Only clear hands in single-player mode
 			// In multiplayer, hands are populated from network data and should NOT be cleared
 			if (!isMultiplayerMode) {
+				TakiLogger.LogSystem ("Reseting game systems in singleplayer mode", TakiLogger.LogLevel.Info);
+				TakiLogger.LogSystem ("Clearing plyer hand...", TakiLogger.LogLevel.Trace);
 				playerHand.Clear ();
 
 				if (computerAI != null) {
+					TakiLogger.LogSystem ("Clearing computer hand...", TakiLogger.LogLevel.Trace);
 					computerAI.ClearHand ();
 				}
+			} else {
+				TakiLogger.LogSystem ("Reseting game systems in multiplayer mode", TakiLogger.LogLevel.Info);
+				TakiLogger.LogSystem ("In multiplayer, hands are populated from network data and should NOT be cleared", TakiLogger.LogLevel.Trace);
 			}
 
 			// Always reset core game systems (both modes need this)
@@ -821,15 +827,17 @@ namespace TakiGame {
 		/// <summary>
 		/// Handle completion of initial game setup
 		/// </summary>
-		/// <param name="player1Hand">Player's initial hand (Human)</param>
-		/// <param name="player2Hand">Computer's initial hand</param>
+		/// <param name="player1Hand">Player's initial hand</param>
+		/// <param name="player2Hand">Opponent's initial hand</param>
 		/// <param name="startingCard">Starting discard card</param>
 		void OnInitialGameSetupComplete (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) {
-			// Assign hands (Player1 = Human, Player2 = Computer)
+
+			// Assign hands (Player1 = Player, Player2 = Opponent)
 			playerHand = player1Hand;
-			if (computerAI != null) {
+			if (ShouldUseAI) {
 				computerAI.AddCardsToHand (player2Hand);
 			}
+			// In multiplayer, player2Hand would be handled by network synchronization
 
 			// Set active color from starting card
 			if (startingCard != null && gameState != null) {
@@ -847,7 +855,7 @@ namespace TakiGame {
 			isGameActive = true;
 			OnGameStarted?.Invoke ();
 
-			TakiLogger.LogSystem ($"Game started! Player: {player1Hand.Count} cards, Computer: {player2Hand.Count} cards");
+			TakiLogger.LogSystem ($"Game started! Player: {player1Hand.Count} cards, Opponent: {player2Hand.Count} cards");
 		}
 
 		#endregion
@@ -1201,6 +1209,11 @@ namespace TakiGame {
 		void EndAITurnWithStrictFlow () {
 			TakiLogger.LogTurnFlow ("ENDING AI TURN - STRICT FLOW WITH SPECIAL CARDS", TakiLogger.LogLevel.Debug);
 
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("EndAITurnWithStrictFlow should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			// Check STOP flag FIRST, before any turn switching logic
 			if (shouldSkipNextTurn) {
 				TakiLogger.LogTurnFlow ("=== STOP FLAG DETECTED FOR AI TURN END - PROCESSING STOP EFFECT ===", TakiLogger.LogLevel.Debug);
@@ -1290,7 +1303,9 @@ namespace TakiGame {
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard != null && computerAI != null) {
 				GetActiveUI ()?.ShowOpponentMessage ("Opponent thinking about bonus turn...");
-				computerAI.MakeDecision (topCard);
+				if (ShouldUseAI) {
+					computerAI.MakeDecision (topCard);
+				}
 			} else {
 				TakiLogger.LogError ("Cannot trigger AI turn after STOP - missing components", TakiLogger.LogCategory.AI);
 			}
@@ -1308,12 +1323,14 @@ namespace TakiGame {
 		/// Play card button handler with multiplayer support
 		/// </summary>
 		void OnPlayCardButtonClicked () {
-			TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED ===", TakiLogger.LogLevel.Debug);
 
 			// Route to multiplayer handler if in multiplayer mode
 			if (isMultiplayerMode) {
+				TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED (MULTIPLAYER) ===", TakiLogger.LogLevel.Debug);
 				OnPlayCardButtonClickedMultiplayer ();
 				return;
+			} else {
+				TakiLogger.LogTurnFlow ("=== PLAY CARD BUTTON CLICKED (SINGLEPLAYER) ===", TakiLogger.LogLevel.Debug);
 			}
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
@@ -1357,12 +1374,14 @@ namespace TakiGame {
 		/// ENHANCED: Draw card button handler with multiplayer support
 		/// </summary>
 		void OnDrawCardButtonClicked () {
-			TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED ===");
 
-			// PHASE 2: Route to multiplayer handler if in multiplayer mode
+			// Route to multiplayer handler if in multiplayer mode
 			if (isMultiplayerMode) {
+				TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED (MULTIPLAYER) ===", TakiLogger.LogLevel.Debug);
 				OnDrawCardButtonClickedMultiplayer ();
 				return;
+			} else {
+				TakiLogger.LogTurnFlow ("=== DRAW CARD BUTTON CLICKED (SINGLEPLAYER) ===", TakiLogger.LogLevel.Debug);
 			}
 
 			if (!isGameActive || !gameState.CanPlayerAct ()) {
@@ -1391,7 +1410,13 @@ namespace TakiGame {
 		/// ENHANCED: Handle end turn with special card validation
 		/// </summary>
 		void OnEndTurnButtonClicked () {
-			TakiLogger.LogTurnFlow ("END TURN BUTTON CLICKED - STRICT FLOW WITH SPECIAL CARDS", TakiLogger.LogLevel.Debug);
+			if (isMultiplayerMode) {
+				TakiLogger.LogTurnFlow ("=== END TURN BUTTON CLICKED (MULTIPLAYER) ===");
+				OnEndTurnButtonClickedMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogTurnFlow ("=== END TURN BUTTON CLICKED (SINGLEPLAYER) ===");
 
 			// PHASE 7: Check for pending special card effects first
 			if (HasPendingSpecialCardEffects ()) {
@@ -1414,7 +1439,13 @@ namespace TakiGame {
 		/// CRITICAL FIX: Handle End TAKI Sequence with validation and no restart loops
 		/// </summary>
 		void OnEndTakiSequenceButtonClicked () {
-			TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED ===");
+			if (isMultiplayerMode) {
+				TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED (MULTIPLAYER) ===");
+				OnEndTakiSequenceButtonClickedMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogTurnFlow ("=== END TAKI SEQUENCE BUTTON CLICKED (SINGLEPLAYER) ===");
 
 			if (!gameState.IsInTakiSequence) {
 				GetActiveUI ()?.ShowPlayerMessage ("No TAKI sequence is active!");
@@ -1518,6 +1549,11 @@ namespace TakiGame {
 			gameState.ChangeActiveColor (selectedColor);
 			TakiLogger.LogGameState ($"Active color changed to: {selectedColor}", TakiLogger.LogLevel.Debug);
 
+			// Add network sync for multiplayer
+			if (isMultiplayerMode && networkGameManager != null) {
+				networkGameManager.SendColorSelection (selectedColor);
+			}
+
 			// Show feedback about color selection
 			GetActiveUI ()?.ShowPlayerMessage ($"Color changed to {selectedColor} - you must END TURN!");
 			GetActiveUI ()?.ShowOpponentMessage ("");
@@ -1533,7 +1569,7 @@ namespace TakiGame {
 		/// CRITICAL FIX: Cards are added to sequence BEFORE special effects are processed
 		/// </summary>
 		void PlayCardWithStrictFlow (CardData card) {
-			TakiLogger.LogCardPlay ($"PLAYING CARD WITH STRICT FLOW (PHASE 8B): {card.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogCardPlay ($"PLAYING CARD WITH STRICT FLOW: {card.GetDisplayText ()}", TakiLogger.LogLevel.Debug);
 
 			// Validate the move
 			CardData topCard = GetTopDiscardCard ();
@@ -1764,38 +1800,44 @@ namespace TakiGame {
 					TakiLogger.LogRules ("=== PLUS TWO CARD: ENHANCED CHAIN SYSTEM WITH SEQUENCE AWARENESS ===");
 
 					if (shouldActivateSpecialEffect) {
-						PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
-						PlayerType targetPlayer = currentPlayer == PlayerType.Human ? PlayerType.Computer : PlayerType.Human;
+						if (isMultiplayerMode) {
+							// Multiplayer mode: Handle PlusTwo effect with network sync
+							HandlePlusTwoEffectMultiplayer ();
+						} else {
+							// Singleplayer mode: Use existing PlayerType logic
+							PlayerType currentPlayer = turnManager?.CurrentPlayer ?? PlayerType.Human;
+							PlayerType targetPlayer = currentPlayer == PlayerType.Human ? PlayerType.Computer : PlayerType.Human;
 
-						if (!gameState.IsPlusTwoChainActive) {
-							// Start new chain
-							gameState.StartPlusTwoChain (currentPlayer);
+							if (!gameState.IsPlusTwoChainActive) {
+								// Start new chain
+								gameState.StartPlusTwoChain (currentPlayer);
 
-							// CRITICAL FIX: Only change interaction state if NOT in TAKI sequence
-							if (!gameState.IsInTakiSequence) {
-								gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+								// CRITICAL FIX: Only change interaction state if NOT in TAKI sequence
+								if (!gameState.IsInTakiSequence) {
+									gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+								}
+
+								TakiLogger.LogRules ("CHAIN STARTED: First PlusTwo played - opponent must draw 2 or continue chain");
+
+								// Enhanced UI integration
+								GetActiveUI ()?.ShowChainProgressMessage (1, 2, targetPlayer);
+								GetActiveUI ()?.ShowPlusTwoChainStatus (1, 2, targetPlayer == PlayerType.Human);
+
+							} else {
+								// Continue existing chain
+								gameState.ContinuePlusTwoChain ();
+
+								int chainCount = gameState.NumberOfChainedCards;
+								int drawCount = gameState.ChainDrawCount;
+								TakiLogger.LogRules ($"CHAIN CONTINUED: Now {chainCount} PlusTwo cards, opponent must draw {drawCount} or continue");
+
+								// Enhanced UI integration
+								GetActiveUI ()?.ShowChainProgressMessage (chainCount, drawCount, targetPlayer);
+								GetActiveUI ()?.ShowPlusTwoChainStatus (chainCount, drawCount, targetPlayer == PlayerType.Human);
 							}
 
-							TakiLogger.LogRules ("CHAIN STARTED: First PlusTwo played - opponent must draw 2 or continue chain");
-
-							// Enhanced UI integration
-							GetActiveUI ()?.ShowChainProgressMessage (1, 2, targetPlayer);
-							GetActiveUI ()?.ShowPlusTwoChainStatus (1, 2, targetPlayer == PlayerType.Human);
-
-						} else {
-							// Continue existing chain
-							gameState.ContinuePlusTwoChain ();
-
-							int chainCount = gameState.NumberOfChainedCards;
-							int drawCount = gameState.ChainDrawCount;
-							TakiLogger.LogRules ($"CHAIN CONTINUED: Now {chainCount} PlusTwo cards, opponent must draw {drawCount} or continue");
-
-							// Enhanced UI integration
-							GetActiveUI ()?.ShowChainProgressMessage (chainCount, drawCount, targetPlayer);
-							GetActiveUI ()?.ShowPlusTwoChainStatus (chainCount, drawCount, targetPlayer == PlayerType.Human);
+							TakiLogger.LogRules ($"PlusTwo chain status: {gameState.NumberOfChainedCards} cards, {gameState.ChainDrawCount} total draw");
 						}
-
-						TakiLogger.LogRules ($"PlusTwo chain status: {gameState.NumberOfChainedCards} cards, {gameState.ChainDrawCount} total draw");
 					} else {
 						TakiLogger.LogRules ("PLUS TWO card effect DEFERRED - card played during TAKI sequence");
 					}
@@ -1891,7 +1933,15 @@ namespace TakiGame {
 		/// </summary>
 		void HandleStopCardEffect () {
 			TakiLogger.LogRules ("=== ENTERED HandleStopCardEffect METHOD ===");
-			TakiLogger.LogRules ("=== EXECUTING STOP CARD EFFECT (FLAG-BASED) ===");
+
+			// Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				TakiLogger.LogRules ("=== ROUTING TO MULTIPLAYER STOP EFFECT ===");
+				HandleStopCardEffectMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogRules ("=== EXECUTING STOP CARD EFFECT (FLAG-BASED SINGLEPLAYER) ===");
 
 			// Check if turnManager exists
 			if (turnManager == null) {
@@ -1928,10 +1978,51 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// MULTIPLAYER: Handle STOP card effect with network synchronization
+		/// In multiplayer, STOP means the local player skips the opponent's next turn
+		/// </summary>
+		void HandleStopCardEffectMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER STOP CARD EFFECT ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("HandleStopCardEffectMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// In multiplayer: Local player played STOP -> Remote player's turn gets skipped
+			// Set flags for local game state management
+			shouldSkipNextTurn = true;
+			// Note: stopCardPlayer not needed in multiplayer - it's always the local player
+
+			TakiLogger.LogNetwork ("Local STOP flags set: Remote player's next turn will be skipped");
+
+			// Send STOP effect to network so remote player knows
+			if (networkGameManager != null) {
+				networkGameManager.SendStopEffect ();
+				TakiLogger.LogNetwork ("Sent STOP effect to remote player");
+			}
+
+			// Show local feedback - clear and specific for multiplayer
+			GetActiveUI ()?.ShowPlayerMessage ("STOP: Opponent's next turn will be skipped!");
+			GetActiveUI ()?.ShowOpponentMessage ("You played STOP - opponent turn skip scheduled");
+
+			TakiLogger.LogNetwork ("Multiplayer STOP effect processed - opponent will be notified");
+		}
+
+		/// <summary>
 		/// PHASE 7: Handle ChangeDirection card effect - reverse turn direction
 		/// </summary>
 		void HandleChangeDirectionCardEffect () {
-			TakiLogger.LogRules ("=== EXECUTING CHANGE DIRECTION CARD EFFECT ===");
+			TakiLogger.LogRules ("=== ENTERED HandleChangeDirectionCardEffect METHOD ===");
+
+			// Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				TakiLogger.LogRules ("=== ROUTING TO MULTIPLAYER DIRECTION EFFECT ===");
+				HandleChangeDirectionCardEffectMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogRules ("=== EXECUTING CHANGE DIRECTION CARD EFFECT (SINGLEPLAYER) ===");
 
 			// Get current direction before change
 			string oldDirection = gameState?.turnDirection.ToString () ?? "Unknown";
@@ -1957,6 +2048,45 @@ namespace TakiGame {
 				}
 
 				TakiLogger.LogRules ("CHANGE DIRECTION effect complete");
+			} else {
+				TakiLogger.LogError ("Cannot change direction: GameStateManager is null!", TakiLogger.LogCategory.Rules);
+				GetActiveUI ()?.ShowPlayerMessage ("ERROR: Cannot change direction!");
+			}
+		}
+
+		/// <summary>
+		/// MULTIPLAYER: Handle ChangeDirection card effect with network synchronization
+		/// Both players need to have the same turn direction
+		/// </summary>
+		void HandleChangeDirectionCardEffectMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER CHANGE DIRECTION CARD EFFECT ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("HandleChangeDirectionCardEffectMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Get current direction before change
+			string oldDirection = gameState?.turnDirection.ToString () ?? "Unknown";
+
+			// Change direction locally first
+			if (gameState != null) {
+				gameState.ChangeTurnDirection ();
+				string newDirection = gameState.turnDirection.ToString ();
+
+				TakiLogger.LogNetwork ($"Direction changed locally from {oldDirection} to {newDirection}");
+
+				// Send direction change to network so opponent's game state matches
+				if (networkGameManager != null) {
+					networkGameManager.SendDirectionChange ();
+					TakiLogger.LogNetwork ($"Sent direction change to remote player: {newDirection}");
+				}
+
+				// Show local feedback
+				GetActiveUI ()?.ShowPlayerMessage ($"DIRECTION CHANGED: {oldDirection} -> {newDirection}");
+				GetActiveUI ()?.ShowOpponentMessage ($"You changed turn direction to {newDirection}");
+
+				TakiLogger.LogNetwork ("Multiplayer direction change processed - opponent will be synchronized");
 			} else {
 				TakiLogger.LogError ("Cannot change direction: GameStateManager is null!", TakiLogger.LogCategory.Rules);
 				GetActiveUI ()?.ShowPlayerMessage ("ERROR: Cannot change direction!");
@@ -2148,6 +2278,15 @@ namespace TakiGame {
 		void ProcessStopSkipEffect () {
 			TakiLogger.LogTurnFlow ("=== PROCESSING STOP SKIP EFFECT ===");
 
+			// Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				TakiLogger.LogTurnFlow ("=== ROUTING TO MULTIPLAYER STOP SKIP PROCESSING ===");
+				ProcessStopSkipEffectMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogTurnFlow ("=== PROCESSING STOP SKIP EFFECT (SINGLEPLAYER) ===");
+
 			// Clear the STOP flag first
 			bool wasStopFlagSet = shouldSkipNextTurn;
 			shouldSkipNextTurn = false;
@@ -2205,13 +2344,56 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// MULTIPLAYER: Process STOP card skip effect
+		/// In multiplayer, STOP effects are coordinated through network turns, not local AI logic
+		/// </summary>
+		void ProcessStopSkipEffectMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER PROCESSING STOP SKIP EFFECT ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessStopSkipEffectMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Clear the local STOP flag
+			bool wasStopFlagSet = shouldSkipNextTurn;
+			shouldSkipNextTurn = false;
+
+			TakiLogger.LogNetwork ($"Local STOP flag cleared: was {wasStopFlagSet}, now {shouldSkipNextTurn}");
+
+			// In multiplayer, the turn skipping is handled by PunTurnManager
+			// We don't need to manually start AI turns - Photon handles turn switching
+
+			// Show feedback about the skip effect being processed
+			GetActiveUI ()?.ShowPlayerMessage ("STOP effect: Opponent's turn was skipped!");
+			GetActiveUI ()?.ShowOpponentMessage ("Turn skip processed - continuing game");
+
+			// Clear any selected cards from previous action
+			GetActivePlayerHandManager ()?.ClearSelection ();
+
+			// Reset turn flow state for clean continuation
+			ResetTurnFlowState ();
+
+			TakiLogger.LogNetwork ("STOP skip effect processed - turn flow continues via PunTurnManager");
+		}
+
+		/// <summary>
 		/// Handle player breaking PlusTwo chain by drawing accumulated cards
 		/// </summary>
 		void BreakPlusTwoChainByDrawing () {
+			TakiLogger.LogCardPlay ("=== BREAKING PLSTWO CHAIN ===");
+
+			// Route to multiplayer handler if in multiplayer mode
+			if (isMultiplayerMode) {
+				TakiLogger.LogCardPlay ("=== ROUTING TO MULTIPLAYER CHAIN BREAK ===");
+				BreakPlusTwoChainByDrawingMultiplayer ();
+				return;
+			}
+
+			TakiLogger.LogCardPlay ("=== BREAKING PLSTWO CHAIN (SINGLEPLAYER) ===");
+
 			int cardsToDraw = gameState.ChainDrawCount;
 			int chainLength = gameState.NumberOfChainedCards;
-
-			TakiLogger.LogCardPlay ($"=== BREAKING PLSTWO CHAIN ===");
 			TakiLogger.LogCardPlay ($"Chain: {chainLength} PlusTwo cards, drawing {cardsToDraw} cards");
 
 			// Draw the accumulated cards
@@ -2263,6 +2445,159 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// MULTIPLAYER: Handle player breaking PlusTwo chain by drawing accumulated cards
+		/// Includes network synchronization for chain state and card counts
+		/// </summary>
+		void BreakPlusTwoChainByDrawingMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER BREAKING PLSTWO CHAIN ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("BreakPlusTwoChainByDrawingMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			int cardsToDraw = gameState.ChainDrawCount;
+			int chainLength = gameState.NumberOfChainedCards;
+			TakiLogger.LogNetwork ($"Breaking chain: {chainLength} PlusTwo cards, drawing {cardsToDraw} cards");
+
+			// Draw the accumulated cards locally
+			List<CardData> drawnCards = new List<CardData> ();
+
+			if (deckManager != null) {
+				for (int i = 0; i < cardsToDraw; i++) {
+					CardData drawnCard = deckManager.DrawCard ();
+					if (drawnCard != null) {
+						drawnCards.Add (drawnCard);
+						playerHand.Add (drawnCard);
+					} else {
+						TakiLogger.LogWarning ($"Deck exhausted during multiplayer chain break: got {drawnCards.Count}/{cardsToDraw} cards", TakiLogger.LogCategory.Network);
+						break;
+					}
+				}
+			}
+
+			if (drawnCards.Count > 0) {
+				TakiLogger.LogNetwork ($"Local player drew {drawnCards.Count} cards to break PlusTwo chain");
+
+				// Send chain break to network so opponent knows
+				if (networkGameManager != null) {
+					networkGameManager.SendChainBreak ();
+					TakiLogger.LogNetwork ($"Sent chain break notification to opponent: {drawnCards.Count} cards drawn");
+				}
+
+				// Show local feedback
+				GetActiveUI ()?.ShowChainBrokenMessage (drawnCards.Count, PlayerType.Human);
+				GetActiveUI ()?.ShowPlayerMessage ($"Chain broken: You drew {drawnCards.Count} cards");
+
+			} else {
+				TakiLogger.LogError ("Failed to draw any cards for multiplayer chain breaking", TakiLogger.LogCategory.Network);
+				GetActiveUI ()?.ShowPlayerMessage ("Error: Cannot draw cards!");
+				return;
+			}
+
+			// Break the chain locally and sync to network
+			gameState.BreakPlusTwoChain ();
+			gameState.ChangeInteractionState (InteractionState.Normal);
+
+			// Update local UI
+			UpdateAllUI ();
+			RefreshPlayerHandStates ();
+
+			// Handle turn flow - player has taken action by drawing
+			TakiLogger.LogNetwork ("Multiplayer chain break completed - handling post-draw turn flow");
+			HandlePostCardDrawTurnFlow (drawnCards.LastOrDefault ());
+		}
+
+		/// <summary>
+		/// MULTIPLAYER: Handle PlusTwo card effect with network synchronization
+		/// </summary>
+		void HandlePlusTwoEffectMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER PLUSTWO EFFECT ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("HandlePlusTwoEffectMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			if (!gameState.IsPlusTwoChainActive) {
+				// Start new chain
+				gameState.StartPlusTwoChain (PlayerType.Human); // Local player always starts as Human in multiplayer context
+
+				// CRITICAL FIX: Only change interaction state if NOT in TAKI sequence
+				if (!gameState.IsInTakiSequence) {
+					gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+				}
+
+				TakiLogger.LogNetwork ("CHAIN STARTED: First PlusTwo played - opponent must draw 2 or continue chain");
+
+				// Show local UI feedback
+				GetActiveUI ()?.ShowPlayerMessage ("PlusTwo played: Chain started!");
+				GetActiveUI ()?.ShowOpponentMessage ("Opponent started PlusTwo chain - draw 2 or play PlusTwo");
+				GetActiveUI ()?.ShowPlusTwoChainStatus (1, 2, false); // opponent is target, always human in multiplayer
+
+				// Send PlusTwo effect to network
+				if (networkGameManager != null) {
+					networkGameManager.SendPlusTwoEffect (1, 2);
+				}
+
+			} else {
+				// Continue existing chain
+				gameState.ContinuePlusTwoChain ();
+
+				int chainCount = gameState.NumberOfChainedCards;
+				int drawCount = gameState.ChainDrawCount;
+				TakiLogger.LogNetwork ($"CHAIN CONTINUED: Now {chainCount} PlusTwo cards, opponent must draw {drawCount} or continue");
+
+				// Show local UI feedback
+				GetActiveUI ()?.ShowPlayerMessage ($"PlusTwo chain continued: {chainCount} cards, {drawCount} total!");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent continued PlusTwo chain - draw {drawCount} or play PlusTwo");
+				GetActiveUI ()?.ShowPlusTwoChainStatus (chainCount, drawCount, false); // opponent is target
+
+				// Send updated chain status to network
+				if (networkGameManager != null) {
+					networkGameManager.SendPlusTwoEffect (chainCount, drawCount);
+				}
+			}
+
+			TakiLogger.LogNetwork ($"PlusTwo chain status: {gameState.NumberOfChainedCards} cards, {gameState.ChainDrawCount} total draw");
+		}
+
+		/// <summary>
+		/// MULTIPLAYER: Handle local player win
+		/// </summary>
+		void HandleLocalPlayerWin () {
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("HandleLocalPlayerWin should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			TakiLogger.LogNetwork ("=== LOCAL PLAYER WINS IN MULTIPLAYER ===");
+
+			if (gameState != null) {
+				// In multiplayer, local player winning is still represented as PlayerType.Human
+				gameState.DeclareWinner (PlayerType.Human);
+			}
+		}
+
+		/// <summary>
+		/// MULTIPLAYER: Handle remote opponent win
+		/// </summary>
+		void HandleOpponentWin () {
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("HandleOpponentWin should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			TakiLogger.LogNetwork ("=== OPPONENT WINS IN MULTIPLAYER ===");
+
+			if (gameState != null) {
+				// In multiplayer, opponent winning is conceptually "not human" from local perspective
+				// We still use PlayerType.Computer for the game end system, but with multiplayer context
+				gameState.DeclareWinner (PlayerType.Computer);
+			}
+		}
+
+		/// <summary>
 		/// PHASE 7: Get direction change note for 2-player game
 		/// </summary>
 		/// <param name="newDirection">New turn direction</param>
@@ -2291,6 +2626,11 @@ namespace TakiGame {
 		void OnComputerTurnReady () {
 			TakiLogger.LogAI ("COMPUTER TURN READY");
 
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("OnComputerTurnReady should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			if (computerAI == null || deckManager == null) {
 				TakiLogger.LogError ("Computer turn ready but components are null!", TakiLogger.LogCategory.AI);
 				return;
@@ -2303,7 +2643,9 @@ namespace TakiGame {
 			}
 
 			TakiLogger.LogAI ("Triggering AI decision for top card: " + topCard.GetDisplayText ());
-			computerAI.MakeDecision (topCard);
+			if (ShouldUseAI) {
+				computerAI.MakeDecision (topCard);
+			}
 		}
 
 		/// <summary>
@@ -2446,7 +2788,9 @@ namespace TakiGame {
 					CardData singleDrawnCard = deckManager.DrawCard ();
 					if (singleDrawnCard != null) {
 						drawnCards.Add (singleDrawnCard);
-						computerAI.AddCardToHand (singleDrawnCard);
+						if (ShouldUseAI) {
+							computerAI.AddCardToHand (singleDrawnCard);
+						}
 					} else {
 						TakiLogger.LogWarning ($"Deck exhausted during AI chain break: got {drawnCards.Count}/{cardsToDraw} cards", TakiLogger.LogCategory.AI);
 						break;
@@ -2490,7 +2834,9 @@ namespace TakiGame {
 
 			CardData drawnCard = deckManager.DrawCard ();
 			if (drawnCard != null) {
-				computerAI.AddCardToHand (drawnCard);
+				if (ShouldUseAI) {
+					computerAI.AddCardToHand (drawnCard);
+				}
 				TakiLogger.LogAI ("AI drew card: " + drawnCard.GetDisplayText ());
 				UpdateAllUI ();
 			} else {
@@ -2519,6 +2865,11 @@ namespace TakiGame {
 		/// </summary>
 		void OnAISequenceComplete () {
 			TakiLogger.LogAI ("AI sequence complete - ending AI turn");
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("OnAISequenceComplete should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			// CRITICAL FIX: Check if we're already in the middle of a turn switch
 			// Don't call EndAITurnWithStrictFlow if turn is already switching
@@ -2769,10 +3120,17 @@ namespace TakiGame {
 		void TriggerAIAdditionalAction () {
 			TakiLogger.LogAI ("=== AI TAKING ADDITIONAL ACTION (PLUS effect) ===");
 
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("TriggerAIAdditionalAction should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			CardData topCard = GetTopDiscardCard ();
 			if (topCard != null && computerAI != null) {
 				GetActiveUI ()?.ShowOpponentMessage ("Taking additional action...");
-				computerAI.MakeDecision (topCard);
+				if (ShouldUseAI) {
+					computerAI.MakeDecision (topCard);
+				}
 			} else {
 				TakiLogger.LogError ("Cannot trigger AI additional action - missing components", TakiLogger.LogCategory.AI);
 				// FIXED: Fallback uses new AI turn end method
@@ -2786,11 +3144,18 @@ namespace TakiGame {
 		void TriggerAISequenceDecision () {
 			TakiLogger.LogAI ("=== TRIGGERING AI SEQUENCE DECISION AFTER TAKI/SUPERTAKI ===");
 
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("TriggerAISequenceDecision should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			CardData sequenceTopCard = GetTopDiscardCard ();
 
 			if (computerAI != null && computerAI.CanMakeDecisions () && sequenceTopCard != null) {
 				// Use public MakeDecision() - it handles sequences internally
-				computerAI.MakeDecision (sequenceTopCard);
+				if (ShouldUseAI) {
+					computerAI.MakeDecision (sequenceTopCard);
+				}
 				TakiLogger.LogAI ("AI sequence decision triggered via MakeDecision()");
 			} else {
 				TakiLogger.LogError ("Cannot trigger AI sequence decision", TakiLogger.LogCategory.AI);
@@ -2810,10 +3175,49 @@ namespace TakiGame {
 		public void ProcessNetworkCardPlay (string cardIdentifier, int remotePlayerActor) {
 			TakiLogger.LogNetwork ($"Processing remote card play: {cardIdentifier} from actor {remotePlayerActor}");
 
-			// Enhanced feedback for milestone 1
-			GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
-			GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {cardIdentifier}");
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkCardPlay should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
+			// ENHANCED: Parse card identifier into actual CardData
+			CardDataLoader cardLoader = deckManager?.cardLoader;
+			if (cardLoader == null) {
+				TakiLogger.LogError ("Cannot parse card: CardDataLoader not available", TakiLogger.LogCategory.Network);
+				// Fallback to basic processing
+				GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {cardIdentifier}");
+				return;
+			}
+
+			CardData playedCard = CardDataHelper.ParseCardIdentifier (cardLoader, cardIdentifier);
+			if (playedCard == null) {
+				TakiLogger.LogError ($"Failed to parse card identifier: {cardIdentifier}", TakiLogger.LogCategory.Network);
+				// Fallback to basic processing
+				GetActiveUI ()?.ShowOpponentAction ($"played {cardIdentifier}");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {cardIdentifier}");
+				return;
+			}
+
+			TakiLogger.LogNetwork ($"Parsed opponent card: {playedCard.GetDisplayText ()}");
+
+			// ENHANCED: Update actual discard pile with real card
+			if (deckManager != null) {
+				deckManager.DiscardCard (playedCard);
+				TakiLogger.LogNetwork ($"Updated discard pile with opponent card: {playedCard.GetDisplayText ()}");
+			}
+
+			// ENHANCED: Update active color from played card
+			if (gameState != null) {
+				gameState.UpdateActiveColorFromCard (playedCard);
+				TakiLogger.LogNetwork ($"Active color updated to: {gameState.activeColor}");
+			}
+
+			// Enhanced feedback with actual card information
+			GetActiveUI ()?.ShowOpponentAction ($"played {playedCard.GetDisplayText ()}");
+			GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {playedCard.GetDisplayText ()}");
+
+			// Update opponent hand count
 			var activeOpponentHandManager = GetActiveOpponentHandManager ();
 			if (activeOpponentHandManager?.IsOpponentHand == true) {
 				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
@@ -2823,16 +3227,95 @@ namespace TakiGame {
 				}
 			}
 
-			// MILESTONE 1: Simulate discard pile update
-			// TODO: In next milestone, parse cardIdentifier and update actual discard pile
-			if (deckManager != null && deckManager.deckUI != null) {
-				deckManager.ShowMessage ($"Opponent played {cardIdentifier}", true);
+			// ENHANCED: Handle special card effects from remote player
+			// Note: Special effects were already processed by the remote player's local game
+			// We just need to sync the effects that affect our local state
+			if (playedCard.IsSpecialCard) {
+				ProcessRemoteSpecialCardEffects (playedCard);
+			}
+
+			// ENHANCED: Check for opponent win condition
+			if (activeOpponentHandManager?.NetworkOpponentHandCount == 0) {
+				TakiLogger.LogNetwork ("OPPONENT WINS - hand is empty!");
+
+				// Handle different win scenarios based on card type
+				if (gameState != null && gameState.IsPlusTwoChainActive && playedCard.cardType == CardType.PlusTwo) {
+					TakiLogger.LogNetwork ("Opponent played last card (PlusTwo) but chain is active - validating chain resolution");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent wins if you don't continue the chain!");
+					// Chain must be resolved first before declaring winner
+				} else if (gameState != null && gameState.IsInTakiSequence) {
+					TakiLogger.LogNetwork ("Opponent wins - hand is empty during TAKI sequence!");
+					gameState.EndTakiSequence ();
+					GetActiveUI ()?.ShowSequenceEndedMessage (gameState.NumberOfSequenceCards, gameState.TakiSequenceColor, PlayerType.Computer);
+				} else {
+					TakiLogger.LogNetwork ("Opponent wins - hand is empty!");
+				}
+
+				// Handle opponent win in multiplayer context
+				HandleOpponentWin ();
 			}
 
 			// Update UI for both players
 			UpdateAllUIWithNetworkSupport ();
 
-			TakiLogger.LogNetwork ("Remote card play processed");
+			TakiLogger.LogNetwork ($"Remote card play fully processed: {playedCard.GetDisplayText ()}");
+		}
+
+		/// <summary>
+		/// Process special card effects from remote player that affect local game state
+		/// </summary>
+		void ProcessRemoteSpecialCardEffects (CardData playedCard) {
+			TakiLogger.LogNetwork ($"Processing remote special card effects: {playedCard.GetDisplayText ()}");
+
+			switch (playedCard.cardType) {
+				case CardType.Plus:
+					TakiLogger.LogNetwork ("Remote PLUS card - opponent gets additional action");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent played PLUS - they get one more action");
+					break;
+
+				case CardType.Stop:
+					TakiLogger.LogNetwork ("Remote STOP card - our next turn will be skipped");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent played STOP - your turn will be skipped!");
+					// The actual STOP effect is handled by the dedicated ProcessNetworkStopEffect method
+					break;
+
+				case CardType.ChangeDirection:
+					TakiLogger.LogNetwork ("Remote CHANGE DIRECTION card");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent changed turn direction");
+					// The actual direction change is handled by the dedicated ProcessNetworkDirectionChange method
+					break;
+
+				case CardType.ChangeColor:
+					TakiLogger.LogNetwork ("Remote CHANGE COLOR card");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent played change color card");
+					// Color selection is handled by the dedicated ProcessNetworkColorSelection method
+					break;
+
+				case CardType.PlusTwo:
+					TakiLogger.LogNetwork ("Remote PLUS TWO card");
+					if (gameState != null && gameState.IsPlusTwoChainActive) {
+						int drawCount = gameState.ChainDrawCount;
+						GetActiveUI ()?.ShowOpponentMessage ($"Opponent played PlusTwo - draw {drawCount} or continue chain!");
+					} else {
+						GetActiveUI ()?.ShowOpponentMessage ("Opponent played PlusTwo - draw 2 or play PlusTwo!");
+					}
+					// The actual PlusTwo effect is handled by the dedicated ProcessNetworkPlusTwoEffect method
+					break;
+
+				case CardType.Taki:
+					TakiLogger.LogNetwork ("Remote TAKI card - opponent started/continued sequence");
+					GetActiveUI ()?.ShowOpponentMessage ($"Opponent played TAKI ({playedCard.color}) - sequence started");
+					break;
+
+				case CardType.SuperTaki:
+					TakiLogger.LogNetwork ("Remote SUPER TAKI card - opponent started wild sequence");
+					GetActiveUI ()?.ShowOpponentMessage ("Opponent played SUPER TAKI - wild sequence started");
+					break;
+
+				default:
+					TakiLogger.LogNetwork ($"Remote card {playedCard.cardType} - no special local effects");
+					break;
+			}
 		}
 
 		/// <summary>
@@ -2842,28 +3325,244 @@ namespace TakiGame {
 		public void ProcessNetworkCardDraw (int remotePlayerActor) {
 			TakiLogger.LogNetwork ($"Processing remote card draw from actor {remotePlayerActor}");
 
-			// Enhanced feedback for milestone 1
-			GetActiveUI ()?.ShowOpponentAction ("drew a card");
-			GetActiveUI ()?.ShowOpponentMessage ("Opponent drew a card");
-
-			// MILESTONE 1: Update opponent hand count (simulate card addition)
-			var activeOpponentHandManager = GetActiveOpponentHandManager ();
-			if (activeOpponentHandManager?.IsOpponentHand == true) {
-				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
-				activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
-				TakiLogger.LogNetwork ($"Updated opponent hand count: { currentCount + 1}");
-		    }
-
-			// MILESTONE 1: Simulate deck count update
-			// TODO: In next milestone, update actual deck counts
-			if (deckManager != null && deckManager.deckUI != null) {
-				deckManager.ShowMessage ("Opponent drew a card", true);
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkCardDraw should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
 			}
 
-			// Update UI for both players
-			UpdateAllUI ();
+			// ENHANCED: Check if this is PlusTwo chain breaking first
+			if (gameState != null && gameState.IsPlusTwoChainActive) {
+				TakiLogger.LogNetwork ("=== OPPONENT BREAKING PLSTWO CHAIN BY DRAWING ===");
 
-			TakiLogger.LogNetwork ("Remote card draw processed");
+				int cardsToDraw = gameState.ChainDrawCount;
+				int chainLength = gameState.NumberOfChainedCards;
+
+				TakiLogger.LogNetwork ($"Opponent breaking chain: {chainLength} PlusTwo cards, drawing {cardsToDraw} cards");
+
+				// Enhanced feedback for chain breaking
+				GetActiveUI ()?.ShowOpponentAction ($"broke PlusTwo chain by drawing {cardsToDraw} cards");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent drew {cardsToDraw} cards and broke the chain");
+
+				// Update opponent hand count for multiple cards drawn
+				var activeOpponentHandManager = GetActiveOpponentHandManager ();
+				if (activeOpponentHandManager?.IsOpponentHand == true) {
+					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
+					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + cardsToDraw);
+					TakiLogger.LogNetwork ($"Updated opponent hand count for chain break: {currentCount + cardsToDraw}");
+				}
+
+				// Break the chain locally to sync game state
+				gameState.BreakPlusTwoChain ();
+				gameState.ChangeInteractionState (InteractionState.Normal);
+
+				// Show deck UI message for chain break
+				if (deckManager != null && deckManager.deckUI != null) {
+					deckManager.ShowMessage ($"Opponent drew {cardsToDraw} cards (chain break)", true);
+				}
+
+				TakiLogger.LogNetwork ("PlusTwo chain broken by opponent");
+
+			} else {
+				// ENHANCED: Normal single card draw processing
+				TakiLogger.LogNetwork ("Processing normal opponent card draw");
+
+				// Enhanced feedback
+				GetActiveUI ()?.ShowOpponentAction ("drew a card");
+				GetActiveUI ()?.ShowOpponentMessage ("Opponent drew a card");
+
+				// Update opponent hand count for single draw
+				var activeOpponentHandManager = GetActiveOpponentHandManager ();
+				if (activeOpponentHandManager?.IsOpponentHand == true) {
+					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
+					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
+					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
+				}
+
+				// Show deck UI message for normal draw
+				if (deckManager != null && deckManager.deckUI != null) {
+					deckManager.ShowMessage ("Opponent drew a card", true);
+				}
+			}
+
+
+			// Update UI for both players using network-safe method
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote card draw fully processed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer color selection handler
+		/// Processes remote color selection from network opponent
+		/// </summary>
+		public void ProcessNetworkColorSelection (CardColor selectedColor, int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote color selection: {selectedColor} from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkColorSelection should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Update game state with the selected color
+			if (gameState != null) {
+				gameState.ChangeActiveColor (selectedColor);
+				TakiLogger.LogNetwork ($"Active color changed to: {selectedColor}");
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ($"selected {selectedColor}");
+			GetActiveUI ()?.ShowOpponentMessage ($"Opponent changed color to {selectedColor}");
+
+			// Update UI to reflect new color
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote color selection processed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer end turn handler
+		/// Processes remote end turn from network opponent
+		/// </summary>
+		public void ProcessNetworkEndTurn (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote end turn from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkEndTurn should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ("ended turn");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent ended their turn");
+
+			// Process the turn ending - this should trigger turn switching via PunTurnManager
+			// The actual turn switching is handled by Photon's turn system
+			TakiLogger.LogNetwork ("Remote end turn processed - turn switching handled by PunTurnManager");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer end TAKI sequence handler
+		/// Processes remote end TAKI sequence from network opponent
+		/// </summary>
+		public void ProcessNetworkEndTakiSequence (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote end TAKI sequence from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkEndTakiSequence should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ("ended TAKI sequence");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent ended their TAKI sequence");
+
+			// If we're tracking the opponent's sequence state, update it here
+			// The actual sequence logic should be handled by the game state manager
+			if (gameState != null && gameState.IsInTakiSequence) {
+				// End the sequence if it's currently active
+				int finalCardCount = gameState.NumberOfSequenceCards;
+				CardColor sequenceColor = gameState.TakiSequenceColor;
+
+				gameState.EndTakiSequence ();
+				TakiLogger.LogNetwork ($"Opponent TAKI sequence ended: {finalCardCount} cards in {sequenceColor}");
+			}
+
+			// Update UI
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote end TAKI sequence processed");
+		}
+
+		/// <summary>
+		/// Process STOP effect from remote player
+		/// </summary>
+		public void ProcessNetworkStopEffect (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote STOP effect from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkStopEffect should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ("played STOP - skipping your turn");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent played STOP card - your turn is skipped");
+
+			// Update UI
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote STOP effect processed");
+		}
+
+		/// <summary>
+		/// Process direction change from remote player
+		/// </summary>
+		public void ProcessNetworkDirectionChange (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote direction change from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkDirectionChange should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ("changed direction");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent changed game direction");
+
+			// Update UI
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote direction change processed");
+		}
+
+		/// <summary>
+		/// Process plus-two chain break from remote player
+		/// </summary>
+		public void ProcessNetworkChainBreak (int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote plus-two chain break from actor {remotePlayerActor}");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkChainBreak should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			GetActiveUI ()?.ShowOpponentAction ("broke plus-two chain by drawing");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent drew cards and broke the plus-two chain");
+
+			// Update UI
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote plus-two chain break processed");
+		}
+
+		/// <summary>
+		/// Process PlusTwo effect from remote player
+		/// </summary>
+		public void ProcessNetworkPlusTwoEffect (int chainCount, int drawCount, int remotePlayerActor) {
+			TakiLogger.LogNetwork ($"Processing remote PlusTwo effect from actor {remotePlayerActor}: {chainCount} cards, {drawCount} total");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("ProcessNetworkPlusTwoEffect should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Show feedback to local player
+			if (chainCount == 1) {
+				GetActiveUI ()?.ShowOpponentAction ($"played PlusTwo - you must draw {drawCount} or play PlusTwo");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent started PlusTwo chain (draw {drawCount} cards or continue chain)");
+			} else {
+				GetActiveUI ()?.ShowOpponentAction ($"continued PlusTwo chain - you must draw {drawCount} or play PlusTwo");
+				GetActiveUI ()?.ShowOpponentMessage ($"Opponent continued PlusTwo chain (draw {drawCount} cards or continue chain)");
+			}
+
+			// Update local chain status UI
+			GetActiveUI ()?.ShowPlusTwoChainStatus (chainCount, drawCount, true); // local player is now target
+
+			// Update UI
+			UpdateAllUIWithNetworkSupport ();
+
+			TakiLogger.LogNetwork ("Remote PlusTwo effect processed");
 		}
 
 		/// <summary>
@@ -2871,6 +3570,12 @@ namespace TakiGame {
 		/// Includes hand count synchronization
 		/// </summary>
 		public void SendLocalCardPlayToNetwork (CardData cardToPlay) {
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("SendLocalCardPlayToNetwork should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			if (networkGameManager != null && cardToPlay != null) {
 				networkGameManager.SendCardPlay (cardToPlay);
 				TakiLogger.LogNetwork ($"Sent card play to network: {cardToPlay.GetDisplayText ()}");
@@ -2885,6 +3590,12 @@ namespace TakiGame {
 		/// Includes hand count synchronization
 		/// </summary>
 		public void SendLocalCardDrawToNetwork () {
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("SendLocalCardDrawToNetwork should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
 			if (networkGameManager != null) {
 				networkGameManager.SendCardDraw ();
 				TakiLogger.LogNetwork ("Sent card draw to network");
@@ -2901,15 +3612,41 @@ namespace TakiGame {
 		void OnPlayCardButtonClickedMultiplayer () {
 			TakiLogger.LogNetwork ("=== MULTIPLAYER PLAY CARD CLICKED ===");
 
-			// Check if it's our turn
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("OnPlayCardButtonClickedMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Check if it's our turn (network-specific validation)
 			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
 				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
 				return;
 			}
 
+			// Add comprehensive validation from singleplayer version
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				TakiLogger.LogWarning ("Cannot play card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			if (!canPlayerPlay) {
+				TakiLogger.LogWarning ("Cannot play card: Player already took action", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("You already took an action - END TURN!");
+				return;
+			}
+
 			// Get selected card using active hand manager
 			CardData cardToPlay = GetActivePlayerHandManager ()?.GetSelectedCard ();
+
 			if (cardToPlay != null) {
+				TakiLogger.LogCardPlay ($"Attempting to play selected card: {cardToPlay.GetDisplayText ()}");
+
+				// ENHANCEMENT: Handle ChangeColor UI logic for HUMAN players before playing card
+				if (cardToPlay.cardType == CardType.ChangeColor) {
+					TakiLogger.LogUI ("Human playing ChangeColor card - will show color selection after card play", TakiLogger.LogLevel.Debug);
+				}
+
 				// Send to network first
 				SendLocalCardPlayToNetwork (cardToPlay);
 
@@ -2919,7 +3656,13 @@ namespace TakiGame {
 
 				TakiLogger.LogNetwork ($"Multiplayer card play completed: {cardToPlay.GetDisplayText ()}");
 			} else {
-				GetActiveUI ()?.ShowPlayerMessage ("Please select a card!");
+				int playableCount = CountPlayableCards ();
+				if (playableCount > 0) {
+					GetActiveUI ()?.ShowPlayerMessage ($"Please select a card! You have {playableCount} valid moves.");
+				} else {
+					GetActiveUI ()?.ShowPlayerMessage ("No valid moves - try drawing a card!");
+				}
+				TakiLogger.LogUI ("No card selected - player must choose explicitly", TakiLogger.LogLevel.Debug);
 			}
 		}
 
@@ -2930,9 +3673,41 @@ namespace TakiGame {
 		void OnDrawCardButtonClickedMultiplayer () {
 			TakiLogger.LogNetwork ("=== MULTIPLAYER DRAW CARD CLICKED ===");
 
-			// Check if it's our turn
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("OnDrawCardButtonClickedMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Check if it's our turn (network-specific validation)
 			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
 				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// Add comprehensive validation from singleplayer version
+			if (!isGameActive || !gameState.CanPlayerAct ()) {
+				TakiLogger.LogWarning ("Cannot draw card: Game not active or not player turn", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// CRITICAL: Check for active PlusTwo chain FIRST
+			if (gameState.IsPlusTwoChainActive) {
+				TakiLogger.LogTurnFlow ("=== PLAYER BREAKING PLSTWO CHAIN BY DRAWING (MULTIPLAYER) ===", TakiLogger.LogLevel.Debug);
+
+				// Send network notification for chain breaking
+				SendLocalCardDrawToNetwork ();
+
+				// Process chain breaking locally
+				BreakPlusTwoChainByDrawing ();
+
+				TakiLogger.LogNetwork ("Multiplayer PlusTwo chain break completed");
+				return; // Skip normal draw logic - chain breaking is the action
+			}
+
+			if (!canPlayerDraw) {
+				TakiLogger.LogWarning ("Cannot draw card: Player already took action", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("You already took an action - END TURN!");
 				return;
 			}
 
@@ -2947,11 +3722,130 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer end turn handler
+		/// Includes comprehensive validation and network synchronization
+		/// </summary>
+		void OnEndTurnButtonClickedMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER END TURN CLICKED ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("OnEndTurnButtonClickedMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Check if it's our turn (network-specific validation)
+			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// Add comprehensive validation from singleplayer version
+			// Check for pending special card effects first
+			if (HasPendingSpecialCardEffects ()) {
+				TakiLogger.LogWarning ("Cannot end turn: Pending special card effects", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("You must complete your additional action first!");
+				GetActiveUI ()?.ShowPlayerMessage (GetSpecialCardStateDescription ());
+				return;
+			}
+
+			if (!canPlayerEndTurn) {
+				TakiLogger.LogWarning ("Cannot end turn: Player has not taken an action yet", TakiLogger.LogCategory.TurnFlow);
+				GetActiveUI ()?.ShowPlayerMessage ("You must take an action first (PLAY or DRAW)!");
+				return;
+			}
+
+			// Send end turn to network first
+			if (networkGameManager != null) {
+				networkGameManager.SendEndTurn ();
+				TakiLogger.LogNetwork ("Sent end turn to network");
+			}
+
+			// Process locally using existing singleplayer logic
+			// This preserves all turn flow logic and special card handling
+			EndPlayerTurnWithStrictFlow ();
+
+			TakiLogger.LogNetwork ("Multiplayer end turn completed");
+		}
+
+		/// <summary>
+		/// MILESTONE 1: Enhanced multiplayer end TAKI sequence handler
+		/// Includes comprehensive validation and network synchronization
+		/// </summary>
+		void OnEndTakiSequenceButtonClickedMultiplayer () {
+			TakiLogger.LogNetwork ("=== MULTIPLAYER END TAKI SEQUENCE CLICKED ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("OnEndTakiSequenceButtonClickedMultiplayer should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+			// Check if it's our turn (network-specific validation)
+			if (networkGameManager == null || !networkGameManager.IsMyTurn) {
+				GetActiveUI ()?.ShowPlayerMessage ("Not your turn!");
+				return;
+			}
+
+			// Add comprehensive validation from singleplayer version
+			if (!gameState.IsInTakiSequence) {
+				GetActiveUI ()?.ShowPlayerMessage ("No TAKI sequence is active!");
+				TakiLogger.LogWarning ("End sequence button clicked but no sequence active", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// CRITICAL VALIDATION: Only human can end human-initiated sequences
+			if (gameState.TakiSequenceInitiator != PlayerType.Human) {
+				GetActiveUI ()?.ShowPlayerMessage ("Cannot end opponent's sequence!");
+				TakiLogger.LogWarning ("Human tried to end opponent sequence in multiplayer - BLOCKED", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// CRITICAL VALIDATION: Only end sequence on human's turn (network-aware)
+			if (!gameState.IsPlayerTurn) {
+				GetActiveUI ()?.ShowPlayerMessage ("Cannot end sequence - not your turn!");
+				TakiLogger.LogWarning ("Tried to end sequence on wrong turn - BLOCKED", TakiLogger.LogCategory.TurnFlow);
+				return;
+			}
+
+			// Send end sequence to network first
+			if (networkGameManager != null) {
+				networkGameManager.SendEndTakiSequence ();
+				TakiLogger.LogNetwork ("Sent end TAKI sequence to network");
+			}
+
+			// Process locally using existing singleplayer logic
+			// This preserves all sequence ending logic and special card handling
+			int finalCardCount = gameState.NumberOfSequenceCards;
+			CardColor sequenceColor = gameState.TakiSequenceColor;
+
+			// End the sequence and trigger special effects for the last card
+			gameState.EndTakiSequence ();
+			TakiLogger.LogRules ($"TAKI sequence ended with {finalCardCount} cards in {sequenceColor} color");
+
+			// Update UI
+			GetActiveUI ()?.EnableEndTakiSequenceButton (false);
+
+			// Handle turn flow
+			hasPlayerTakenAction = true;
+			canPlayerEndTurn = true;
+			GetActiveUI ()?.ForceEnableEndTurn ();
+
+			// Show completion message
+			GetActiveUI ()?.ShowSequenceEndedMessage (finalCardCount, sequenceColor, PlayerType.Human);
+
+			TakiLogger.LogNetwork ("Multiplayer end TAKI sequence completed");
+		}
+
+		/// <summary>
 		/// MILESTONE 1: Enhanced UpdateAllUI with network hand synchronization
 		/// FIXED: Respects network privacy when updating UI
 		/// </summary>
 		public void UpdateAllUIWithNetworkSupport () {
 			TakiLogger.LogNetwork ("Updating all UI with network support");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("UpdateAllUIWithNetworkSupport should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			// MILESTONE 1 FIX: Respect network privacy when updating UI
 			if (isMultiplayerMode && GetActiveOpponentHandManager ()?.IsOpponentHand == true) {
@@ -2960,19 +3854,41 @@ namespace TakiGame {
 				TakiLogger.LogNetwork ("Network mode: Updating UI while preserving opponent hand privacy");
 
 				// Safe UI updates that don't interfere with hand displays
-				// FIXED: Get TurnState from gameState, not from turnManager.CurrentPlayer
-				TurnState currentTurnState = gameState?.turnState ?? TurnState.Neutral;
-				GetActiveUI ()?.UpdateTurnDisplay (currentTurnState);
-				GetActiveUI ()?.UpdateActiveColorDisplay (gameState?.activeColor ?? CardColor.Wild);
+				// FIXED: Use UpdateAllDisplays for consistency with UpdateAllUI
+				if (gameState != null) {
+					GetActiveUI ()?.UpdateAllDisplays (
+						gameState.turnState,
+						gameState.gameStatus,
+						gameState.interactionState,
+						gameState.activeColor
+					);
+				}
 
 				// Update hand size displays without touching hand cards
 				int localHandSize = playerHand?.Count ?? 0;
 				int opponentHandSize = GetActiveOpponentHandManager ()?.NetworkOpponentHandCount ?? 0;
 				GetActiveUI ()?.UpdateHandSizeDisplay (localHandSize, opponentHandSize);
 
+				// FIXED: Add missing chain status logic for consistency with UpdateAllUI
+				if (gameState != null) {
+					if (gameState.IsPlusTwoChainActive) {
+						bool isPlayerTurn = gameState.IsPlayerTurn;
+						GetActiveUI ()?.ShowPlusTwoChainStatus (
+							gameState.NumberOfChainedCards,
+							gameState.ChainDrawCount,
+							isPlayerTurn
+						);
+					} else {
+						GetActiveUI ()?.HidePlusTwoChainStatus ();
+					}
+				}
+
 				TakiLogger.LogNetwork ($"UI updated safely: Local={localHandSize}, Opponent={opponentHandSize}");
 
-				// Don't call UpdateAllUI() - it would override the privacy system
+				// FIXED: Now safe to update visual hands since UpdateVisualHands is mode-aware
+				UpdateVisualHands ();
+
+				// Don't call UpdateAllUI() - it would override other privacy systems
 			} else {
 				// Normal UI updates for singleplayer or own hand
 				TakiLogger.LogNetwork ("Standard mode: Full UI update");
@@ -2990,7 +3906,11 @@ namespace TakiGame {
 		/// MILESTONE 1: Synchronize hand counts for network display
 		/// </summary>
 		void SynchronizeNetworkHandCounts () {
-			if (!isMultiplayerMode) return;
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("SynchronizeNetworkHandCounts should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
 
 			// Update local player hand count display
 			var activePlayerHandManager = GetActivePlayerHandManager ();
@@ -3013,6 +3933,12 @@ namespace TakiGame {
 		/// MILESTONE 1: Check if multiplayer game is ready for actions
 		/// </summary>
 		public bool IsMultiplayerGameReady () {
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("IsMultiplayerGameReady should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return false;
+			}
+
 			if (!isMultiplayerMode || networkGameManager == null) {
 				return false;
 			}
@@ -3024,6 +3950,12 @@ namespace TakiGame {
 		/// MILESTONE 1: Get network game status for debugging
 		/// </summary>
 		public string GetNetworkGameStatus () {
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("GetNetworkGameStatus should not be called in singleplayer mode!", TakiLogger.LogCategory.AI);
+				return null;
+			}
+
 			if (!isMultiplayerMode || networkGameManager == null) {
 				return "Not in multiplayer mode";
 			}
@@ -3061,7 +3993,13 @@ namespace TakiGame {
 		}
 
 		void OnGameStatusChanged (GameStatus newGameStatus) {
-			UpdateAllUI ();
+			if (isMultiplayerMode) {
+				// Use network-safe UI update to preserve opponent hand privacy
+				UpdateAllUIWithNetworkSupport ();
+			} else {
+				// Use standard UI update for singleplayer
+				UpdateAllUI ();
+			}
 		}
 
 		void OnActiveColorChanged (CardColor newColor) {
@@ -3069,11 +4007,24 @@ namespace TakiGame {
 		}
 
 		void OnTurnChanged (PlayerType player) {
+			if (isMultiplayerMode) {
+				// Log multiplayer-aware context for debugging
+				string playerDescription = (player == PlayerType.Human) ? "Local Player" : "Opponent";
+				TakiLogger.LogTurnFlow ($"Turn changed to {playerDescription} (PlayerType: {player})");
+			}
+
 			OnTurnStarted?.Invoke (player);
 		}
 
 		void OnGameWon (PlayerType winner) {
-			TakiLogger.LogSystem ($"GameManager: Game won by {winner}");
+			if (isMultiplayerMode) {
+				// Multiplayer-aware logging
+				string winnerDescription = (winner == PlayerType.Human) ? "Local Player" : "Opponent";
+				TakiLogger.LogSystem ($"GameManager: Multiplayer game won by {winnerDescription} (PlayerType: {winner})");
+			} else {
+				// Singleplayer logging
+				TakiLogger.LogSystem ($"GameManager: Game won by {winner}");
+			}
 
 			// Process through GameEndManager instead of direct UI
 			if (gameEndManager != null) {
@@ -3088,7 +4039,15 @@ namespace TakiGame {
 
 		void OnPlayerTurnTimeOut (PlayerType player) {
 			if (player == PlayerType.Human) {
+				if (isMultiplayerMode) {
+					TakiLogger.LogNetwork ("Local player turn timeout in multiplayer - auto-drawing card");
+				} else {
+					TakiLogger.LogTurnManagement ("Human player turn timeout - auto-drawing card");
+				}
 				DrawCardWithStrictFlow ();
+			} else {
+				// Should not happen in current implementation, but log for debugging
+				TakiLogger.LogWarning ($"Unexpected timeout for {player}", TakiLogger.LogCategory.TurnFlow);
 			}
 		}
 
@@ -3103,10 +4062,20 @@ namespace TakiGame {
 		/// <param name="sequenceColor">Color of the sequence</param>
 		/// <param name="initiator">Who started the sequence</param>
 		void OnTakiSequenceStarted (CardColor sequenceColor, PlayerType initiator) {
-			TakiLogger.LogGameState ($"TAKI sequence started: {sequenceColor} by {initiator}");
+			if (isMultiplayerMode) {
+				// Multiplayer-aware logging
+				string initiatorDescription = (initiator == PlayerType.Human) ? "Local Player" : "Opponent";
+				TakiLogger.LogGameState ($"TAKI sequence started: {sequenceColor} by {initiatorDescription} (PlayerType: {initiator})");
+			} else {
+				// Singleplayer logging
+				TakiLogger.LogGameState ($"TAKI sequence started: {sequenceColor} by {initiator}");
+			}
+
+			// MULTIPLAYER FIX: Determine if this is the local player's sequence
+			bool isLocalPlayerSequence = (initiator == PlayerType.Human);
 
 			// Update UI to show sequence status
-			GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, 1, initiator == PlayerType.Human);
+			GetActiveUI ()?.ShowTakiSequenceStatus (sequenceColor, 1, isLocalPlayerSequence);
 			GetActiveUI ()?.ShowSequenceProgressMessage (sequenceColor, 1, initiator);
 		}
 
@@ -3134,45 +4103,6 @@ namespace TakiGame {
 			// Update UI to hide sequence status
 			GetActiveUI ()?.HideTakiSequenceStatus ();
 			GetActiveUI ()?.EnableEndTakiSequenceButton (false);
-		}
-
-		/// <summary>
-		/// FIXED: Process STOP card skip when turn is about to start
-		/// </summary>
-		/// <param name="turnStateToSkip">Turn state that should be skipped</param>
-		void ProcessStopSkip (TurnState turnStateToSkip) {
-			TakiLogger.LogTurnFlow ("=== PROCESSING STOP SKIP ===");
-
-			PlayerType skippedPlayer = turnStateToSkip == TurnState.PlayerTurn ? PlayerType.Human : PlayerType.Computer;
-			PlayerType benefitPlayer = stopCardPlayer; // Player who played STOP gets the benefit
-
-			TakiLogger.LogTurnFlow ($"Skipping {skippedPlayer} turn due to STOP played by {stopCardPlayer}");
-
-			// Show skip messages
-			string skipMessage = skippedPlayer == PlayerType.Human ?
-				"Your turn was skipped by STOP card!" :
-				"Computer's turn was skipped by STOP card!";
-
-			string benefitMessage = benefitPlayer == PlayerType.Human ?
-				"STOP effect: You get another turn!" :
-				"STOP effect: Computer gets another turn!";
-
-			GetActiveUI ()?.ShowPlayerMessage (skipMessage);
-			GetActiveUI ()?.ShowOpponentMessage (benefitMessage);
-
-			// Reset the flag - skip has been processed
-			shouldSkipNextTurn = false;
-			TakiLogger.LogTurnFlow ("STOP flag reset - skip processed");
-
-			// Start the turn for the player who benefits (played the STOP card)
-			TurnState benefitTurnState = benefitPlayer == PlayerType.Human ? TurnState.PlayerTurn : TurnState.ComputerTurn;
-
-			TakiLogger.LogTurnFlow ($"Starting turn for STOP benefit player: {benefitPlayer}");
-
-			// Use TurnManager to properly start the benefit player's turn
-			if (turnManager != null) {
-				turnManager.StartTurn (benefitPlayer);
-			}
 		}
 
 		#endregion
@@ -3230,11 +4160,21 @@ namespace TakiGame {
 					TakiLogger.LogUI ($"Updated player hand display: {playerHand.Count} cards", TakiLogger.LogLevel.Trace);
 				}
 
-				// Update opponent hand visual
-				if (activeOpponentHandManager != null && computerAI != null) {
-					List<CardData> computerHand = computerAI.GetHandCopy ();
-					activeOpponentHandManager.UpdateHandDisplay (computerHand);
-					TakiLogger.LogUI ($"Updated opponent hand display: {computerHand.Count} cards", TakiLogger.LogLevel.Trace);
+				// Update opponent hand visual - MODE AWARE
+				if (activeOpponentHandManager != null) {
+					if (isMultiplayerMode) {
+						// Multiplayer mode: Use real opponent cards with privacy
+						List<CardData> realOpponentCards = activeOpponentHandManager.GetRealCardsForGameLogic ();
+						activeOpponentHandManager.UpdateHandDisplayEnhanced (realOpponentCards, true);
+						TakiLogger.LogUI ($"Updated opponent hand display (multiplayer): {realOpponentCards.Count} cards with privacy", TakiLogger.LogLevel.Trace);
+					} else {
+						// Singleplayer mode: Use AI hand
+						if (computerAI != null) {
+							List<CardData> computerHand = computerAI.GetHandCopy ();
+							activeOpponentHandManager.UpdateHandDisplay (computerHand);
+							TakiLogger.LogUI ($"Updated opponent hand display (singleplayer): {computerHand.Count} cards", TakiLogger.LogLevel.Trace);
+						}
+					}
 				}
 			} catch (System.Exception e) {
 				TakiLogger.LogError ($"Error updating visual hands: {e.Message}", TakiLogger.LogCategory.UI);
@@ -3459,6 +4399,11 @@ namespace TakiGame {
 		/// </summary>
 		public void RequestRestartGameFromPause () {
 			TakiLogger.LogSystem ("GameManager: Restart game requested FROM PAUSE");
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("Pause restart not available in multiplayer mode!", TakiLogger.LogCategory.Network);
+				return;
+			}
 
 			// For pause restarts, we don't need GameEndManager
 			// Just start a fresh game directly

@@ -535,6 +535,111 @@ namespace TakiGame {
 		}
 
 		/// <summary>
+		/// Send color selection to network
+		/// </summary>
+		public void SendColorSelection (CardColor selectedColor) {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "COLOR_SELECTION",
+				cardIdentifier = selectedColor.ToString ()
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ($"Sent color selection: {selectedColor}");
+		}
+
+		/// <summary>
+		/// Send end turn to network
+		/// </summary>
+		public void SendEndTurn () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "END_TURN",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent end turn");
+		}
+
+		/// <summary>
+		/// Send end TAKI sequence to network
+		/// </summary>
+		public void SendEndTakiSequence () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "END_TAKI_SEQUENCE",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent end TAKI sequence");
+		}
+
+		/// <summary>
+		/// Send STOP card effect to network
+		/// </summary>
+		public void SendStopEffect () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "STOP_EFFECT",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent STOP effect");
+		}
+
+		/// <summary>
+		/// Send direction change effect to network
+		/// </summary>
+		public void SendDirectionChange () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "DIRECTION_CHANGE",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent direction change");
+		}
+
+		/// <summary>
+		/// Send plus-two chain break to network
+		/// </summary>
+		public void SendChainBreak () {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "CHAIN_BREAK",
+				cardIdentifier = ""
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ("Sent plus-two chain break");
+		}
+
+		/// <summary>
+		/// Send PlusTwo effect to network with chain information
+		/// </summary>
+		public void SendPlusTwoEffect (int chainCount, int drawCount) {
+			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
+
+			var moveData = new NetworkMoveData {
+				actionType = "PLUS_TWO_EFFECT",
+				cardIdentifier = $"{chainCount},{drawCount}" // Encode chain info in identifier
+			};
+
+			turnMgr.SendMove (moveData, true);
+			TakiLogger.LogNetwork ($"Sent PlusTwo effect: {chainCount} cards, {drawCount} total draw");
+		}
+
+		/// <summary>
 		/// Process action from remote player
 		/// </summary>
 		void ProcessRemoteAction (Player player, object moveData) {
@@ -550,6 +655,42 @@ namespace TakiGame {
 						break;
 					case "DRAW_CARD":
 						gameManager.ProcessNetworkCardDraw (player.ActorNumber);
+						break;
+					case "COLOR_SELECTION":
+						// Parse color from string and process
+						if (System.Enum.TryParse<CardColor> (networkMove.cardIdentifier, out CardColor selectedColor)) {
+							gameManager.ProcessNetworkColorSelection (selectedColor, player.ActorNumber);
+						} else {
+							TakiLogger.LogError ($"Invalid color selection received: {networkMove.cardIdentifier}", TakiLogger.LogCategory.Network);
+						}
+						break;
+					case "END_TURN":
+						gameManager.ProcessNetworkEndTurn (player.ActorNumber);
+						break;
+					case "END_TAKI_SEQUENCE":
+						gameManager.ProcessNetworkEndTakiSequence (player.ActorNumber);
+						break;
+					case "STOP_EFFECT":
+						gameManager.ProcessNetworkStopEffect (player.ActorNumber);
+						break;
+					case "DIRECTION_CHANGE":
+						gameManager.ProcessNetworkDirectionChange (player.ActorNumber);
+						break;
+					case "CHAIN_BREAK":
+						gameManager.ProcessNetworkChainBreak (player.ActorNumber);
+						break;
+					case "PLUS_TWO_EFFECT":
+						// Parse chain info from cardIdentifier
+						if (!string.IsNullOrEmpty (networkMove.cardIdentifier)) {
+							string[] parts = networkMove.cardIdentifier.Split (',');
+							if (parts.Length == 2 && int.TryParse (parts[0], out int chainCount) && int.TryParse (parts[1], out int drawCount)) {
+								gameManager.ProcessNetworkPlusTwoEffect (chainCount, drawCount, player.ActorNumber);
+							} else {
+								TakiLogger.LogError ($"Invalid PlusTwo effect data: {networkMove.cardIdentifier}", TakiLogger.LogCategory.Network);
+							}
+						} else {
+							TakiLogger.LogError ("PlusTwo effect received with empty data", TakiLogger.LogCategory.Network);
+						}
 						break;
 				}
 			}

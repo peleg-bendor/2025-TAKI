@@ -2094,7 +2094,27 @@ if (ShouldUseAI) {
 }
 ```
 
+if (ShouldUseAI) {
 
+} else if (IsWaitingForOpponent) {
+    // Multiplayer: Show waiting UI, set timeouts
+    TakiLogger.LogNetwork("Waiting for remote opponent");
+    GetActiveUI()?.ShowOpponentMessage("Opponent's turn...");
+    // TODO: Maybe: StartOpponentTimeout(30f);
+}
+
+			if (isMultiplayerMode) {
+				TakiLogger.LogError ("ooo should not be called in multiplayer mode!", TakiLogger.LogCategory.AI);
+				return;
+			}
+
+
+
+Read `CLAUDE.md`.
+I found a problem while investigating the logs!
+`InitializeMultiPlayerSystems` is being called (we know this because the logs show "Initializing multiplayer game systems..."), and later on, `StartNewMultiPlayerGameCoroutine` is being called (we know this because the logs show "Starting new multiplayer game...").
+More proof of this is that we see in the logs messages apearing twice (for example "=== STARTING NETWORK GAME WITH DECK INITIALIZATION ===", but there are many many more).
+`StartNetworkGame` is being called twice! We need to thoroghly investigate this and dig deep - Why did this happen? What was the goal? What is the issue? What is currently happening vs what we want to happen? How can this be achieved? How is this aspect in multiplayer mode different than singleplayer mode? How come we didn't come across this problem in singleplayer mode?
 
 
 
@@ -2106,6 +2126,9 @@ if (ShouldUseAI) {
 `GameManager.cs`
 `NetworkGameManager.cs`
 `CLAUDE.md`
+
+
+Read `CLAUDE.md`.
 
 
 ## region- `...`:

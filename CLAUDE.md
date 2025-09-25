@@ -18,7 +18,7 @@ Unity C# TAKI card game (similar to UNO) with both singleplayer (vs AI) and mult
 
 ### Current Status
 - **Singleplayer**: ✅ **Complete & Working** - Full TAKI game with all special cards, AI opponent, NEW UI ARCHITECTURE
-- **Multiplayer**: 🎯 **In Development** - Core systems ready, debugging in progress
+- **Multiplayer**: ✅ **Architecture Complete** - All core systems implemented, multiplayer compatibility investigation complete
 
 ### UI Architecture (NEW - Fully Migrated)
 - **BaseGameplayUIManager**: Abstract base class with Template Method pattern
@@ -78,40 +78,41 @@ Scene_Menu
 - ✅ HandManager initialization timing issue RESOLVED
 - ✅ Button event architecture FIXED - mode-aware activation/deactivation
 - ✅ **Network card assignment bug ROOT CAUSE IDENTIFIED** - AI calls during multiplayer mode
-- 🎯 **Current**: Implement centralized GameManager properties for clean AI vs network logic
+- ✅ **Multiplayer compatibility investigation COMPLETE** - All methods analyzed for mode-awareness
+- ✅ **UpdateVisualHands fixed** - Added mode-aware opponent hand display (no longer assumes AI exists)
+- ✅ **UI update consistency** - UpdateAllUIWithNetworkSupport now calls UpdateAllDisplays and chain status
+- ✅ **Game restart system** - GameEndManager and RequestRestartGameFromPause now mode-aware
+- 🎯 **Next**: Test multiplayer - `playerHand` still gets 0 cards issue remains unresolved
 
-## Architecture Solution Designed
-**Problem**: AI methods called during multiplayer mode, causing:
-- `computerAI.AddCardsToHand()` gives AI 16 cards (8 + 8)
-- `playerHand` gets 0 cards instead of 8
-- Multiple other AI calls without multiplayer checks
+## Recent Changes Made
 
-**Solution**: Two centralized GameManager properties:
-```csharp
-public bool ShouldUseAI => !isMultiplayerMode && gameState?.IsComputerTurn == true && computerAI != null;
-public bool IsWaitingForOpponent => isMultiplayerMode && networkGameManager?.IsMyTurn == false;
-```
+### Multiplayer Compatibility Fixes
+- **HandManager.cs**: Added `GetRealCardsForGameLogic()` method for accessing opponent cards
+- **GameManager.UpdateVisualHands()**: Made mode-aware, no longer assumes `computerAI` exists in multiplayer
+- **GameManager.UpdateAllUIWithNetworkSupport()**: Added missing `UpdateAllDisplays()` call and chain status logic
+- **GameEndManager.RestartGameSequence()**: Now calls appropriate start method based on `IsMultiplayerMode`
+- **GameManager.RequestRestartGameFromPause()**: Blocks multiplayer access (pause will be removed from multiplayer)
 
-**Locations needing fixes** (GameManager.cs lines):
-- 1277: `StartAITurnAfterStop` ✅ FIXED
-- 2260: `computerAI.AddCardsToHand(drawnCards)`
-- 2314: `computerAI.MakeDecision(topCard)`
-- 2447: `computerAI.AddCardToHand(singleDrawnCard)`
-- 2491: `computerAI.AddCardToHand(drawnCard)`
-- 2768: `computerAI.MakeDecision(topCard)`
-- 2786: `computerAI.MakeDecision(sequenceTopCard)`
+### Investigation Results
+- **Mode-neutral methods**: `RefreshPlayerHandStates`, `OnPlayerCardSelected`, `OnComputerCardSelected`, request methods, etc.
+- **Network methods**: Fixed inconsistent UI update calls to use `UpdateAllUIWithNetworkSupport()`
+
+## Outstanding Issues
+**Problem**: `playerHand` still gets 0 cards instead of 8 in multiplayer testing
+**Status**: Architecture fixes made, but root cause of card assignment bug not yet resolved
+**Next**: Test and investigate the remaining card assignment issue
 
 ## My Prompt to you:
+- This `CLAUDE.md` might not be super up to date.
 - Read `investigating.md`.
-- We will be replacing all problematic AI calls with the new centralized properties.
 
 ## Todo List
-- [x] ✅ Root cause analysis - AI/multiplayer conflict IDENTIFIED
-- [x] ✅ Architecture design - centralized GameManager properties DESIGNED
-- [ ] **Implement centralized properties** - Add ShouldUseAI and IsWaitingForOpponent to GameManager
-- [ ] **Fix all problematic AI calls** - Replace with new properties (7 locations)
-- [ ] **Test multiplayer card assignment** - Verify players get 8 cards each
-- [ ] **Validate logging integration** - Ensure proper network vs AI logging
+- [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
+- [x] ✅ UI architecture consistency - UpdateAllUIWithNetworkSupport matches UpdateAllUI
+- [x] ✅ Game restart system - Mode-aware restart for both singleplayer and multiplayer
+- [x] ✅ UpdateVisualHands fix - No longer assumes AI exists in multiplayer
+- [ ] 🎯 **Test multiplayer card assignment** - playerHand still gets 0 cards, investigate root cause
+- [ ] **Fix remaining AI calls** - Original AI call locations may still need addressing
 
 ## Side Notes
 - **No Unicode**: Avoid special characters in code/files

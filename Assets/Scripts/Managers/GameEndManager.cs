@@ -190,10 +190,17 @@ namespace TakiGame {
 			// Reset game end state
 			ResetGameEndState ();
 
-			// Start new game through GameManager
+			// Start new game through GameManager - MODE AWARE
 			if (gameManager != null) {
 				TakiLogger.LogSystem ("Requesting new game from GameManager");
-				gameManager.StartNewSinglePlayerGame ();
+
+				if (gameManager.IsMultiplayerMode) {
+					TakiLogger.LogSystem ("Restarting multiplayer game");
+					gameManager.StartNewMultiPlayerGame ();
+				} else {
+					TakiLogger.LogSystem ("Restarting singleplayer game");
+					gameManager.StartNewSinglePlayerGame ();
+				}
 			} else {
 				TakiLogger.LogError ("Cannot restart: GameManager is null", TakiLogger.LogCategory.System);
 			}
