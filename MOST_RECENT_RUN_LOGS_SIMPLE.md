@@ -166,105 +166,173 @@
 [NET] PHOTON DEBUG: IsConnected=True
 [NET] PHOTON DEBUG: IsConnectedAndReady=True
 [NET] PHOTON DEBUG: InRoom=True
-[NET] PHOTON DEBUG: CurrentRoom=c2b524d0-169f-4a77-b3d4-f803eea151ce
+[NET] PHOTON DEBUG: CurrentRoom=a7df479d-7a16-4acb-b357-b4ff627cc07d
 [NET] PHOTON DEBUG: PlayerCount=2
-[NET] PHOTON DEBUG: IsMasterClient=False
-[NET] PHOTON DEBUG: LocalPlayer ActorNumber=2
+[NET] PHOTON DEBUG: IsMasterClient=True
+[NET] PHOTON DEBUG: LocalPlayer ActorNumber=1
 [NET] PHOTON DEBUG: MasterClient ActorNumber=1
 [NET] PHOTON DEBUG: Players in room:
 [NET]   - Player 1:  (Master: True)
 [NET]   - Player 2:  (Master: False)
 [NET] === INITIALIZING SHARED DECK ===
-[NET] DECK INIT DEBUG: PhotonNetwork.IsMasterClient=False
-[NET] DECK INIT DEBUG: LocalPlayer.ActorNumber=2
+[NET] DECK INIT DEBUG: PhotonNetwork.IsMasterClient=True
+[NET] DECK INIT DEBUG: LocalPlayer.ActorNumber=1
 [NET] DECK INIT DEBUG: MasterClient.ActorNumber=1
 [NET] DECK INIT DEBUG: _waitingForDeckState=False
-[NET] TAKING CLIENT PATH: I am Client - waiting for initial game state from master
-[NET] DECK INIT DEBUG: _waitingForDeckState set to True
-[NET] === RECEIVED INITIAL GAME STATE RPC ===
-[NET] Starting Card ID: Blue_3
-[NET] Draw Pile Count: 93
-[NET] Player 1 Hand (serialized): Blue_9|Yellow_1|Red_5|Blue_5|Green_1|Red_PlusTwo|Blue_6|Wild_ChangeColor
-[NET] Player 2 Hand (serialized): Red_Stop|Yellow_ChangeDirection|Green_Plus|Yellow_Stop|Red_Taki|Red_9|Green_Plus|Yellow_Taki
-[NET] Master Client Actor: 1
-[NET] Local Player Actor: 2
-[NET] === RPC MESSAGE RECEIVED DETAILS LOGGED ===
-[NET] RPC DEBUG: _waitingForDeckState=True
-[NET] RPC DEBUG: PhotonNetwork.IsMasterClient=False
-[NET] RPC DEBUG: sender masterActor=1, local ActorNumber=2
-[NET] Deserializing hand from: Blue_9|Yellow_1|Red_5|Blue_5|Green_1|Red_PlusTwo|Blue_6|Wild_ChangeColor
-[NET] Split into 8 card IDs
-[NET] Deserialized card: Blue_9 -> Blue 9
-[NET] Deserialized card: Yellow_1 -> Yellow 1
-[NET] Deserialized card: Red_5 -> Red 5
-[NET] Deserialized card: Blue_5 -> Blue 5
-[NET] Deserialized card: Green_1 -> Green 1
-[NET] Deserialized card: Red_PlusTwo -> Red PlusTwo
-[NET] Deserialized card: Blue_6 -> Blue 6
-[NET] Deserialized card: Wild_ChangeColor -> Wild ChangeColor
-[NET] Deserialized hand: 8 cards from 8 IDs
-[NET] Deserializing hand from: Red_Stop|Yellow_ChangeDirection|Green_Plus|Yellow_Stop|Red_Taki|Red_9|Green_Plus|Yellow_Taki
-[NET] Split into 8 card IDs
-[NET] Deserialized card: Red_Stop -> Red Stop
-[NET] Deserialized card: Yellow_ChangeDirection -> Yellow ChangeDirection
-[NET] Deserialized card: Green_Plus -> Green Plus
-[NET] Deserialized card: Yellow_Stop -> Yellow Stop
-[NET] Deserialized card: Red_Taki -> Red Taki
-[NET] Deserialized card: Red_9 -> Red 9
-[NET] Deserialized card: Green_Plus -> Green Plus
-[NET] Deserialized card: Yellow_Taki -> Yellow Taki
-[NET] Deserialized hand: 8 cards from 8 IDs
-[NET] Applying received game state with simplified approach
+[NET] TAKING MASTER PATH: I am Master Client - setting up deck and broadcasting state
+[NET] Master client setting up deck - simplified approach
 [DECK] Deck Message: New deck shuffled!
 [DECK] Shuffled
 [DECK] Initialized with 110 cards
-[NET] Network deck initialized with 110 cards
-[NET] Network deck initialized with 110 cards
-[DECK] Top discard card updated: Blue 3
-[DECK] Discarded card: Blue 3
-[NET] Starting card placed: Blue 3
-[STATE] Active color changed: Wild -> Blue
+[STATE] New game initialized successfully
+[DECK] Drew card: Blue Plus
+[DECK] Drew card: Green 1
+[DECK] Drew card: Wild ChangeColor
+[DECK] Drew card: Red Plus
+[DECK] Drew card: Yellow Plus
+[DECK] Drew card: Green 8
+[DECK] Drew card: Green 8
+[DECK] Drew card: Blue 8
+[DECK] Drew card: Red 5
+[DECK] Drew card: Blue Taki
+[DECK] Drew card: Blue 9
+[DECK] Drew card: Yellow 5
+[DECK] Drew card: Green ChangeDirection
+[DECK] Drew card: Red PlusTwo
+[DECK] Drew card: Red 1
+[DECK] Drew card: Yellow 6
+[DECK] Drew card: Red 8
+[DECK] Top discard card updated: Red 8
+[DECK] Discarded card: Red 8
+[STATE] Starting card: Red 8
+[STATE] Initial setup complete. Player 1: 8 cards, Player 2: 8 cards
+[STATE] Active color changed: Wild -> Red
 [SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[NET] COLOR SYNC: Active color set to Blue from starting card
-[NET] DECK SYNC: Adjusting draw pile from 110 to 93 to match master
-[NET] Syncing draw pile count to master's state: 93
-[NET] Removed 17 cards from draw pile: 110 -> 93
-[NET] DECK SYNC: Draw pile count synchronized to 93
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 8
+[NET] Player2 UI updated: Opponent Cards: 0
+[NET] Multiplayer hand sizes updated: Local=8, Opponent=0
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[UI] === UPDATING ALL DISPLAYS (BASE) ===
+[UI] === UPDATING TURN DISPLAY for Neutral ===
+[UI] Turn indicator text: 'Game Setup'
+[TURN] Turn display updated - button states controlled by strict flow system
+[UI] ENABLE TAKI DEBUG: EnableEndTakiSequenceButton called with enable=False
+[UI] ENABLE TAKI DEBUG: Disabling button (enable=false)
+[UI] End TAKI Sequence button DISABLED & HIDDEN
+[UI] TAKI sequence status hidden
+[UI] Handling active game state
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[UI] Chain status hidden
+[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[NET] Hand display updated: 8 cards, Network=True, Opponent=False
+[UI] Updated player hand display: 8 cards
+[NET] Showing 0 opponent cards with privacy mode
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 8
+[NET] Player2 UI updated: Opponent Cards: 0
+[NET] Multiplayer hand sizes updated: Local=8, Opponent=0
+[NET] Opponent hand displayed with privacy: 0 real cards as card backs
+[NET] Hand display updated (enhanced): 0 cards, Privacy=True
+[UI] Updated opponent hand display (multiplayer): 0 cards with privacy
+[TURNS] Turn system initialized. First player: Human
+[STATE] Turn state changed: Neutral -> PlayerTurn
+[STATE] Turn state changed to PlayerTurn
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[UI] === UPDATING TURN DISPLAY for PlayerTurn ===
+[UI] Turn indicator text: 'Your Turn'
+[TURN] Turn display updated - button states controlled by strict flow system
+[TURNS] Turn started for: Human
+[TURN] Turn changed to Local Player (PlayerType: Human)
+[SYS] Game started! Player: 8 cards, Opponent: 8 cards
+[DECK] Deck Message: Starting card: Red 8
+[NET] SetupInitialGame successful: P1=8, P2=8, Start=Red 8
+[NET] Serializing card: Blue Plus -> Blue_Plus
+[NET] Serializing card: Green 1 -> Green_1
+[NET] Serializing card: Wild ChangeColor -> Wild_ChangeColor
+[NET] Serializing card: Red Plus -> Red_Plus
+[NET] Serializing card: Yellow Plus -> Yellow_Plus
+[NET] Serializing card: Green 8 -> Green_8
+[NET] Serializing card: Green 8 -> Green_8
+[NET] Serializing card: Blue 8 -> Blue_8
+[NET] Hand serialized: 8 cards -> 78 characters
+[NET] Serializing card: Red 5 -> Red_5
+[NET] Serializing card: Blue Taki -> Blue_Taki
+[NET] Serializing card: Blue 9 -> Blue_9
+[NET] Serializing card: Yellow 5 -> Yellow_5
+[NET] Serializing card: Green ChangeDirection -> Green_ChangeDirection
+[NET] Serializing card: Red PlusTwo -> Red_PlusTwo
+[NET] Serializing card: Red 1 -> Red_1
+[NET] Serializing card: Yellow 6 -> Yellow_6
+[NET] Hand serialized: 8 cards -> 80 characters
+[NET] === SENDING INITIAL GAME STATE RPC ===
+[NET] Starting Card ID: Red_8
+[NET] Draw Pile Count: 93
+[NET] Player 1 Hand (serialized): Blue_Plus|Green_1|Wild_ChangeColor|Red_Plus|Yellow_Plus|Green_8|Green_8|Blue_8
+[NET] Player 2 Hand (serialized): Red_5|Blue_Taki|Blue_9|Yellow_5|Green_ChangeDirection|Red_PlusTwo|Red_1|Yellow_6
+[NET] Master Client Actor Number: 1
+[NET] Player 1 Hand Size: 8 cards
+[NET] Player 2 Hand Size: 8 cards
+[NET] === RPC MESSAGE DETAILS LOGGED ===
+[NET] DIAGNOSTIC: Before SetupLocalMultiplayerHands - P1 Count=8, P2 Count=8
+[NET] DIAGNOSTIC: P1 First card exists: True
+[NET] DIAGNOSTIC: P2 First card exists: True
 [NET] Setting up multiplayer hands - simplified approach
 [NET] DIAGNOSTIC: Player assignment setup
-[NET] DIAGNOSTIC: Local ActorNumber=2
+[NET] DIAGNOSTIC: Local ActorNumber=1
 [NET] DIAGNOSTIC: Total players=2
 [NET] DIAGNOSTIC: Player[0] ActorNumber=1
 [NET] DIAGNOSTIC: Player[1] ActorNumber=2
 [NET] DIAGNOSTIC: Input hands - Player1: 8 cards, Player2: 8 cards
 [NET] DIAGNOSTIC: Player1Hand[0] is null: False
-[NET] DIAGNOSTIC: Player1Hand[0]: Blue 9
+[NET] DIAGNOSTIC: Player1Hand[0]: Blue Plus
 [NET] DIAGNOSTIC: Player2Hand[0] is null: False
-[NET] DIAGNOSTIC: Player2Hand[0]: Red Stop
-[NET] DIAGNOSTIC: isPlayer1=False (Local actor 2 vs First player 1)
+[NET] DIAGNOSTIC: Player2Hand[0]: Red 5
+[NET] DIAGNOSTIC: isPlayer1=True (Local actor 1 vs First player 1)
 [NET] DIAGNOSTIC: After assignment - myHand: 8 cards, opponentHand: 8 cards
 [NET] Hand assignment: Local=8 cards, Opponent=8 cards
-[NET] DIAGNOSTIC: GameManager.playerHand before clear: 0 cards
+[NET] DIAGNOSTIC: GameManager.playerHand before clear: 8 cards
 [NET] DIAGNOSTIC: About to add 8 cards to GameManager.playerHand
-[NET] DIAGNOSTIC: CRITICAL - gameManager.playerHand == myHand reference: False
+[NET] DIAGNOSTIC: CRITICAL - gameManager.playerHand == myHand reference: True
 [NET] DIAGNOSTIC: Created myHandCopy with 8 cards
 [NET] DIAGNOSTIC: GameManager.playerHand after clear: 0 cards
-[NET] DIAGNOSTIC: myHand after clear - Count: 8
+[NET] DIAGNOSTIC: myHand after clear - Count: 0
 [NET] DIAGNOSTIC: GameManager.playerHand after AddRange: 8 cards
 [NET] GameManager playerHand updated: 8 cards
 [NET] HandManager Player1HandPanel: Network mode = True
-[RULES] Move validation: Red Stop on Blue 3 with active color Blue = False
-[RULES] Move validation: Yellow ChangeDirection on Blue 3 with active color Blue = False
-[RULES] Move validation: Green Plus on Blue 3 with active color Blue = False
-[RULES] Move validation: Yellow Stop on Blue 3 with active color Blue = False
-[RULES] Move validation: Red Taki on Blue 3 with active color Blue = False
-[RULES] Move validation: Red 9 on Blue 3 with active color Blue = False
-[RULES] Move validation: Green Plus on Blue 3 with active color Blue = False
-[RULES] Move validation: Yellow Taki on Blue 3 with active color Blue = False
-[RULES] HandManager Player1HandPanel: No playable cards found (0/8)
+[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
 [NET] Hand display updated: 8 cards, Network=True, Opponent=False
 [NET] Local player hand displayed: 8 cards (per-screen architecture)
 [NET] HandManager Player2HandPanel: Enhanced network mode = True
@@ -276,14 +344,14 @@
 [NET] Player2 UI updated: Opponent Cards: 8
 [NET] Multiplayer hand sizes updated: Local=8, Opponent=8
 [NET] Showing 8 opponent cards with privacy mode
-[NET] CardController: Enhanced initialization - Card: Blue 9, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Yellow 1, FaceUp: False, Privacy: True
 [NET] CardController: Enhanced initialization - Card: Red 5, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 5, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Green 1, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Blue Taki, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Blue 9, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow 5, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Green ChangeDirection, FaceUp: False, Privacy: True
 [NET] CardController: Enhanced initialization - Card: Red PlusTwo, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 6, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Wild ChangeColor, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red 1, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow 6, FaceUp: False, Privacy: True
 [NET] DIAGNOSTIC: player1HandSizeText null check: False
 [NET] DIAGNOSTIC: player2HandSizeText null check: False
 [NET] Player1 UI updated: Your Cards: 8
@@ -308,10 +376,22 @@
 [NET] Player2 UI updated: Opponent Cards: 8
 [NET] Multiplayer hand sizes updated: Local=8, Opponent=8
 [NET] Multiplayer hands setup complete - simplified approach successful
-[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Blue 3
+[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Red 8
 [NET] DeckUI PileManager status: ASSIGNED
-[DECK] Top discard card updated: Blue 3
+[DECK] Top discard card updated: Red 8
 [NET] Multiplayer deck display updated successfully
+[NET] Master deck setup complete - simplified approach successful
+[TURN] Starting Player Turn
+[TURN] Normal turn flow - no active chain
+[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[TURN] Player has 5 valid cards, may PLAY or DRAW a card
 [SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
@@ -320,17 +400,104 @@
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[NET] Game state applied successfully with simplified approach
-[NET] Client deck initialization complete with actual cards
+[TURN] === UPDATING STRICT BUTTON STATES ===
+[TURN] PLAY: ENABLED
+[TURN] DRAW: ENABLED
+[TURN] END TURN: DISABLED
+[TURN] Play Card button updated: ENABLED
+[TURN] Draw Card button updated: ENABLED
+[TURN] End Turn button updated: DISABLED
+[TURN] Strict button state update complete
+[UI] REFRESHING PLAYER HAND STATES
+[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
+[UI] REFRESHING PLAYER HAND STATES
+[RULES] Move validation: Blue Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 1 on Red 8 with active color Red = False
+[RULES] Move validation: Wild ChangeColor on Red 8 with active color Red = True
+[RULES] Move validation: Red Plus on Red 8 with active color Red = True
+[RULES] Move validation: Yellow Plus on Red 8 with active color Red = False
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
+[RULES] Move validation: Blue 8 on Red 8 with active color Red = True
 [NET] === TURN 1 BEGINS ===
-[NET] Is my turn: False
-[STATE] Turn state changed: Neutral -> ComputerTurn
-[STATE] Turn state changed to ComputerTurn
+[NET] Is my turn: True
+[NET] First turn initialization complete
+[UI] Player selected visual card: Green 8
+[RULES] Move validation: Green 8 on Red 8 with active color Red = True
 [SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[UI] === UPDATING TURN DISPLAY for ComputerTurn ===
-[UI] Turn indicator text: 'Opponent's Turn'
-[TURN] Turn display updated - button states controlled by strict flow system
-[NET] First turn initialization complete
+[TURN] === PLAY CARD BUTTON CLICKED ===
+[TURN] Button enabled state: True
+[TURN] Button interactable: True
+[TURN] === PLAY CARD BUTTON CLICKED (MULTIPLAYER) ===
+[NET] === MULTIPLAYER PLAY CARD CLICKED ===
+[CARD] Attempting to play selected card: Green 8
+"Exception: Write failed. Custom type not found: TakiGame.NetworkMoveData
+ExitGames.Client.Photon.Protocol18.WriteCustomType (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:741)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:99)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
+ExitGames.Client.Photon.Protocol18.WriteHashtable (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:434)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:132)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
+ExitGames.Client.Photon.Protocol18.WriteParameterTable (ExitGames.Client.Photon.StreamBuffer stream, ExitGames.Client.Photon.ParameterDictionary parameters) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:241)
+ExitGames.Client.Photon.Protocol18.SerializeOperationRequest (ExitGames.Client.Photon.StreamBuffer stream, System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary parameters, System.Boolean setType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:276)
+ExitGames.Client.Photon.PeerBase.SerializeOperationToMessage (System.Byte opCode, ExitGames.Client.Photon.ParameterDictionary parameters, ExitGames.Client.Photon.EgMessageType messageType, System.Boolean encrypt) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:688)
+ExitGames.Client.Photon.PhotonPeer.SendOperation (System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary operationParameters, ExitGames.Client.Photon.SendOptions sendOptions) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1871)
+Photon.Realtime.LoadBalancingPeer.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingPeer.cs:1024)
+Photon.Realtime.LoadBalancingClient.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2320)
+Photon.Pun.PhotonNetwork.RaiseEvent (System.Byte eventCode, System.Object eventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonUnityNetworking/Code/PhotonNetwork.cs:2328)
+Photon.Pun.UtilityScripts.PunTurnManager.SendMove (System.Object move, System.Boolean finished) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:181)
+TakiGame.NetworkGameManager.SendCardPlay (TakiGame.CardData card) (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:623)
+TakiGame.GameManager.SendLocalCardPlayToNetwork (TakiGame.CardData cardToPlay) (at Assets/Scripts/Core/GameManager.cs:3580)
+TakiGame.GameManager.OnPlayCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3651)
+TakiGame.GameManager.OnPlayCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1330)
+TakiGame.BaseGameplayUIManager.<ConnectButtonEvents>b__50_0 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:88)
+UnityEngine.Events.InvokableCall.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
+UnityEngine.Events.UnityEvent.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
+UnityEngine.UI.Button.Press () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:70)
+UnityEngine.UI.Button.OnPointerClick (UnityEngine.EventSystems.PointerEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:114)
+UnityEngine.EventSystems.ExecuteEvents.Execute (UnityEngine.EventSystems.IPointerClickHandler handler, UnityEngine.EventSystems.BaseEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:57)
+UnityEngine.EventSystems.ExecuteEvents.Execute[T] (UnityEngine.GameObject target, UnityEngine.EventSystems.BaseEventData eventData, UnityEngine.EventSystems.ExecuteEvents+EventFunction`1[T1] functor) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:272)
+UnityEngine.EventSystems.EventSystem:Update() (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)"
+[UI] Player deselected card
+[TURN] === DRAW CARD BUTTON CLICKED ===
+[TURN] Button enabled state: True
+[TURN] Button interactable: True
+[TURN] === DRAW CARD BUTTON CLICKED (MULTIPLAYER) ===
+[NET] === MULTIPLAYER DRAW CARD CLICKED ===
+"Exception: Write failed. Custom type not found: TakiGame.NetworkMoveData
+ExitGames.Client.Photon.Protocol18.WriteCustomType (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:741)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:99)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
+ExitGames.Client.Photon.Protocol18.WriteHashtable (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:434)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, ExitGames.Client.Photon.Protocol18+GpType gpType, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:132)
+ExitGames.Client.Photon.Protocol18.Write (ExitGames.Client.Photon.StreamBuffer stream, System.Object value, System.Boolean writeType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:29)
+ExitGames.Client.Photon.Protocol18.WriteParameterTable (ExitGames.Client.Photon.StreamBuffer stream, ExitGames.Client.Photon.ParameterDictionary parameters) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:241)
+ExitGames.Client.Photon.Protocol18.SerializeOperationRequest (ExitGames.Client.Photon.StreamBuffer stream, System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary parameters, System.Boolean setType) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/Protocol18Write.cs:276)
+ExitGames.Client.Photon.PeerBase.SerializeOperationToMessage (System.Byte opCode, ExitGames.Client.Photon.ParameterDictionary parameters, ExitGames.Client.Photon.EgMessageType messageType, System.Boolean encrypt) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PeerBase.cs:688)
+ExitGames.Client.Photon.PhotonPeer.SendOperation (System.Byte operationCode, ExitGames.Client.Photon.ParameterDictionary operationParameters, ExitGames.Client.Photon.SendOptions sendOptions) (at D:/Dev/Work/photon-dotnet-sdk/PhotonDotNet/PhotonPeer.cs:1871)
+Photon.Realtime.LoadBalancingPeer.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingPeer.cs:1024)
+Photon.Realtime.LoadBalancingClient.OpRaiseEvent (System.Byte eventCode, System.Object customEventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2320)
+Photon.Pun.PhotonNetwork.RaiseEvent (System.Byte eventCode, System.Object eventContent, Photon.Realtime.RaiseEventOptions raiseEventOptions, ExitGames.Client.Photon.SendOptions sendOptions) (at Assets/Photon/PhotonUnityNetworking/Code/PhotonNetwork.cs:2328)
+Photon.Pun.UtilityScripts.PunTurnManager.SendMove (System.Object move, System.Boolean finished) (at Assets/Photon/PhotonUnityNetworking/UtilityScripts/TurnBased/PunTurnManager.cs:181)
+TakiGame.NetworkGameManager.SendCardDraw () (at Assets/Scripts/Multiplayer/NetworkGameManager.cs:638)
+TakiGame.GameManager.SendLocalCardDrawToNetwork () (at Assets/Scripts/Core/GameManager.cs:3600)
+TakiGame.GameManager.OnDrawCardButtonClickedMultiplayer () (at Assets/Scripts/Core/GameManager.cs:3715)
+TakiGame.GameManager.OnDrawCardButtonClicked () (at Assets/Scripts/Core/GameManager.cs:1381)
+TakiGame.BaseGameplayUIManager.<ConnectButtonEvents>b__50_1 () (at Assets/Scripts/UI/BaseGameplayUIManager.cs:108)
+UnityEngine.Events.InvokableCall.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
+UnityEngine.Events.UnityEvent.Invoke () (at <2d8783c7af0442318483a199a473c55b>:0)
+UnityEngine.UI.Button.Press () (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:70)
+UnityEngine.UI.Button.OnPointerClick (UnityEngine.EventSystems.PointerEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/UI/Core/Button.cs:114)
+UnityEngine.EventSystems.ExecuteEvents.Execute (UnityEngine.EventSystems.IPointerClickHandler handler, UnityEngine.EventSystems.BaseEventData eventData) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:57)
+UnityEngine.EventSystems.ExecuteEvents.Execute[T] (UnityEngine.GameObject target, UnityEngine.EventSystems.BaseEventData eventData, UnityEngine.EventSystems.ExecuteEvents+EventFunction`1[T1] functor) (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/ExecuteEvents.cs:272)
+UnityEngine.EventSystems.EventSystem:Update() (at ./Library/PackageCache/com.unity.ugui@1.0.0/Runtime/EventSystem/EventSystem.cs:530)"
