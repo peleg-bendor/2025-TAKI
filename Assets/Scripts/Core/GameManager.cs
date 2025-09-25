@@ -3364,6 +3364,12 @@ namespace TakiGame {
 				gameState.BreakPlusTwoChain ();
 				gameState.ChangeInteractionState (InteractionState.Normal);
 
+				// FIXED: Decrement draw pile count for cards drawn during chain break
+				if (deckManager != null) {
+					deckManager.DecrementDrawPileCount(cardsToDraw);
+					TakiLogger.LogNetwork ($"Draw pile count decremented by {cardsToDraw} for chain break");
+				}
+
 				// Show deck UI message for chain break
 				if (deckManager != null && deckManager.deckUI != null) {
 					deckManager.ShowMessage ($"Opponent drew {cardsToDraw} cards (chain break)", true);
@@ -3393,6 +3399,12 @@ namespace TakiGame {
 					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
 					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
 					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
+				}
+
+				// FIXED: Decrement draw pile count for single card draw
+				if (deckManager != null) {
+					deckManager.DecrementDrawPileCount(1);
+					TakiLogger.LogNetwork ("Draw pile count decremented by 1 for normal card draw");
 				}
 
 				// Show deck UI message for normal draw

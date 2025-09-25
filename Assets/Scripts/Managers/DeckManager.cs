@@ -373,6 +373,27 @@ namespace TakiGame {
 			UpdateUI ();
 		}
 
+		/// <summary>
+		/// NETWORK: Decrement draw pile count for network synchronization
+		/// Used by clients to sync draw pile count when opponent draws cards
+		/// </summary>
+		/// <param name="count">Number of cards to decrement by</param>
+		public void DecrementDrawPileCount (int count) {
+			if (deck == null) {
+				TakiLogger.LogError ("Cannot decrement draw pile count: Deck is null", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			int currentCount = deck.DrawPileCount;
+			int newCount = Mathf.Max(0, currentCount - count);
+
+			TakiLogger.LogNetwork ($"Decrementing draw pile count: {currentCount} -> {newCount} (decrement: {count})");
+			deck.SyncDrawPileCount (newCount);
+
+			// Update UI to reflect the new count
+			UpdateUI ();
+		}
+
 		// ===== PROPERTIES - Delegate to components ===== 
 
 		public int DrawPileCount => deck?.DrawPileCount ?? 0;

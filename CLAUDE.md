@@ -193,6 +193,29 @@ ShowOpponentHandWithPrivacy(currentHand); // Always uses current synchronized ca
 - ✅ **No blank white cards**: Eliminated null-based display system
 - ✅ **Clean architecture**: Single method approach with real card data
 
+### **Draw Pile Synchronization Fix:**
+**Problem**: Draw pile count would desynchronize when opponent draws cards - client shows "Draw: 93" while master shows "Draw: 92"
+**Root Cause**: `ProcessNetworkCardDraw()` updated opponent hand count but never decremented the draw pile count on the client side
+
+**Solution Applied**: Added draw pile count decrement in network card draw processing
+- **DeckManager.cs**: Added `DecrementDrawPileCount(int count)` method for network synchronization
+- **GameManager.ProcessNetworkCardDraw()**: Added draw pile decrement for both normal draws and PlusTwo chain breaks
+- **Proper bounds checking**: Uses `Mathf.Max(0, currentCount - count)` to prevent negative counts
+- **Consistent UI updates**: Updates deck display after decrementing count
+
+**Implementation**:
+```csharp
+// NEW: Draw pile synchronization in ProcessNetworkCardDraw()
+if (deckManager != null) {
+    deckManager.DecrementDrawPileCount(1); // Normal draw
+    // OR
+    deckManager.DecrementDrawPileCount(cardsToDraw); // Chain break
+    TakiLogger.LogNetwork("Draw pile count decremented for network sync");
+}
+```
+
+**Result**: ✅ **Draw pile synchronization**: Both clients show consistent draw pile counts (93→92) when opponent draws cards
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
 ✅ **Multiplayer**: Complete & Working - All systems operational
@@ -202,6 +225,7 @@ ShowOpponentHandWithPrivacy(currentHand); // Always uses current synchronized ca
 - Network sync: RPC communication ✅
 - **Network serialization: FIXED** ✅
 - **Opponent hand display: FIXED** ✅ Consistent count synchronization with proper card back sprites
+- **Draw pile synchronization: FIXED** ✅ Draw pile counts stay synchronized across clients
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -212,6 +236,7 @@ ShowOpponentHandWithPrivacy(currentHand); // Always uses current synchronized ca
 - [x] ✅ **FIXED: Btn_Player1EndTakiSequence state synchronization** - ActorNumber-based network logic
 - [x] ✅ **FIXED: Network serialization bug** - NetworkMoveData → Hashtable conversion
 - [x] ✅ **FIXED: Opponent hand display synchronization** - Real card data synchronization with consistent display architecture
+- [x] ✅ **FIXED: Draw pile synchronization** - Added DecrementDrawPileCount() for network card draw processing
 - [x] ✅ **Multiplayer testing** - Game functionality verified
 
 ## Side Notes

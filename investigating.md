@@ -41,7 +41,7 @@
 ### Screen 1, the client, in unity engine run:
 - `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be [<- good]
 - `Player1HandSizeText` is "Your Cards: 8" [<- good]
-- `Player2HandPanel` has has 8 cards, as card backs, but the not with card back image, instead they are just blank white, which I am pretty sure points to fallback logic for null cards, something along these lines [<- a problem!]
+- `Player2HandPanel` has 9 cards, as card backs, as is supposed to be [<- good]
 - `Player2HandSizeText` is "Opponent Cards: 9" [<- good]
 - `DrawPilePanel` has `DrawPileCard` , visually shows a card back (matching to master!) [<- good]
 - `DrawPileCountText` is "Draw: 93" [<- a problem]
@@ -57,8 +57,8 @@
 ### Screen 2, the master, a build:
 - `Player1HandPanel` visually has 9 cards, as card fronts, as is supposed to be (e.g. I can see a yellow 1 to a green 8) [<- good]
 - `Player1HandSizeText` visually is "Your Cards: 9" [<- good]
-- `Player2HandPanel` ALSO has has an unidentifyable number of cards, as card backs, but the not with card back image, instead they are just blank white, which I am pretty sure points to fallback logic for null cards, something along these lines [<- a problem!]
-- `Player1HandSizeText` visually is "Opponent Cards: 0" [<- a problem!]
+- `Player2HandPanel` visually has 8 cards, as card backs, as is supposed to be [<- good]
+- `Player1HandSizeText` visually is "Opponent Cards: 8" [<- a problem!]
 - `DrawPilePanel` visually shows a card back (matching to client!) [<- good]
 - `DrawPileCountText` visually is "Draw: 92" [<- good]
 - `DiscardPilePanel` visually shows a card front (matching to client!) [<- good]
