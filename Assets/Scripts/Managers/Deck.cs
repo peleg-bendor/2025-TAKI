@@ -170,6 +170,34 @@ namespace TakiGame {
 			TakiLogger.LogInfo ("Cleared", TakiLogger.LogCategory.Deck);
 		}
 
+		/// <summary>
+		/// NETWORK: Synchronize draw pile count for network clients
+		/// Used to match master client's deck state without actually dealing cards
+		/// </summary>
+		/// <param name="targetCount">Target draw pile count to sync to</param>
+		public void SyncDrawPileCount (int targetCount) {
+			int currentCount = drawPile.Count;
+			int difference = currentCount - targetCount;
+
+			if (difference == 0) {
+				TakiLogger.LogNetwork ($"Draw pile already synchronized: {currentCount} cards");
+				return;
+			}
+
+			if (difference > 0) {
+				// Remove excess cards from draw pile
+				for (int i = 0; i < difference; i++) {
+					if (drawPile.Count > 0) {
+						drawPile.RemoveAt (drawPile.Count - 1);
+					}
+				}
+				TakiLogger.LogNetwork ($"Removed {difference} cards from draw pile: {currentCount} -> {drawPile.Count}");
+			} else {
+				// This shouldn't happen in normal network sync, but handle gracefully
+				TakiLogger.LogWarning ($"Cannot add cards during sync: need {-difference} more cards", TakiLogger.LogCategory.Network);
+			}
+		}
+
 		// Properties for external access
 		public int DrawPileCount => drawPile.Count;
 		public int DiscardPileCount => discardPile.Count;

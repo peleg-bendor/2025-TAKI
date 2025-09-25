@@ -35,6 +35,10 @@ namespace TakiGame {
 		// For draw pile visual
 		private static CardData drawPileVisualCard;
 
+		// Mode tracking for timing issue fix
+		private bool lastKnownMultiplayerMode = false;
+		private bool hasInitializedVisuals = false;
+
 		// MILESTONE: Mode-aware container selection
 		/// <summary>
 		/// Get the appropriate draw pile container based on current game mode
@@ -78,7 +82,18 @@ namespace TakiGame {
 		}
 
 		void Start () {
-			CreateDrawPileVisual ();
+			// Delay initial visual creation to avoid timing issues
+			// Visual will be created in UpdateDrawPileDisplay when needed
+		}
+
+		void Update () {
+			// Check if multiplayer mode has changed and recreate visuals if needed
+			bool currentMultiplayerMode = IsMultiplayerMode();
+			if (hasInitializedVisuals && currentMultiplayerMode != lastKnownMultiplayerMode) {
+				TakiLogger.LogInfo ($"PileManager: Mode changed from {lastKnownMultiplayerMode} to {currentMultiplayerMode} - recreating visuals", TakiLogger.LogCategory.Deck);
+				RecreateVisualsForModeChange();
+			}
+			lastKnownMultiplayerMode = currentMultiplayerMode;
 		}
 
 		/// <summary>
@@ -90,6 +105,8 @@ namespace TakiGame {
 				// Show card back
 				if (drawPileCardController == null) {
 					CreateDrawPileVisual ();
+					hasInitializedVisuals = true;
+					lastKnownMultiplayerMode = IsMultiplayerMode();
 				} else {
 					// Make sure it's visible and face-down
 					drawPileCardController.gameObject.SetActive (true);
@@ -131,6 +148,22 @@ namespace TakiGame {
 				discardPileCardController.InitializeCard (topCard, null, true); // Face-up, no hand manager
 				discardPileCardController.gameObject.SetActive (true);
 				discardPileCardController.SetCardFacing (true); // Face-up
+			}
+		}
+
+		/// <summary>
+		/// Recreate visuals when mode changes to fix timing issues
+		/// </summary>
+		void RecreateVisualsForModeChange() {
+			// Clear existing visuals
+			ClearPileVisuals();
+
+			// Recreate draw pile visual in correct container
+			CreateDrawPileVisual();
+
+			// If there was a discard pile, recreate it too
+			if (discardPileCardController != null) {
+				CreateDiscardPileVisual();
 			}
 		}
 
@@ -210,6 +243,9 @@ namespace TakiGame {
 				Destroy (discardPileCardController.gameObject);
 				discardPileCardController = null;
 			}
+
+			// Reset flags when clearing visuals
+			hasInitializedVisuals = false;
 		}
 
 		/// <summary>
@@ -217,7 +253,12 @@ namespace TakiGame {
 		/// </summary>
 		public void ResetPiles () {
 			ClearPileVisuals ();
-			CreateDrawPileVisual ();
+
+			// Reset mode tracking flags to handle menu transitions safely
+			hasInitializedVisuals = false;
+			lastKnownMultiplayerMode = IsMultiplayerMode();
+
+			// Visual will be created on-demand in UpdateDrawPileDisplay
 		}
 
 		// Properties for debugging

@@ -2124,38 +2124,46 @@ I want you to carefully read `MOST_RECENT_RUN_LOGS_SIMPLE.md`. I want to discuss
 
 
 HALLELUJAH! Now to properly update `CLAUDE.md`.
+
+
+
 Here is what I'm seeing visually:
 Screen 1 (master):
-- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be (in inspector I can see `Card_Red 9_0` - `Card_Red 3_7`)
-- `Player1HandSizeText` is "Your Cards: 8"
-- `Player2HandPanel` has 8 cards, as card backs, as is supposed to be (in inspector I can see `OpponentCard_0` - `OpponentCard_7`)
-- `Player2HandSizeText` is "Opponent Cards: 8"
-- `DrawPilePanel` is empty (even in inspector)
-- `DrawPileCountText` is "Draw: 93"
-- `DiscardPilePanel` has `DiscardPileCard`, visualy shows a blue 7 card front (matching to not-master!)
-- `DiscardPileCountText` is "Discard: 1"
-- `TurnIndicatorText` is "Your Turn"
-- `CurrentColorIndicator` is the color blue
-- `Btn_Player1EndTakiSequence` is disabled
-- `Btn_Player1PlayCard` is enabled
-- `Btn_Player1DrawCard` is enabled
-- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (good, since this is this player's turn)
-- When I clicked on `Btn_Player1DrawCard`, I got this error log: `[SYS] TakiLogger configured: TakiLogger - Level: Trace, Mode: Development`
+- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be (in inspector I can see `Card_Red 9_0` - `Card_Red 3_7`) [<- good]
+- `Player1HandSizeText` is "Your Cards: 8" [<- good]
+- `Player2HandPanel` has 8 cards, as card backs, as is supposed to be (in inspector I can see `OpponentCard_0` - `OpponentCard_7`) [<- good]
+- `Player2HandSizeText` is "Opponent Cards: 8" [<- good]
+- `DrawPilePanel` is empty (even in inspector) [<- problematic]
+- `DrawPileCountText` is "Draw: 93" [<- good]
+- `DiscardPilePanel` has `DiscardPileCard`, visualy shows a blue 7 card front (matching to not-master!) [<- good, I think, but I find it a little odd that we don't see in the inspector its identifier string]
+- `DiscardPileCountText` is "Discard: 1" [<- good]
+- `TurnIndicatorText` is "Your Turn" [<- good]
+- `CurrentColorIndicator` is the color blue [<- good]
+- `Btn_Player1EndTakiSequence` is disabled [<- good]
+- `Btn_Player1PlayCard` is enabled [<- good]
+- `Btn_Player1DrawCard` is enabled [<- good]
+- `ColorSelectionPanel` is disabled [<- good]
+- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (good, since this is this player's turn) [<- good]
+- When I clicked on `Btn_Player1DrawCard`, I got this error log: `[SYS] TakiLogger configured: TakiLogger - Level: Trace, Mode: Development` [<- problematic]
 Screen 2 (not-master):
-- `Player1HandPanel` visualy has 8 cards, as card fronts, as is supposed to be (I can see a green 3 to a red plus)
-- `Player1HandSizeText` visualy is "Your Cards: 8"
-- `Player2HandPanel` visualy has 8 cards, as card backs, as is supposed to be
-- `Player1HandSizeText` visualy is "Opponent Cards: 8"
-- `DrawPilePanel` visualy is empty
-- `DrawPileCountText` visualy is "Draw: 110"
-- `DiscardPilePanel` visualy shows a blue 7 card front (matching to master!)
-- `DiscardPileCountText` visualy is "Discard: 1"
-- `TurnIndicatorText` visualy is "Opponent's Turn"
-- `CurrentColorIndicator` visualy is the color white (meaning wild/ default)
-- `Btn_Player1EndTakiSequence` is enbled and clickable, althogh nothing happens
-- `Btn_Player1PlayCard` is disabled
-- `Btn_Player1DrawCard` is disabled
-- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (not good, since this is not this player's turn)
+- `Player1HandPanel` visualy has 8 cards, as card fronts, as is supposed to be (I can see a green 3 to a red plus) [<- good]
+- `Player1HandSizeText` visualy is "Your Cards: 8" [<- good]
+- `Player2HandPanel` visualy has 8 cards, as card backs, as is supposed to be [<- good]
+- `Player1HandSizeText` visualy is "Opponent Cards: 8" [<- good]
+- `DrawPilePanel` visualy is empty [<- problematic]
+- `DrawPileCountText` visualy is "Draw: 110" [<- problematic]
+- `DiscardPilePanel` visualy shows a blue 7 card front (matching to master!) [<- good]
+- `DiscardPileCountText` visualy is "Discard: 1" [<- good]
+- `TurnIndicatorText` visualy is "Opponent's Turn" [<- good]
+- `CurrentColorIndicator` visualy is the color white (meaning wild/ default) [<- problematic]
+- `Btn_Player1EndTakiSequence` is enbled and clickable, althogh nothing happens [<- problematic]
+- `Btn_Player1PlayCard` is disabled [<- good]
+- `Btn_Player1DrawCard` is disabled [<- good]
+- `ColorSelectionPanel` is disabled [<- good]
+- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (not good, since this is not this player's turn) [<- problematic]
+Read `CLAUDE.md`.
+We need to create a todo list and write the problematic things we see.
+I want you to carefully read `MOST_RECENT_RUN_LOGS_SIMPLE.md` (you can also read relevant parts in `MOST_RECENT_RUN_LOGS_SIMPLE.md` if you see you need to). I want to discuss with you on what we see there and what we see visually.
 
 
 

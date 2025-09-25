@@ -158,15 +158,19 @@ namespace TakiGame {
 		/// Multiplayer context: Only enable for local player's sequences when it's their turn
 		/// </summary>
 		public override void EnableEndTakiSequenceButton (bool enable) {
+			TakiLogger.LogUI ($"ENABLE TAKI DEBUG: EnableEndTakiSequenceButton called with enable={enable}");
+
 			if (enable) {
 				// Multiplayer logic: Only local player can end their own sequences
 				bool canEndSequence = CanLocalPlayerEndSequence ();
+				TakiLogger.LogUI ($"ENABLE TAKI DEBUG: canEndSequence={canEndSequence}, final enable={enable && canEndSequence}");
 				base.EnableEndTakiSequenceButton (enable && canEndSequence);
 
 				if (!canEndSequence) {
 					TakiLogger.LogUI ("BLOCKED: End Sequence button - not local player's sequence or not their turn", TakiLogger.LogLevel.Debug);
 				}
 			} else {
+				TakiLogger.LogUI ("ENABLE TAKI DEBUG: Disabling button (enable=false)");
 				base.EnableEndTakiSequenceButton (false);
 			}
 		}
@@ -180,15 +184,29 @@ namespace TakiGame {
                 return false;
             }
 
+			// DEBUGGING: Log the state that determines button availability
+			TakiLogger.LogUI ($"END TAKI DEBUG: IsInTakiSequence={gameState.IsInTakiSequence}");
+
             if (!gameState.IsInTakiSequence) {
+				TakiLogger.LogUI ("END TAKI DEBUG: Not in TAKI sequence - button should be disabled");
 				return false;
 			}
 
 			bool isMyTurn = gameManager.networkGameManager.IsMyTurn;
-			bool isHumanSequence = gameState.TakiSequenceInitiator == PlayerType.Human;
 
-			// Can only end sequence if it's my turn AND I initiated it
-			return isMyTurn && isHumanSequence;
+			// PROPER NETWORK FIX: Use ActorNumber-based tracking instead of flawed PlayerType logic
+			int myActorNumber = Photon.Pun.PhotonNetwork.LocalPlayer.ActorNumber;
+			int sequenceInitiatorActor = gameState.TakiSequenceInitiatorActorNumber;
+			bool iInitiatedSequence = (sequenceInitiatorActor == myActorNumber);
+
+			TakiLogger.LogUI ($"END TAKI DEBUG: IsMyTurn={isMyTurn}, IInitiatedSequence={iInitiatedSequence}");
+			TakiLogger.LogUI ($"END TAKI DEBUG: MyActor={myActorNumber}, InitiatorActor={sequenceInitiatorActor}");
+
+			// NETWORK-AWARE LOGIC: Can only end sequence if it's my turn AND I was the one who initiated it
+			// This properly handles both clients without PlayerType confusion
+			bool canEnd = isMyTurn && iInitiatedSequence;
+			TakiLogger.LogUI ($"END TAKI DEBUG: CanEnd={canEnd}");
+			return canEnd;
 		}
 
 		/// <summary>

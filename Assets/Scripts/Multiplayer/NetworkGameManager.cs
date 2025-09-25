@@ -42,6 +42,24 @@ namespace TakiGame {
 		public void StartNetworkGame () {
 			TakiLogger.LogNetwork ("=== STARTING NETWORK GAME WITH DECK INITIALIZATION ===");
 
+			// DEBUGGING: Log Photon connection state
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: IsConnected={PhotonNetwork.IsConnected}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: IsConnectedAndReady={PhotonNetwork.IsConnectedAndReady}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: InRoom={PhotonNetwork.InRoom}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: CurrentRoom={PhotonNetwork.CurrentRoom?.Name ?? "NULL"}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: PlayerCount={PhotonNetwork.CurrentRoom?.PlayerCount ?? 0}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: IsMasterClient={PhotonNetwork.IsMasterClient}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: LocalPlayer ActorNumber={PhotonNetwork.LocalPlayer?.ActorNumber ?? -1}");
+			TakiLogger.LogNetwork ($"PHOTON DEBUG: MasterClient ActorNumber={PhotonNetwork.MasterClient?.ActorNumber ?? -1}");
+
+			// Log all players in room
+			if (PhotonNetwork.CurrentRoom != null) {
+				TakiLogger.LogNetwork ($"PHOTON DEBUG: Players in room:");
+				foreach (var player in PhotonNetwork.PlayerList) {
+					TakiLogger.LogNetwork ($"  - Player {player.ActorNumber}: {player.NickName} (Master: {player.IsMasterClient})");
+				}
+			}
+
 			_isGameOver = false;
 			_isFirstTurn = true;
 			_isDeckInitialized = false;
@@ -57,12 +75,19 @@ namespace TakiGame {
 		void   InitializeSharedDeck () {
 			TakiLogger.LogNetwork ("=== INITIALIZING SHARED DECK ===");
 
+			// DEBUGGING: Double-check Master Client status
+			TakiLogger.LogNetwork ($"DECK INIT DEBUG: PhotonNetwork.IsMasterClient={PhotonNetwork.IsMasterClient}");
+			TakiLogger.LogNetwork ($"DECK INIT DEBUG: LocalPlayer.ActorNumber={PhotonNetwork.LocalPlayer?.ActorNumber ?? -1}");
+			TakiLogger.LogNetwork ($"DECK INIT DEBUG: MasterClient.ActorNumber={PhotonNetwork.MasterClient?.ActorNumber ?? -1}");
+			TakiLogger.LogNetwork ($"DECK INIT DEBUG: _waitingForDeckState={_waitingForDeckState}");
+
 			if (PhotonNetwork.IsMasterClient) {
-				TakiLogger.LogNetwork ("I am Master Client - setting up deck and broadcasting state");
+				TakiLogger.LogNetwork ("TAKING MASTER PATH: I am Master Client - setting up deck and broadcasting state");
 				SetupMasterDeck ();
 			} else {
-				TakiLogger.LogNetwork ("I am Client - waiting for initial game state from master");
+				TakiLogger.LogNetwork ("TAKING CLIENT PATH: I am Client - waiting for initial game state from master");
 				_waitingForDeckState = true;
+				TakiLogger.LogNetwork ($"DECK INIT DEBUG: _waitingForDeckState set to {_waitingForDeckState}");
 			}
 		}
 
@@ -150,8 +175,14 @@ namespace TakiGame {
 			TakiLogger.LogNetwork ($"Local Player Actor: {PhotonNetwork.LocalPlayer.ActorNumber}");
 			TakiLogger.LogNetwork ("=== RPC MESSAGE RECEIVED DETAILS LOGGED ===");
 
+			// DEBUGGING: Log why we might reject this RPC
+			TakiLogger.LogNetwork ($"RPC DEBUG: _waitingForDeckState={_waitingForDeckState}");
+			TakiLogger.LogNetwork ($"RPC DEBUG: PhotonNetwork.IsMasterClient={PhotonNetwork.IsMasterClient}");
+			TakiLogger.LogNetwork ($"RPC DEBUG: sender masterActor={masterActor}, local ActorNumber={PhotonNetwork.LocalPlayer.ActorNumber}");
+
 			if (!_waitingForDeckState) {
-				TakiLogger.LogWarning ("Received game state but wasn't waiting for it", TakiLogger.LogCategory.Network);
+				TakiLogger.LogWarning ($"REJECTING RPC: Received game state but wasn't waiting for it (_waitingForDeckState={_waitingForDeckState})", TakiLogger.LogCategory.Network);
+				TakiLogger.LogWarning ($"RPC REJECT REASON: This client thinks it's Master={PhotonNetwork.IsMasterClient}, so it didn't set _waitingForDeckState=true", TakiLogger.LogCategory.Network);
 				return;
 			}
 
@@ -181,22 +212,39 @@ namespace TakiGame {
 
 			TakiLogger.LogNetwork ("Applying received game state with simplified approach");
 
-			// Initialize local deck without full setup
+			// FIXED: Initialize deck but then sync to master's count
 			gameManager.deckManager.InitializeDeck ();
+			TakiLogger.LogNetwork ($"Network deck initialized with {gameManager.deckManager.DrawPileCount} cards");
 
 			// Find and place starting card
 			CardData startingCard = FindCardFromIdentifier (startingCardId);
 			if (startingCard != null) {
 				gameManager.deckManager.DiscardCard (startingCard);
 				TakiLogger.LogNetwork ($"Starting card placed: {startingCard.GetDisplayText ()}");
+
+				// CRITICAL FIX: Set active color from starting card (same as master does)
+				if (gameManager.gameState != null) {
+					gameManager.gameState.ChangeActiveColor (startingCard.color);
+					TakiLogger.LogNetwork ($"COLOR SYNC: Active color set to {startingCard.color} from starting card");
+				}
 			} else {
 				TakiLogger.LogWarning ($"Could not find starting card: {startingCardId}", TakiLogger.LogCategory.Network);
+			}
+
+			// CRITICAL FIX: Sync deck count to master's state
+			// The master dealt cards and has the correct count, we need to match it
+			int currentDrawCount = gameManager.deckManager.DrawPileCount;
+			if (currentDrawCount != drawCount) {
+				TakiLogger.LogNetwork ($"DECK SYNC: Adjusting draw pile from {currentDrawCount} to {drawCount} to match master");
+				// Adjust the deck count to match master's state
+				gameManager.deckManager.SyncDrawPileCount (drawCount);
+				TakiLogger.LogNetwork ($"DECK SYNC: Draw pile count synchronized to {gameManager.deckManager.DrawPileCount}");
 			}
 
 			// Setup hands using simplified method
 			SetupLocalMultiplayerHands (player1Hand, player2Hand);
 
-			// Update deck display
+			// Update deck display with correct count
 			UpdateMultiplayerDeckDisplay ();
 
 			// Show ready message

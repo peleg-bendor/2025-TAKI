@@ -82,7 +82,7 @@ Scene_Menu
 - ✅ **UpdateVisualHands fixed** - Added mode-aware opponent hand display (no longer assumes AI exists)
 - ✅ **UI update consistency** - UpdateAllUIWithNetworkSupport now calls UpdateAllDisplays and chain status
 - ✅ **Game restart system** - GameEndManager and RequestRestartGameFromPause now mode-aware
-- 🎯 **Next**: Test multiplayer - `playerHand` still gets 0 cards issue remains unresolved
+- ✅ **Btn_Player1EndTakiSequence Network Fix** - Replaced flawed PlayerType logic with ActorNumber-based tracking
 
 ## Recent Changes Made
 
@@ -92,6 +92,7 @@ Scene_Menu
 - **GameManager.UpdateAllUIWithNetworkSupport()**: Added missing `UpdateAllDisplays()` call and chain status logic
 - **GameEndManager.RestartGameSequence()**: Now calls appropriate start method based on `IsMultiplayerMode`
 - **GameManager.RequestRestartGameFromPause()**: Blocks multiplayer access (pause will be removed from multiplayer)
+- **Btn_Player1EndTakiSequence Network Logic**: Fixed button state synchronization using ActorNumber-based tracking
 
 ### Investigation Results
 - **Mode-neutral methods**: `RefreshPlayerHandStates`, `OnPlayerCardSelected`, `OnComputerCardSelected`, request methods, etc.
@@ -116,6 +117,29 @@ gameManager.playerHand.AddRange(myHandCopy); // Safe!
 
 **Result**: ✅ Players now get full 8-card hands, multiplayer fully functional!
 
+### **TAKI Sequence Button Fix:**
+**Problem**: `Btn_Player1EndTakiSequence` enabled on both clients when only sequence initiator should control it
+**Root Cause**: Flawed PlayerType logic - both clients think they are "Human" in multiplayer
+
+**Solution Applied**: Network-aware ActorNumber-based tracking
+- **GameStateManager**: Added `takiSequenceInitiatorActorNumber` field to store network player ID
+- **MultiPlayerUIManager**: Replaced PlayerType comparison with ActorNumber comparison
+- **Reset compatibility**: Added ActorNumber reset in all cleanup methods
+- **Inspector fix**: Set button default state to disabled
+
+**Implementation**:
+```csharp
+// OLD (BROKEN): Both clients think they're "Human"
+bool iInitiatedSequence = gameState.TakiSequenceInitiator == PlayerType.Human;
+
+// NEW (FIXED): Compare actual network player IDs
+int myActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+int sequenceInitiatorActor = gameState.TakiSequenceInitiatorActorNumber;
+bool iInitiatedSequence = (sequenceInitiatorActor == myActorNumber);
+```
+
+**Result**: ✅ Button only enabled for the player who actually initiated the TAKI sequence
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
 ✅ **Multiplayer**: Complete & Working - All systems operational
@@ -130,6 +154,7 @@ gameManager.playerHand.AddRange(myHandCopy); // Safe!
 - [x] ✅ Game restart system - Mode-aware restart for both singleplayer and multiplayer
 - [x] ✅ UpdateVisualHands fix - No longer assumes AI exists in multiplayer
 - [x] ✅ **FIXED: Multiplayer card assignment bug** - Reference equality issue resolved
+- [x] ✅ **FIXED: Btn_Player1EndTakiSequence state synchronization** - ActorNumber-based network logic
 - [x] ✅ **Multiplayer testing complete** - Game fully functional
 
 ## Side Notes

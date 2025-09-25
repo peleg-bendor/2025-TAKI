@@ -55,6 +55,9 @@ namespace TakiGame {
 		[Tooltip ("Player who initiated the current sequence")]
 		private PlayerType takiSequenceInitiator = PlayerType.Human;
 
+		[Tooltip ("Network ActorNumber of player who initiated TAKI sequence (for multiplayer)")]
+		private int takiSequenceInitiatorActorNumber = -1;
+
 		[Header ("Game Rules")]
 		[Tooltip ("Maximum number of cards a player can hold")]
 		public int maxHandSize = 30;
@@ -174,6 +177,13 @@ namespace TakiGame {
 			takiSequenceInitiator = initiator;
 			lastCardPlayedInSequence = null;
 
+			// Store ActorNumber for network-aware sequence tracking
+			if (Photon.Pun.PhotonNetwork.IsConnected) {
+				takiSequenceInitiatorActorNumber = Photon.Pun.PhotonNetwork.LocalPlayer.ActorNumber;
+			} else {
+				takiSequenceInitiatorActorNumber = -1; // Singleplayer mode
+			}
+
 			// Change to TakiSequence interaction state
 			ChangeInteractionState (InteractionState.TakiSequence);
 
@@ -203,6 +213,7 @@ namespace TakiGame {
 			takiSequenceColor = CardColor.Wild;
 			lastCardPlayedInSequence = null;
 			takiSequenceCards.Clear (); // CRITICAL: Clear the actual list
+			takiSequenceInitiatorActorNumber = -1; // Reset network tracking
 
 			// Return to normal interaction state
 			ChangeInteractionState (InteractionState.Normal);
@@ -258,6 +269,7 @@ namespace TakiGame {
 			lastCardPlayedInSequence = null;
 			takiSequenceCards.Clear ();
 			takiSequenceInitiator = PlayerType.Human;
+			takiSequenceInitiatorActorNumber = -1; // Reset network tracking
 
 			// Return to normal state
 			ChangeInteractionState (InteractionState.Normal);
@@ -342,6 +354,7 @@ namespace TakiGame {
 			lastCardPlayedInSequence = null;
 			takiSequenceCards.Clear (); // CRITICAL: Clear the actual list
 			takiSequenceInitiator = PlayerType.Human; // Reset to default
+			takiSequenceInitiatorActorNumber = -1; // Reset network tracking
 
 			if (wasActive) {
 				TakiLogger.LogGameState ($"TAKI sequence state reset for new game (was initiated by {previousInitiator})");
@@ -733,6 +746,7 @@ namespace TakiGame {
 		// CRITICAL FIX: Property uses actual list count instead of separate counter
 		public int NumberOfSequenceCards => takiSequenceCards?.Count ?? 0;
 		public PlayerType TakiSequenceInitiator => takiSequenceInitiator;
+		public int TakiSequenceInitiatorActorNumber => takiSequenceInitiatorActorNumber;
 		public CardData LastCardPlayedInSequence => lastCardPlayedInSequence;
 
 		// Enhanced state check that includes chain awareness

@@ -355,6 +355,24 @@ namespace TakiGame {
 			return isValid;
 		}
 
+		/// <summary>
+		/// NETWORK: Sync draw pile count to match master client's state
+		/// Used by non-master clients to synchronize deck state after receiving RPC
+		/// </summary>
+		/// <param name="masterDrawCount">The draw pile count from master client</param>
+		public void SyncDrawPileCount (int masterDrawCount) {
+			if (deck == null) {
+				TakiLogger.LogError ("Cannot sync draw pile count: Deck is null", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			TakiLogger.LogNetwork ($"Syncing draw pile count to master's state: {masterDrawCount}");
+			deck.SyncDrawPileCount (masterDrawCount);
+
+			// Update UI to reflect the synchronized count
+			UpdateUI ();
+		}
+
 		// ===== PROPERTIES - Delegate to components ===== 
 
 		public int DrawPileCount => deck?.DrawPileCount ?? 0;
