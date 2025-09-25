@@ -2118,6 +2118,12 @@ More proof of this is that we see in the logs messages apearing twice (for examp
 
 
 
+I found some suspicious, some unclear, and some problematic logs while investigating the logs!
+I want you to carefully read `MOST_RECENT_RUN_LOGS_SIMPLE.md`. I want to discuss with you on what we see there
+
+
+
+
 `GameplayUIManager.cs`
 `BaseGameplayUIManager.cs`
 `SinglePlayerUIManager.cs`

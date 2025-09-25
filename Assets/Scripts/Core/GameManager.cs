@@ -662,7 +662,7 @@ namespace TakiGame {
 			InitializeNetworkHandManagers ();
 
 			// Start network game coordination
-			networkGameManager.StartNetworkGame ();
+			//networkGameManager.StartNetworkGame ();
 
 			TakiLogger.LogNetwork ("Multiplayer systems initialized successfully", TakiLogger.LogLevel.Debug);
 		}
