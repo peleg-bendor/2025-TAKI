@@ -166,6 +166,33 @@ var moveData = new ExitGames.Client.Photon.Hashtable {
 
 **Result**: ✅ Network card play/draw actions now work without serialization errors!
 
+### **Opponent Hand Display Synchronization Fix:**
+**Problem**: Opponent hand count would desynchronize during gameplay (8→7→8 instead of staying at 7)
+**Root Cause**: Mixed system using both `ShowOpponentHandAsCardBacks()` (null cards) and `ShowOpponentHandWithPrivacy()` (real cards), with stale opponent card data not synchronized during play/draw actions
+
+**Solution Applied**: Clean architecture with consistent real card tracking
+- **Eliminated deprecated method**: All `ShowOpponentHandAsCardBacks()` calls replaced with `ShowOpponentHandWithPrivacy()`
+- **Real card synchronization**: `ProcessNetworkCardPlay()` now removes actual played cards from opponent `currentHand`
+- **Placeholder card system**: `ProcessNetworkCardDraw()` adds placeholder cards to maintain correct opponent card count
+- **Consistent display**: All opponent displays now use synchronized real card data with privacy mode
+
+**Key Changes**:
+```csharp
+// OLD (BROKEN): Mixed system with stale data
+ShowOpponentHandAsCardBacks(count); // Uses null cards, causes blank display
+ShowOpponentHandWithPrivacy(staleCards); // Uses original 8 cards even after opponent plays
+
+// NEW (FIXED): Consistent real card system
+ShowOpponentHandWithPrivacy(currentHand); // Always uses current synchronized cards
+// Plus: RemoveCardEnhanced() on play, AddCardEnhanced() on draw
+```
+
+**Result**:
+- ✅ **Opponent count synchronization**: 8→7→8 stays consistent throughout game
+- ✅ **Proper card back sprites**: Real cards with privacy mode display correctly
+- ✅ **No blank white cards**: Eliminated null-based display system
+- ✅ **Clean architecture**: Single method approach with real card data
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
 ✅ **Multiplayer**: Complete & Working - All systems operational
@@ -174,6 +201,7 @@ var moveData = new ExitGames.Client.Photon.Hashtable {
 - Game logic: Card validation & turns ✅
 - Network sync: RPC communication ✅
 - **Network serialization: FIXED** ✅
+- **Opponent hand display: FIXED** ✅ Consistent count synchronization with proper card back sprites
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -183,6 +211,7 @@ var moveData = new ExitGames.Client.Photon.Hashtable {
 - [x] ✅ **FIXED: Multiplayer card assignment bug** - Reference equality issue resolved
 - [x] ✅ **FIXED: Btn_Player1EndTakiSequence state synchronization** - ActorNumber-based network logic
 - [x] ✅ **FIXED: Network serialization bug** - NetworkMoveData → Hashtable conversion
+- [x] ✅ **FIXED: Opponent hand display synchronization** - Real card data synchronization with consistent display architecture
 - [x] ✅ **Multiplayer testing** - Game functionality verified
 
 ## Side Notes

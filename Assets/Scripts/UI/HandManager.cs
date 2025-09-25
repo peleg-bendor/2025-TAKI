@@ -48,6 +48,7 @@ namespace TakiGame {
 		// MILESTONE 1: Network privacy state
 		private int networkOpponentHandCount = 0;
 		private bool isDisplayingOpponentHand = false;
+		private bool isShowingOpponentCardBacks = false; // Protection flag
 
 		// Integration references
 		private GameManager gameManager;
@@ -162,6 +163,9 @@ namespace TakiGame {
 			isNetworkGame = isNetwork;
 			TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Network mode = {isNetwork}");
 
+			// Clear protection flag when switching modes
+			isShowingOpponentCardBacks = false;
+
 			// Determine if this hand should show opponent privacy
 			if (isNetwork && !showFaceUpCards) {
 				TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Configured for opponent hand privacy");
@@ -192,12 +196,17 @@ namespace TakiGame {
 				TakiLogger.LogWarning ($"HandManager {gameObject.name}: Cannot update UI - Active UI manager not found (even after EnsureUIManagerConnection)", TakiLogger.LogCategory.System);
 			}
 
-			// FIXED: Only update card backs if we're actually displaying opponent hand AND count changed
-			if (isDisplayingOpponentHand && opponentCount != currentHand.Count) {
-				TakiLogger.LogNetwork ($"Updating card back display: {currentHand.Count} -> {opponentCount}");
-				ShowOpponentHandAsCardBacks (opponentCount);
+			// ENHANCED: Only update display if we're showing opponent hand AND count changed
+			if (isDisplayingOpponentHand && opponentCount != networkOpponentHandCount) {
+				// Use stored real cards if available for consistent display
+				if (currentHand != null && currentHand.Count > 0) {
+					TakiLogger.LogNetwork ($"Updating opponent display with real cards: {networkOpponentHandCount} -> {opponentCount}");
+					ShowOpponentHandWithPrivacy (currentHand);
+				} else {
+					TakiLogger.LogWarning ($"No real card data for opponent count update: {networkOpponentHandCount} -> {opponentCount}", TakiLogger.LogCategory.Multiplayer);
+				}
 			} else if (isDisplayingOpponentHand) {
-				TakiLogger.LogNetwork ($"Card back count unchanged: {opponentCount}");
+				TakiLogger.LogNetwork ($"Opponent display count unchanged: {opponentCount} (already showing {networkOpponentHandCount})");
 			}
 
 			TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Opponent hand count updated to {opponentCount}");
@@ -209,7 +218,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="cardCount">Number of card backs to show</param>
 		void ShowOpponentHandAsCardBacks (int cardCount) {
-			TakiLogger.LogNetwork ($"Showing {cardCount} card backs for opponent hand");
+			TakiLogger.LogWarning ($"DEPRECATED METHOD CALLED: ShowOpponentHandAsCardBacks() causes blank white cards.", TakiLogger.LogCategory.System);
 
 			// Create list of null cards for card backs
 			List<CardData> cardBacks = new List<CardData> ();
@@ -220,8 +229,11 @@ namespace TakiGame {
 			// Update display using existing system - CardController now handles null properly
 			currentHand = cardBacks;
 
-			// Clear existing cards first
-			ClearAllCards ();
+			// UPDATE COUNT FIRST: Set the new count before display operations
+			networkOpponentHandCount = cardCount;
+
+			// Clear existing cards first (force clear for intentional opponent update)
+			ClearAllCardsForced ();
 
 			// Create new card prefabs (will be card backs due to null CardData)
 			CreateCardPrefabs (cardBacks);
@@ -229,7 +241,10 @@ namespace TakiGame {
 			// Arrange cards with proper spacing
 			ArrangeCards ();
 
-			TakiLogger.LogNetwork ($"Opponent hand displayed as {cardCount} card backs");
+			// SET PROTECTION: Now protect these card backs from being cleared
+			isShowingOpponentCardBacks = true;
+
+			TakiLogger.LogNetwork ($"Opponent hand displayed as {cardCount} card backs (PROTECTED)");
 		}
 
 		/// <summary>
@@ -564,9 +579,15 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Clear all existing card prefabs - PRESERVED
+		/// Clear all existing card prefabs - ENHANCED with opponent protection
 		/// </summary>
 		void ClearAllCards () {
+			// PROTECTION: Don't clear opponent card backs during UI updates
+			if (isNetworkGame && isDisplayingOpponentHand && isShowingOpponentCardBacks) {
+				TakiLogger.LogNetwork ($"HandManager {gameObject.name}: PROTECTED - Skipping clear of opponent card backs during UI update");
+				return;
+			}
+
 			// Destroy all card objects
 			foreach (CardController controller in cardControllers) {
 				if (controller != null && controller.gameObject != null) {
@@ -576,6 +597,23 @@ namespace TakiGame {
 
 			cardControllers.Clear ();
 			selectedCard = null;
+		}
+
+		/// <summary>
+		/// Clear cards with force flag to bypass protection (for intentional updates)
+		/// </summary>
+		void ClearAllCardsForced () {
+			// FORCE CLEAR: Temporarily disable protection
+			bool wasProtected = isShowingOpponentCardBacks;
+			isShowingOpponentCardBacks = false;
+
+			// Clear normally
+			ClearAllCards ();
+
+			// Log forced clear
+			if (wasProtected) {
+				TakiLogger.LogNetwork ($"HandManager {gameObject.name}: FORCE CLEARED opponent display for intentional update");
+			}
 		}
 
 		/// <summary>
@@ -638,14 +676,17 @@ namespace TakiGame {
 			// Store the real cards (but they won't be visible due to privacy)
 			currentHand = new List<CardData> (realOpponentCards);
 
-			// Clear existing cards first
-			ClearAllCards ();
+			// Clear existing cards first (force clear for intentional opponent update)
+			ClearAllCardsForced ();
 
 			// Create new card prefabs using REAL cards with privacy mode
 			CreateCardPrefabsWithPrivacy (realOpponentCards);
 
 			// Arrange cards with proper spacing
 			ArrangeCards ();
+
+			// SET PROTECTION: Now protect these card backs from being cleared
+			isShowingOpponentCardBacks = true;
 
 			// Update opponent count display through centralized UI
 			networkOpponentHandCount = realOpponentCards.Count;
@@ -654,7 +695,7 @@ namespace TakiGame {
 				activeUI.UpdateHandSizeDisplay (localHandCount, realOpponentCards.Count);
 			}
 
-			TakiLogger.LogNetwork ($"Opponent hand displayed with privacy: {realOpponentCards.Count} real cards as card backs");
+			TakiLogger.LogNetwork ($"Opponent hand displayed with privacy: {realOpponentCards.Count} real cards as card backs (PROTECTED)");
 		}
 
 		/// <summary>
@@ -889,6 +930,9 @@ namespace TakiGame {
 			isNetworkGame = isNetwork;
 			TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Enhanced network mode = {isNetwork}");
 
+			// Clear protection flag when switching modes
+			isShowingOpponentCardBacks = false;
+
 			// Determine if this hand should show opponent privacy
 			if (isNetwork && (!showFaceUpCards || forceOpponentMode)) {
 				TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Configured for enhanced opponent hand privacy");
@@ -916,13 +960,19 @@ namespace TakiGame {
 			}
 
 			// If we have real cards, use enhanced privacy display
-			if (realCards != null && realCards.Count == opponentCount) {
-				TakiLogger.LogNetwork ($"Synchronizing with {realCards.Count} real opponent cards");
+			if (realCards != null && realCards.Count == opponentCount && opponentCount != networkOpponentHandCount) {
+				TakiLogger.LogNetwork ($"Synchronizing with {realCards.Count} real opponent cards (was {networkOpponentHandCount})");
 				ShowOpponentHandWithPrivacy (realCards);
-			} else if (isDisplayingOpponentHand && opponentCount != currentHand.Count) {
-				// Fallback to old method for compatibility (when real cards not available)
-				TakiLogger.LogNetwork ($"Falling back to card backs: {currentHand.Count} -> {opponentCount}");
-				ShowOpponentHandAsCardBacks (opponentCount);
+			} else if (isDisplayingOpponentHand && opponentCount != networkOpponentHandCount) {
+				// Use stored real cards if available, otherwise skip update
+				if (currentHand != null && currentHand.Count > 0) {
+					TakiLogger.LogNetwork ($"Using stored real cards for display update: {currentHand.Count} cards");
+					ShowOpponentHandWithPrivacy (currentHand);
+				} else {
+					TakiLogger.LogWarning ($"No real opponent card data available for count update: {networkOpponentHandCount} -> {opponentCount}", TakiLogger.LogCategory.Multiplayer);
+				}
+			} else if (realCards != null || isDisplayingOpponentHand) {
+				TakiLogger.LogNetwork ($"Skipping opponent display update: count unchanged ({opponentCount})");
 			}
 
 			TakiLogger.LogNetwork ($"HandManager {gameObject.name}: Enhanced opponent synchronization complete: {opponentCount} cards");

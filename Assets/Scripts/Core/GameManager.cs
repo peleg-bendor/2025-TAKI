@@ -3217,9 +3217,18 @@ namespace TakiGame {
 			GetActiveUI ()?.ShowOpponentAction ($"played {playedCard.GetDisplayText ()}");
 			GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {playedCard.GetDisplayText ()}");
 
-			// Update opponent hand count
+			// Update opponent hand count AND remove the actual played card
 			var activeOpponentHandManager = GetActiveOpponentHandManager ();
 			if (activeOpponentHandManager?.IsOpponentHand == true) {
+				// Remove the actual played card from opponent's hand
+				bool cardRemoved = activeOpponentHandManager.RemoveCardEnhanced (playedCard);
+				if (cardRemoved) {
+					TakiLogger.LogNetwork ($"Removed played card from opponent hand: {playedCard.GetDisplayText ()}");
+				} else {
+					TakiLogger.LogWarning ($"Could not find played card in opponent hand: {playedCard.GetDisplayText ()}", TakiLogger.LogCategory.Network);
+				}
+
+				// Update count (RemoveCardEnhanced should handle this, but ensure consistency)
 				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
 				if (currentCount > 0) {
 					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount - 1);
@@ -3370,9 +3379,17 @@ namespace TakiGame {
 				GetActiveUI ()?.ShowOpponentAction ("drew a card");
 				GetActiveUI ()?.ShowOpponentMessage ("Opponent drew a card");
 
-				// Update opponent hand count for single draw
+				// Update opponent hand count and add a placeholder card
 				var activeOpponentHandManager = GetActiveOpponentHandManager ();
 				if (activeOpponentHandManager?.IsOpponentHand == true) {
+					// Create a placeholder card for the opponent's drawn card (we don't know which one)
+					// Since it's displayed with privacy mode, the actual card doesn't matter
+					CardData placeholderCard = CreatePlaceholderCard();
+					if (placeholderCard != null) {
+						activeOpponentHandManager.AddCardEnhanced (placeholderCard, true); // true = force privacy mode
+						TakiLogger.LogNetwork ($"Added placeholder card to opponent hand for draw");
+					}
+
 					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
 					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
 					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
@@ -3383,7 +3400,6 @@ namespace TakiGame {
 					deckManager.ShowMessage ("Opponent drew a card", true);
 				}
 			}
-
 
 			// Update UI for both players using network-safe method
 			UpdateAllUIWithNetworkSupport ();
@@ -4580,6 +4596,26 @@ namespace TakiGame {
 			TakiLogger.LogDiagnostics ($"stopCardPlayer: {stopCardPlayer}");
 			TakiLogger.LogDiagnostics ($"Current turn state: {gameState?.turnState}");
 			TakiLogger.LogDiagnostics ($"Can player end turn: {canPlayerEndTurn}");
+		}
+
+		/// <summary>
+		/// Create a placeholder card for opponent hand tracking in multiplayer
+		/// Used when we know opponent drew a card but don't know which one
+		/// </summary>
+		/// <returns>A generic placeholder card</returns>
+		private CardData CreatePlaceholderCard() {
+			// Get any existing card as placeholder from the card loader
+			if (deckManager?.cardLoader != null) {
+				List<CardData> allCards = deckManager.cardLoader.GetAllCardsForDeck();
+				if (allCards != null && allCards.Count > 0) {
+					// Use the first card as placeholder - the actual card doesn't matter
+					// since it will be displayed with privacy mode (as card back)
+					return allCards[0];
+				}
+			}
+
+			TakiLogger.LogWarning("Cannot create placeholder card - No cards available", TakiLogger.LogCategory.Network);
+			return null;
 		}
 
 		#endregion
