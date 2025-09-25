@@ -2123,6 +2123,42 @@ I want you to carefully read `MOST_RECENT_RUN_LOGS_SIMPLE.md`. I want to discuss
 
 
 
+HALLELUJAH! Now to properly update `CLAUDE.md`.
+Here is what I'm seeing visually:
+Screen 1 (master):
+- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be (in inspector I can see `Card_Red 9_0` - `Card_Red 3_7`)
+- `Player1HandSizeText` is "Your Cards: 8"
+- `Player2HandPanel` has 8 cards, as card backs, as is supposed to be (in inspector I can see `OpponentCard_0` - `OpponentCard_7`)
+- `Player2HandSizeText` is "Opponent Cards: 8"
+- `DrawPilePanel` is empty (even in inspector)
+- `DrawPileCountText` is "Draw: 93"
+- `DiscardPilePanel` has `DiscardPileCard`, visualy shows a blue 7 card front (matching to not-master!)
+- `DiscardPileCountText` is "Discard: 1"
+- `TurnIndicatorText` is "Your Turn"
+- `CurrentColorIndicator` is the color blue
+- `Btn_Player1EndTakiSequence` is disabled
+- `Btn_Player1PlayCard` is enabled
+- `Btn_Player1DrawCard` is enabled
+- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (good, since this is this player's turn)
+- When I clicked on `Btn_Player1DrawCard`, I got this error log: `[SYS] TakiLogger configured: TakiLogger - Level: Trace, Mode: Development`
+Screen 2 (not-master):
+- `Player1HandPanel` visualy has 8 cards, as card fronts, as is supposed to be (I can see a green 3 to a red plus)
+- `Player1HandSizeText` visualy is "Your Cards: 8"
+- `Player2HandPanel` visualy has 8 cards, as card backs, as is supposed to be
+- `Player1HandSizeText` visualy is "Opponent Cards: 8"
+- `DrawPilePanel` visualy is empty
+- `DrawPileCountText` visualy is "Draw: 110"
+- `DiscardPilePanel` visualy shows a blue 7 card front (matching to master!)
+- `DiscardPileCountText` visualy is "Discard: 1"
+- `TurnIndicatorText` visualy is "Opponent's Turn"
+- `CurrentColorIndicator` visualy is the color white (meaning wild/ default)
+- `Btn_Player1EndTakiSequence` is enbled and clickable, althogh nothing happens
+- `Btn_Player1PlayCard` is disabled
+- `Btn_Player1DrawCard` is disabled
+- The cards in `Player1HandPanel` are clickable and tint red/gold aproprietly (not good, since this is not this player's turn)
+
+
+
 
 `GameplayUIManager.cs`
 `BaseGameplayUIManager.cs`

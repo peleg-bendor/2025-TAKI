@@ -64,7 +64,9 @@
 [SYS] HandManager Player2HandPanel: Awake() called - HandManager initializing...
 - Then we have `HandManager`'s `Awake`
 [MP] Starting multiplayer game...
+- Here we have `StartMultiPlayerGame` calling `gameManager.StartNewMultiPlayerGame` which calls `StartNewMultiPlayerGameCoroutine`
 [SYS] Initializing multiplayer game systems...
+- `!areSystemsInitialized`, and so `InitializeMultiPlayerSystems` is called
 [NET] Multiplayer mode enabled
 [NET] Computer AI disabled for multiplayer
 [SYS] GameManager: ConnectEvents called!
@@ -103,6 +105,10 @@
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
 - And now we have `ResetUIForNewGame`
 [UI] Resetting UI for new game (base implementation)
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 0
+[NET] Player2 UI updated: Opponent Cards: 0
 [NET] Multiplayer hand sizes updated: Local=0, Opponent=0
 [TURN] === UPDATING STRICT BUTTON STATES ===
 [TURN] PLAY: DISABLED
@@ -114,6 +120,7 @@
 [TURN] Strict button state update complete
 [UI] Base UI reset for new game complete
 [SYS] Multi player systems initialized - Ready to start game
+- `!areSystemsInitialized` , and so `ConnectEvents`, `InitializeVisualCardSystem`, and `ResetUIForNewGame` were called
 - Still in `GameManager`'s `InitializeMultiPlayerSystems`, looking good
 [NET] DeckManager network mode set to: True
 [NET] Network mode enabled - deck will be coordinated across clients
@@ -133,14 +140,14 @@
 - Go over these lines, compare them with the code, do this all make sense? Are these statuses what we want and expect to see?
 [NET] Opponent hand manager configured for opponent display
 [NET] Network hand managers initialized with per-screen architecture - Mode: Multiplayer
-
-
-
 [NET] Multiplayer systems initialized successfully
 - Done with `InitializeMultiPlayerSystems`
+- And back to `StartNewMultiPlayerGameCoroutine`
 [SYS] Starting new multiplayer game...
+- Calling `WaitForHandManagersInitialization`
 [SYS] Waiting for HandManager initialization...
 [SYS] HandManager initialization check - Player: False, Opponent: False
+- `HandManager`'s `Start` is called! I believe this is good, but just to double check - Is there anything problematic about this timing?
 [SYS] HandManager Player1HandPanel: Start() called - Looking for GameManager...
 [SYS] HandManager Player1HandPanel: DIAGNOSTIC - GameManager found, checking UI architecture...
 [SYS]   - singlePlayerUI: ASSIGNED
@@ -181,10 +188,13 @@
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
 [UI] HandManager Player2HandPanel: Connected to active UI manager: MultiPlayerUIManager
 [SYS] HandManager Player2HandPanel: Initialization COMPLETE
+- Hmmm... It looks like `HandManager`'s `Start` is being called 4 times, is this alright? Or problematic?
 [SYS] HandManager initialization check - Player: True, Opponent: True
 [SYS] HandManager initialization check - Player: True, Opponent: True
 [SYS] All HandManagers initialized successfully!
+- And now we return from `WaitForHandManagersInitialization`, and are back in `StartNewMultiPlayerGameCoroutine`
 [SYS] HandManager initialization check - Player: True, Opponent: True
+- Calling `ResetGameSystems`
 [SYS] Reseting game systems in multiplayer mode
 [SYS] In multiplayer, hands are populated from network data and should NOT be cleared
 [STATE] Game state reset for new game (including PlusTwo chain and TAKI sequence state)
@@ -192,36 +202,45 @@
 [TURN] === RESETTING SPECIAL CARD STATE ===
 [TURN] TURN FLOW STATE RESET (includes special card state)
 [SYS] Game initialization state reset - ready for new game
+- Done with `ResetGameSystems`
+- `StartNewMultiPlayerGameCoroutine` calls `StartNetworkGame` and ends
 [NET] === STARTING NETWORK GAME WITH DECK INITIALIZATION ===
+- And `StartNetworkGame` then calls `InitializeSharedDeck`
 [NET] === INITIALIZING SHARED DECK ===
 [NET] I am Master Client - setting up deck and broadcasting state
+- Which calls `SetupMasterDeck`
 [NET] Master client setting up deck - simplified approach
+- Which calls `InitializeNewGame`
+- Which calls `InitializeDeck`
 [DECK] Deck Message: New deck shuffled!
 [DECK] Shuffled
 [DECK] Initialized with 110 cards
+- Done with `InitializeDeck`
 [STATE] New game initialized successfully
-[DECK] Drew card: Green 8
-[DECK] Drew card: Blue PlusTwo
-[DECK] Drew card: Red 4
-[DECK] Drew card: Green Plus
-[DECK] Drew card: Blue Stop
-[DECK] Drew card: Blue 8
-[DECK] Drew card: Yellow 9
-[DECK] Drew card: Red 4
+- Done with `InitializeNewGame`
+[DECK] Drew card: Red 1
+[DECK] Drew card: Yellow 1
+[DECK] Drew card: Yellow 5
+[DECK] Drew card: Yellow Taki
 [DECK] Drew card: Wild ChangeColor
+[DECK] Drew card: Green 8
+[DECK] Drew card: Yellow Stop
+[DECK] Drew card: Green Taki
+[DECK] Drew card: Yellow 3
+[DECK] Drew card: Green 7
+[DECK] Drew card: Red Plus
+[DECK] Drew card: Blue 8
+[DECK] Drew card: Yellow 7
 [DECK] Drew card: Red ChangeDirection
 [DECK] Drew card: Blue Stop
-[DECK] Drew card: Red 6
-[DECK] Drew card: Blue 5
-[DECK] Drew card: Green 1
-[DECK] Drew card: Red Taki
-[DECK] Drew card: Blue 1
 [DECK] Drew card: Yellow 8
-[DECK] Top discard card updated: Yellow 8
-[DECK] Discarded card: Yellow 8
-[STATE] Starting card: Yellow 8
+[DECK] Drew card: Blue 4
+[DECK] Top discard card updated: Blue 4
+[DECK] Discarded card: Blue 4
+[STATE] Starting card: Blue 4
 [STATE] Initial setup complete. Player 1: 8 cards, Player 2: 8 cards
-[STATE] Active color changed: Wild -> Yellow
+- It seems like we're in `SetupInitialGame`
+[STATE] Active color changed: Wild -> Blue
 [SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
@@ -230,12 +249,17 @@
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 8
+[NET] Player2 UI updated: Opponent Cards: 0
 [NET] Multiplayer hand sizes updated: Local=8, Opponent=0
 [SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
 [UI] === UPDATING ALL DISPLAYS (BASE) ===
+- Meaning we're in `UpdateAllDisplays`
 [UI] === UPDATING TURN DISPLAY for Neutral ===
 [UI] Turn indicator text: 'Game Setup'
 [TURN] Turn display updated - button states controlled by strict flow system
@@ -247,29 +271,26 @@
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
 [UI] Chain status hidden
-[RULES] Move validation: Green 8 on Yellow 8 with active color Yellow = True
-[RULES] Move validation: Blue PlusTwo on Yellow 8 with active color Yellow = False
-[RULES] Move validation: Red 4 on Yellow 8 with active color Yellow = False
-[RULES] Move validation: Green Plus on Yellow 8 with active color Yellow = False
-[RULES] Move validation: Blue Stop on Yellow 8 with active color Yellow = False
-[RULES] Move validation: Blue 8 on Yellow 8 with active color Yellow = True
-[RULES] Move validation: Yellow 9 on Yellow 8 with active color Yellow = True
-[RULES] Move validation: Red 4 on Yellow 8 with active color Yellow = False
+[RULES] Move validation: Red 1 on Blue 4 with active color Blue = False
+[RULES] Move validation: Yellow 1 on Blue 4 with active color Blue = False
+[RULES] Move validation: Yellow 5 on Blue 4 with active color Blue = False
+[RULES] Move validation: Yellow Taki on Blue 4 with active color Blue = False
+[RULES] Move validation: Wild ChangeColor on Blue 4 with active color Blue = True
+[RULES] Move validation: Green 8 on Blue 4 with active color Blue = False
+[RULES] Move validation: Yellow Stop on Blue 4 with active color Blue = False
+[RULES] Move validation: Green Taki on Blue 4 with active color Blue = False
 [NET] Hand display updated: 8 cards, Network=True, Opponent=False
 [UI] Updated player hand display: 8 cards
-[NET] Showing 8 opponent cards with privacy mode
-[NET] CardController: Enhanced initialization - Card: Green PlusTwo, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Red 6, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Yellow 9, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Green Taki, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Red Taki, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 3, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 3, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Yellow PlusTwo, FaceUp: False, Privacy: True
-[NET] Multiplayer hand sizes updated: Local=8, Opponent=8
-[NET] Opponent hand displayed with privacy: 8 real cards as card backs
-[NET] Hand display updated (enhanced): 8 cards, Privacy=True
-[UI] Updated opponent hand display (multiplayer): 8 cards with privacy
+[NET] Showing 0 opponent cards with privacy mode
+- This is a problem!
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 8
+[NET] Player2 UI updated: Opponent Cards: 0
+[NET] Multiplayer hand sizes updated: Local=8, Opponent=0
+[NET] Opponent hand displayed with privacy: 0 real cards as card backs
+[NET] Hand display updated (enhanced): 0 cards, Privacy=True
+[UI] Updated opponent hand display (multiplayer): 0 cards with privacy
 [TURNS] Turn system initialized. First player: Human
 [STATE] Turn state changed: Neutral -> PlayerTurn
 [STATE] Turn state changed to PlayerTurn
@@ -283,37 +304,50 @@
 [TURNS] Turn started for: Human
 [TURN] Turn changed to Local Player (PlayerType: Human)
 [SYS] Game started! Player: 8 cards, Opponent: 8 cards
-[DECK] Deck Message: Starting card: Yellow 8
-[NET] SetupInitialGame successful: P1=8, P2=8, Start=Yellow 8
-[NET] Serializing card: Green 8 -> Green_8
-[NET] Serializing card: Blue PlusTwo -> Blue_PlusTwo
-[NET] Serializing card: Red 4 -> Red_4
-[NET] Serializing card: Green Plus -> Green_Plus
-[NET] Serializing card: Blue Stop -> Blue_Stop
-[NET] Serializing card: Blue 8 -> Blue_8
-[NET] Serializing card: Yellow 9 -> Yellow_9
-[NET] Serializing card: Red 4 -> Red_4
-[NET] Hand serialized: 8 cards -> 69 characters
-[NET] Serializing card: Wild ChangeColor -> Wild_ChangeColor
-[NET] Serializing card: Red ChangeDirection -> Red_ChangeDirection
-[NET] Serializing card: Blue Stop -> Blue_Stop
-[NET] Serializing card: Red 6 -> Red_6
+[DECK] Deck Message: Starting card: Blue 9
+[NET] SetupInitialGame successful: P1=8, P2=8, Start=Blue 9
 [NET] Serializing card: Blue 5 -> Blue_5
-[NET] Serializing card: Green 1 -> Green_1
-[NET] Serializing card: Red Taki -> Red_Taki
-[NET] Serializing card: Blue 1 -> Blue_1
-[NET] Hand serialized: 8 cards -> 83 characters
+[NET] Serializing card: Wild ChangeColor -> Wild_ChangeColor
+[NET] Serializing card: Red Plus -> Red_Plus
+[NET] Serializing card: Yellow Plus -> Yellow_Plus
+[NET] Serializing card: Wild SuperTaki -> Wild_SuperTaki
+[NET] Serializing card: Green Taki -> Green_Taki
+[NET] Serializing card: Yellow 5 -> Yellow_5
+[NET] Serializing card: Green 8 -> Green_8
+[NET] Hand serialized: 8 cards -> 87 characters
+[NET] Serializing card: Yellow 7 -> Yellow_7
+[NET] Serializing card: Yellow ChangeDirection -> Yellow_ChangeDirection
+[NET] Serializing card: Blue 8 -> Blue_8
+[NET] Serializing card: Blue Taki -> Blue_Taki
+[NET] Serializing card: Yellow 3 -> Yellow_3
+[NET] Serializing card: Yellow Stop -> Yellow_Stop
+[NET] Serializing card: Red 3 -> Red_3
+[NET] Serializing card: Green Stop -> Green_Stop
+[NET] Hand serialized: 8 cards -> 86 characters
+- Back in `SetupMasterDeck`
 [NET] === SENDING INITIAL GAME STATE RPC ===
-[NET] Starting Card ID: Yellow_8
+[NET] Starting Card ID: Blue_9
 [NET] Draw Pile Count: 93
-[NET] Player 1 Hand (serialized): Green_8|Blue_PlusTwo|Red_4|Green_Plus|Blue_Stop|Blue_8|Yellow_9|Red_4
-[NET] Player 2 Hand (serialized): Wild_ChangeColor|Red_ChangeDirection|Blue_Stop|Red_6|Blue_5|Green_1|Red_Taki|Blue_1
+[NET] Player 1 Hand (serialized): Blue_5|Wild_ChangeColor|Red_Plus|Yellow_Plus|Wild_SuperTaki|Green_Taki|Yellow_5|Green_8
+[NET] Player 2 Hand (serialized): Yellow_7|Yellow_ChangeDirection|Blue_8|Blue_Taki|Yellow_3|Yellow_Stop|Red_3|Green_Stop
 [NET] Master Client Actor Number: 1
 [NET] Player 1 Hand Size: 8 cards
 [NET] Player 2 Hand Size: 8 cards
 [NET] === RPC MESSAGE DETAILS LOGGED ===
 [NET] Setting up multiplayer hands - simplified approach
+[NET] DIAGNOSTIC: Player assignment setup
+[NET] DIAGNOSTIC: Local ActorNumber=1
+[NET] DIAGNOSTIC: Total players=2
+[NET] DIAGNOSTIC: Player[0] ActorNumber=1
+[NET] DIAGNOSTIC: Player[1] ActorNumber=2
+[NET] DIAGNOSTIC: Input hands - Player1: 8 cards, Player2: 8 cards
+[NET] DIAGNOSTIC: isPlayer1=True (Local actor 1 vs First player 1)
+[NET] DIAGNOSTIC: After assignment - myHand: 8 cards, opponentHand: 8 cards
 [NET] Hand assignment: Local=8 cards, Opponent=8 cards
+[NET] DIAGNOSTIC: GameManager.playerHand before clear: 8 cards
+[NET] DIAGNOSTIC: About to add 8 cards to GameManager.playerHand
+[NET] DIAGNOSTIC: GameManager.playerHand after clear: 0 cards
+[NET] DIAGNOSTIC: GameManager.playerHand after AddRange: 0 cards
 [NET] GameManager playerHand updated: 0 cards
 [NET] HandManager Player1HandPanel: Network mode = True
 [RULES] HandManager Player1HandPanel: No playable cards found (0/0)
@@ -322,16 +356,24 @@
 [NET] HandManager Player2HandPanel: Enhanced network mode = True
 [NET] HandManager Player2HandPanel: Configured for enhanced opponent hand privacy
 [NET] Initializing enhanced network hand: Local=False, Cards=8
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 0
+[NET] Player2 UI updated: Opponent Cards: 8
 [NET] Multiplayer hand sizes updated: Local=0, Opponent=8
 [NET] Showing 8 opponent cards with privacy mode
-[NET] CardController: Enhanced initialization - Card: Wild ChangeColor, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Red ChangeDirection, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue Stop, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Red 6, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 5, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Green 1, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Red Taki, FaceUp: False, Privacy: True
-[NET] CardController: Enhanced initialization - Card: Blue 1, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow 7, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow ChangeDirection, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Blue 8, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Blue Taki, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow 3, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Yellow Stop, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Red 3, FaceUp: False, Privacy: True
+[NET] CardController: Enhanced initialization - Card: Green Stop, FaceUp: False, Privacy: True
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 0
+[NET] Player2 UI updated: Opponent Cards: 8
 [NET] Multiplayer hand sizes updated: Local=0, Opponent=8
 [NET] Opponent hand displayed with privacy: 8 real cards as card backs
 [NET] Hand display updated (enhanced): 8 cards, Privacy=True
@@ -346,61 +388,40 @@
 [SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
 [SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
 [SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[NET] DIAGNOSTIC: player1HandSizeText null check: False
+[NET] DIAGNOSTIC: player2HandSizeText null check: False
+[NET] Player1 UI updated: Your Cards: 0
+[NET] Player2 UI updated: Opponent Cards: 8
 [NET] Multiplayer hand sizes updated: Local=0, Opponent=8
 [NET] Multiplayer hands setup complete - simplified approach successful
-[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Yellow 8
+[NET] Updating multiplayer deck display: Draw=93, Discard=1, Top=Blue 9
 [NET] DeckUI PileManager status: ASSIGNED
-[DECK] Top discard card updated: Yellow 8
+[DECK] Top discard card updated: Blue 9
 [NET] Multiplayer deck display updated successfully
 [NET] Master deck setup complete - simplified approach successful
+[TURN] Starting Player Turn
+[TURN] Normal turn flow - no active chain
+[TURN] Player has no valid cards, must draw a card
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
+[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
+[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
+[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
+[TURN] === UPDATING STRICT BUTTON STATES ===
+[TURN] PLAY: DISABLED
+[TURN] DRAW: ENABLED
+[TURN] END TURN: DISABLED
+[TURN] Play Card button updated: DISABLED
+[TURN] Draw Card button updated: ENABLED
+[TURN] End Turn button updated: DISABLED
+[TURN] Strict button state update complete
+[UI] REFRESHING PLAYER HAND STATES
+[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
+[UI] REFRESHING PLAYER HAND STATES
+[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
 [NET] === TURN 1 BEGINS ===
 [NET] Is my turn: True
 [NET] First turn initialization complete
-[TURN] Starting Player Turn
-[TURN] Normal turn flow - no active chain
-[TURN] Player has no valid cards, must draw a card
-[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
-[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
-[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
-[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
-[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
-[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
-[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[TURN] === UPDATING STRICT BUTTON STATES ===
-[TURN] PLAY: DISABLED
-[TURN] DRAW: ENABLED
-[TURN] END TURN: DISABLED
-[TURN] Play Card button updated: DISABLED
-[TURN] Draw Card button updated: ENABLED
-[TURN] End Turn button updated: DISABLED
-[TURN] Strict button state update complete
-[UI] REFRESHING PLAYER HAND STATES
-[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
-[UI] REFRESHING PLAYER HAND STATES
-[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
-[TURN] Starting Player Turn
-[TURN] Normal turn flow - no active chain
-[TURN] Player has no valid cards, must draw a card
-[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
-[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
-[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
-[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[SYS] GetActiveUI() called - useNewUIArchitecture: isMultiplayerMode: True
-[SYS]   - singlePlayerUI: ASSIGNED (SinglePlayerUIManager)
-[SYS]   - multiPlayerUI: ASSIGNED (MultiPlayerUIManager)
-[SYS] GetActiveUI() returning multiPlayerUI: MultiPlayerUIManager
-[TURN] === UPDATING STRICT BUTTON STATES ===
-[TURN] PLAY: DISABLED
-[TURN] DRAW: ENABLED
-[TURN] END TURN: DISABLED
-[TURN] Play Card button updated: DISABLED
-[TURN] Draw Card button updated: ENABLED
-[TURN] End Turn button updated: DISABLED
-[TURN] Strict button state update complete
-[UI] REFRESHING PLAYER HAND STATES
-[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
-[UI] REFRESHING PLAYER HAND STATES
-[RULES] HandManager Player1HandPanel: No playable cards found (0/0)
-[NET] === TURN 1 BEGINS ===
-[NET] Is my turn: True

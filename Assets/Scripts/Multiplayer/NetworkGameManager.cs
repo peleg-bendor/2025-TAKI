@@ -107,6 +107,15 @@ namespace TakiGame {
 					serializedPlayer2Hand,
 					PhotonNetwork.LocalPlayer.ActorNumber);
 
+				// DIAGNOSTIC: Check hands before passing to SetupLocalMultiplayerHands
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: Before SetupLocalMultiplayerHands - P1 Count={gameState.player1Hand.Count}, P2 Count={gameState.player2Hand.Count}");
+				if (gameState.player1Hand.Count > 0) {
+					TakiLogger.LogNetwork ($"DIAGNOSTIC: P1 First card exists: {gameState.player1Hand[0] != null}");
+				}
+				if (gameState.player2Hand.Count > 0) {
+					TakiLogger.LogNetwork ($"DIAGNOSTIC: P2 First card exists: {gameState.player2Hand[0] != null}");
+				}
+
 				// Setup local state using simplified method
 				SetupLocalMultiplayerHands (gameState.player1Hand, gameState.player2Hand);
 
@@ -220,6 +229,29 @@ namespace TakiGame {
 			// Simple player assignment logic - use actor number sorting
 			List<Player> sortedPlayers = PhotonNetwork.PlayerList.OrderBy (p => p.ActorNumber).ToList ();
 
+			// DIAGNOSTIC: Log player assignment details
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: Player assignment setup");
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: Local ActorNumber={PhotonNetwork.LocalPlayer.ActorNumber}");
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: Total players={sortedPlayers.Count}");
+			for (int i = 0; i < sortedPlayers.Count; i++) {
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: Player[{i}] ActorNumber={sortedPlayers[i].ActorNumber}");
+			}
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: Input hands - Player1: {player1Hand.Count} cards, Player2: {player2Hand.Count} cards");
+
+			// DIAGNOSTIC: Check if the hands actually contain cards or just have count
+			if (player1Hand.Count > 0) {
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: Player1Hand[0] is null: {player1Hand[0] == null}");
+				if (player1Hand[0] != null) {
+					TakiLogger.LogNetwork ($"DIAGNOSTIC: Player1Hand[0]: {player1Hand[0].GetDisplayText()}");
+				}
+			}
+			if (player2Hand.Count > 0) {
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: Player2Hand[0] is null: {player2Hand[0] == null}");
+				if (player2Hand[0] != null) {
+					TakiLogger.LogNetwork ($"DIAGNOSTIC: Player2Hand[0]: {player2Hand[0].GetDisplayText()}");
+				}
+			}
+
 			if (sortedPlayers.Count < 2) {
 				TakiLogger.LogError ("Not enough players for hand assignment!", TakiLogger.LogCategory.Network);
 				return;
@@ -227,8 +259,13 @@ namespace TakiGame {
 
 			// Direct assignment - no complex logic
 			bool isPlayer1 = (PhotonNetwork.LocalPlayer.ActorNumber == sortedPlayers [0].ActorNumber);
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: isPlayer1={isPlayer1} (Local actor {PhotonNetwork.LocalPlayer.ActorNumber} vs First player {sortedPlayers[0].ActorNumber})");
+
 			List<CardData> myHand = isPlayer1 ? player1Hand : player2Hand;
 			List<CardData> opponentHand = isPlayer1 ? player2Hand : player1Hand;
+
+			// DIAGNOSTIC: Log assignment results
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: After assignment - myHand: {myHand.Count} cards, opponentHand: {opponentHand.Count} cards");
 
 			// Simple validation - if my hand is empty, something is wrong with network data
 			if (myHand.Count == 0) {
@@ -240,9 +277,29 @@ namespace TakiGame {
 
 			// Setup GameManager with our hand - direct approach
 			if (gameManager != null) {
+				// DIAGNOSTIC: Log before clearing
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: GameManager.playerHand before clear: {gameManager.playerHand.Count} cards");
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: About to add {myHand.Count} cards to GameManager.playerHand");
+
+				// CRITICAL: Check if they're the same object reference!
+				bool sameReference = ReferenceEquals(gameManager.playerHand, myHand);
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: CRITICAL - gameManager.playerHand == myHand reference: {sameReference}", sameReference ? TakiLogger.LogLevel.Info : TakiLogger.LogLevel.Info);
+
+				// FIX: Create a copy of myHand BEFORE clearing to avoid reference equality bug
+				// The bug was: myHand and gameManager.playerHand pointed to the same list
+				// So Clear() would empty myHand too, causing AddRange to add 0 cards
+				List<CardData> myHandCopy = new List<CardData>(myHand);
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: Created myHandCopy with {myHandCopy.Count} cards");
+
 				// Clear and add our cards
 				gameManager.playerHand.Clear ();
-				gameManager.playerHand.AddRange (myHand);
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: GameManager.playerHand after clear: {gameManager.playerHand.Count} cards");
+
+				// DIAGNOSTIC: Verify myHand after clear (should be empty if same reference)
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: myHand after clear - Count: {myHand.Count}");
+
+				gameManager.playerHand.AddRange (myHandCopy);
+				TakiLogger.LogNetwork ($"DIAGNOSTIC: GameManager.playerHand after AddRange: {gameManager.playerHand.Count} cards");
 
 				TakiLogger.LogNetwork ($"GameManager playerHand updated: {gameManager.playerHand.Count} cards");
 

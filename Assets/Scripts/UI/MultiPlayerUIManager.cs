@@ -241,17 +241,29 @@ namespace TakiGame {
         }
 
         public override void UpdateHandSizeDisplay(int player1HandSize, int player2HandSize) {
+            // DIAGNOSTIC: Check for null UI components
+            TakiLogger.LogNetwork ($"DIAGNOSTIC: player1HandSizeText null check: {player1HandSizeText == null}");
+            TakiLogger.LogNetwork ($"DIAGNOSTIC: player2HandSizeText null check: {player2HandSizeText == null}");
+            
             if (player1HandSizeText != null) {
                 player1HandSizeText.text = $"Your Cards: {player1HandSize}";
+                TakiLogger.LogNetwork ($"Player1 UI updated: Your Cards: {player1HandSize}");
+            } else {
+                TakiLogger.LogNetwork ("PROBLEM: player1HandSizeText is NULL - cannot update player hand size display!",
+                    TakiLogger.LogLevel.Error);
             }
-
+            
             if (player2HandSizeText != null) {
                 player2HandSizeText.text = $"Opponent Cards: {player2HandSize}";
+                TakiLogger.LogNetwork ($"Player2 UI updated: Opponent Cards: {player2HandSize}");
+            } else {
+                TakiLogger.LogNetwork ("PROBLEM: player2HandSizeText is NULL - cannot update opponent hand size display!",
+                    TakiLogger.LogLevel.Error);
             }
-
-            TakiLogger.LogNetwork($"Multiplayer hand sizes updated: Local={player1HandSize}, Opponent={player2HandSize}");
-        }
-
+            
+            TakiLogger.LogNetwork ($"Multiplayer hand sizes updated: Local={player1HandSize}, Opponent={player2HandSize}");
+		}
+        
         #endregion
 
         #region Multiplayer-Specific Methods

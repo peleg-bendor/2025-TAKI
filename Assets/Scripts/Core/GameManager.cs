@@ -640,7 +640,7 @@ namespace TakiGame {
 			// Initialize systems for multiplayer if not already done
 			if (!areSystemsInitialized) {
 				// Connect events between systems
-				ConnectEvents ();
+				ConnectEvents (); 
 
 				// Initialize visual card system
 				InitializeVisualCardSystem ();
