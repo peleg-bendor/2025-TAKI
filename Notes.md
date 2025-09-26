@@ -2318,3 +2318,20 @@ Read `CLAUDE.md`.
   another action). We should also note that it's very important to properly search what happens in singleplayer mode, and by that much more
   easily know what we need to do.
   The log files have been updated with
+
+
+1. Update `CLAUDE/md`
+2. We need to create a starting prompt, not unlike the one I gave you at the start, our next target is implementing a timer!
+- In the inspector, we have: 
+  - `Player1TimerText` which shows the player how long they have left until their turn automatically ends.
+  - `Player2TimerText` which shows the player how long their opponent has left until their turn automatically ends.
+- When a player's turn begins a timer will start, it will show "Timer: 30" for example, as in 30 seconds. Of course we will use a variable.
+- The moment a player's turn ends, the `Player1TimerText` will be cleared.
+- Same idea for `Player2TimerText` to keep track on opponent's timer
+- What happens if the timer reaches 0:
+  - that depends on what situation we are in:
+    - If we are in an active TAKI, AKA, if ENDTAKISEQUENCE button is enabled, trigger the clicking on ENDTAKISEQUENCE, wait a moment, then trigger click ENDTURN
+    - If DRAW button is enabled, AKA, it's possible for the player to draw -> we trigger somehow the DRAW button so the logic would be exactlly the same as if the player clicked (why so carefully? because we have complicated draws too, like in plus two chanes), wait a moment, then trigger click ENDTURN
+    - Else, if DRAW button is not enabled, if ENDTURN is enabled trigger click ENDTURN
+    - Else log an error, I can't see how this could happen
+

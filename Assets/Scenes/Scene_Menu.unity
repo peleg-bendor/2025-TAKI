@@ -11184,6 +11184,7 @@ MonoBehaviour:
   greenColor: {r: 0, g: 1, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   wildColor: {r: 1, g: 1, b: 1, a: 1}
+  messageDisplayTime: 10
   turnIndicatorText: {fileID: 2025419363}
   currentColorIndicator: {fileID: 1992932893}
   playCardButton: {fileID: 923876880}
@@ -11219,6 +11220,7 @@ MonoBehaviour:
   greenColor: {r: 0, g: 1, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   wildColor: {r: 1, g: 1, b: 1, a: 1}
+  messageDisplayTime: 10
   turnIndicatorText: {fileID: 1469045368}
   currentColorIndicator: {fileID: 1851409437}
   playCardButton: {fileID: 1463196891}

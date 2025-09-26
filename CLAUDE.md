@@ -356,8 +356,9 @@ TakiLogger.LogNetwork("STOP skip flag set - local player's next turn will be ski
   - **ChangeDirection cards**: ✅ Working perfectly (network sync and messages confirmed)
   - **STOP cards**: ✅ Working perfectly (turn skipping logic implemented correctly)
   - **PLUS cards**: ✅ Working perfectly (additional action flow confirmed in multiplayer)
-  - **PlusTwo cards**: ✅ Working (chain logic functional, sync complete)
-  - **Special effect cards**: 🔄 Investigation in progress
+  - **ChangeColor cards**: ✅ **CONFIRMED WORKING** (color selection synchronization perfect)
+  - **PlusTwo cards**: ❌ **BROKEN** - Hand synchronization issues identified
+  - **TAKI cards**: ⏳ **Investigation pending**
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -380,22 +381,24 @@ TakiLogger.LogNetwork("STOP skip flag set - local player's next turn will be ski
 
 ## Special Cards Multiplayer Investigation Todo
 
-### 🎯 Next Priority: ChangeColor Cards
-- [ ] **ChangeColor cards**: Investigate multiplayer color selection functionality
-  - Check if color selection synchronization works correctly
-  - Verify UI color picker works in multiplayer context
-  - Test network synchronization of color changes
+### 🎯 Next Priority: PlusTwo Cards - Hand Synchronization Fix
+- [ ] **PlusTwo cards**: Fix hand synchronization issues in chain scenarios
+  - Deep comparison with singleplayer PlusTwo implementation
+  - Investigate why card draw amounts differ between clients
+  - Fix chain break hand count synchronization
+  - Ensure consistent draw pile decrements across clients
 
 ### 📋 Special Cards Status & Todo List
 - [x] ✅ **Basic Number Cards (1-9)**: Working perfectly in multiplayer
-- [x] ✅ **PlusTwo Cards**: Working (chain logic functional, sync complete)
 - [x] ✅ **ChangeDirection Cards**: Working perfectly (network sync and messages confirmed)
 - [x] ✅ **STOP Cards**: Working perfectly (turn skipping logic implemented correctly)
 - [x] ✅ **PLUS Cards**: Working perfectly (additional action flow confirmed in multiplayer)
-- [ ] 🔄 **ChangeColor Cards**: Investigation needed - next priority
-  - Color selection synchronization
-  - UI color picker in multiplayer context
-- [ ] ⏳ **TAKI Cards**: Pending investigation
+- [x] ✅ **ChangeColor Cards**: CONFIRMED WORKING (color selection synchronization perfect)
+- [ ] ❌ **PlusTwo Cards**: BROKEN - Hand synchronization issues identified
+  - Chain logic functional but hand count synchronization broken
+  - Incorrect card draw amounts between clients
+  - Need deep comparison with singleplayer mode
+- [ ] ⏳ **TAKI Cards**: Investigation pending
   - Sequence initiation in multiplayer
   - Sequence end button synchronization (partially fixed)
   - Color selection during TAKI sequences
@@ -415,16 +418,22 @@ For each special card type:
 
 # Next Thread Starting Prompt
 
-Summary for Next Thread: ChangeColor Card Investigation
+Summary for Next Thread: PlusTwo Card Hand Synchronization Fix
 
-Context: STOP, ChangeDirection, and PLUS cards have been FULLY RESOLVED and confirmed working perfectly in multiplayer. Moving to next special card investigation.
+Context: STOP, ChangeDirection, PLUS, and ChangeColor cards have been FULLY RESOLVED and confirmed working perfectly in multiplayer. PlusTwo cards have BROKEN hand synchronization - the chain logic works but hand counts desynchronize between clients.
+
+**Key Issue Identified from Logs Analysis:**
+- **Chain logic works**: PlusTwo chains initiate and continue correctly
+- **Hand synchronization broken**: Card draw amounts differ between clients
+- **Suspected problem**: Player who draws cards gets correct amount, but opponent assumes different amount
+- **Evidence**: Lines 464-469 show opponent drawing 4 cards but later lines 453-469 show confused synchronization
 
 Key Learnings & Patterns from Previous Fixes:
-1. **Always Study Singleplayer Logic First**: Check how the card works in singleplayer mode to understand expected multiplayer behavior
+1. **Always Study Singleplayer Logic First**: Check how PlusTwo chains work in singleplayer mode to understand expected multiplayer behavior
 2. **Network Message Routing Pattern**: Use `networkGameManager.IsMyTurn` for "You/Opponent" perspective, NOT PlayerType
 3. **UI Manager Activation**: Always verify correct UI manager is active via `GetActiveUI()` - don't assume based on game mode
 4. **Turn Flow Integration**: Check where/how singleplayer logic fits into `StartPlayerTurnFlow()` and `HandlePostCardPlayTurnFlow()`
-5. **Flag-Based State Management**: Use flags like `shouldSkipNextTurn` for turn-start processing, not immediate turn manipulation
+5. **Hand Count Synchronization**: Both clients must maintain identical hand counts through network operations
 
 Technical Implementation Patterns Established:
 ```csharp
@@ -436,35 +445,40 @@ if (iPlayedTheCard) {
     GetActiveUI()?.ShowOpponentMessageTimed($"Opponent played {cardName}", 10.0f);
 }
 
-// ✅ CORRECT: Turn-start flag processing (like STOP cards)
-if (isMultiplayerMode && specialCardFlag) {
-    // Clear flag, show message, handle special logic
-    specialCardFlag = false;
-    GetActiveUI()?.ShowPlayerMessageTimed("Special effect message", averageWaitingTime);
-    // Handle the special effect
-    return; // Exit early if needed
+// ✅ CORRECT: Hand count synchronization pattern
+// Always update both local hand AND notify network of count changes
+ProcessNetworkCardDraw() {
+    // Update actual hand data
+    // Update hand display count
+    // Decrement draw pile consistently
+    // Send network notification of count change
 }
 ```
 
-Critical Files for ChangeColor Card Investigation:
-- GameManager.cs - Look for `HandleChangeColorCardEffect()` and `ChangeColor` case statements
-- NetworkGameManager.cs - Check color selection RPC handling and `SendColorSelection()`
-- MultiPlayerUIManager.cs - Color selection UI synchronization
-- GameStateManager.cs - Color state management in multiplayer
+Critical Files for PlusTwo Card Investigation:
+- GameManager.cs - Look for `HandlePlusTwoCardEffect()` and PlusTwo chain processing
+- NetworkGameManager.cs - Check `ProcessNetworkCardDraw()`, `ProcessNetworkChainBreak()`, and PlusTwo RPCs
+- GameStateManager.cs - PlusTwo chain state management (interaction states)
+- SinglePlayerUIManager.cs - How PlusTwo chains work in singleplayer (reference implementation)
 
-Expected ChangeColor Card Issues (based on patterns):
-- Color selection UI might not sync between clients
-- Network synchronization of color changes
-- Color picker availability in multiplayer context
-- Message routing for color selection effects
+**Specific Investigation Points:**
+1. **Compare singleplayer vs multiplayer PlusTwo logic** - What's different in chain break handling?
+2. **Trace hand count updates during chain breaks** - Where do the counts desynchronize?
+3. **Verify draw pile decrements** - Are both clients decrementing correctly?
+4. **Check placeholder card logic** - Are the right number of placeholder cards added?
+
+**Evidence from Logs to Investigate:**
+- Line 464: "Opponent breaking chain: 2 PlusTwo cards, drawing 4 cards"
+- Line 469: "Added 2 placeholder cards for chain break" (Should be 4 cards?)
+- Lines 452-469: Confusing double processing of chain break
 
 Investigation Approach:
-1. **Study singleplayer ChangeColor implementation** - How does color selection work?
-2. **Test ChangeColor behavior in multiplayer mode** - Does color picker appear? Does selection sync?
-3. **Analyze network color selection synchronization** - Check `SendColorSelection()` and `ProcessNetworkColorSelection()`
-4. **Fix any UI synchronization issues** using established patterns
-5. **Verify both players see correct color changes** and proper turn flow
+1. **Study singleplayer PlusTwo chain implementation** - How do chain breaks work normally?
+2. **Trace multiplayer PlusTwo chain break flow** - Follow the network messages step by step
+3. **Identify the hand synchronization bug** - Where do the counts diverge?
+4. **Fix the synchronization logic** using established patterns
+5. **Test chain scenarios** - Single PlusTwo, multiple PlusTwo chains, chain breaks
 
-Next Task: Investigate ChangeColor card functionality in multiplayer mode - focus on color selection synchronization and UI behavior.
+Next Task: Fix PlusTwo card hand synchronization issues in multiplayer mode - focus on chain break logic and hand count consistency.
 
-● Ready for ChangeColor card investigation! Use the established patterns and approach from STOP/ChangeDirection/PLUS fixes.
+● Ready for PlusTwo card synchronization fix! Use the established patterns and deep comparison approach with singleplayer mode.
