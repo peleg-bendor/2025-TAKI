@@ -3457,7 +3457,8 @@ namespace TakiGame {
 				return;
 			}
 
-			// ENHANCED: Check if this is PlusTwo chain breaking first
+			// CRITICAL FIX: Check if this is PlusTwo chain breaking first
+			// NOTE: Don't break the chain here - let ProcessNetworkChainBreak handle it
 			if (gameState != null && gameState.IsPlusTwoChainActive) {
 				TakiLogger.LogNetwork ("=== OPPONENT BREAKING PLSTWO CHAIN BY DRAWING ===");
 
@@ -3466,34 +3467,15 @@ namespace TakiGame {
 
 				TakiLogger.LogNetwork ($"Opponent breaking chain: {chainLength} PlusTwo cards, drawing {cardsToDraw} cards");
 
-				// Enhanced feedback for chain breaking
+				// Enhanced feedback for chain breaking - UI only, no state changes
 				GetActiveUI ()?.ShowOpponentAction ($"broke PlusTwo chain by drawing {cardsToDraw} cards");
 				GetActiveUI ()?.ShowOpponentMessage ($"Opponent drew {cardsToDraw} cards and broke the chain");
 
-				// Update opponent hand count for multiple cards drawn
-				var activeOpponentHandManager = GetActiveOpponentHandManager ();
-				if (activeOpponentHandManager?.IsOpponentHand == true) {
-					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
-					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + cardsToDraw);
-					TakiLogger.LogNetwork ($"Updated opponent hand count for chain break: {currentCount + cardsToDraw}");
-				}
+				// CRITICAL FIX: Don't update hand count or break chain here!
+				// ProcessNetworkChainBreak will handle all the actual logic
+				// This method should only show immediate UI feedback
 
-				// Break the chain locally to sync game state
-				gameState.BreakPlusTwoChain ();
-				gameState.ChangeInteractionState (InteractionState.Normal);
-
-				// FIXED: Decrement draw pile count for cards drawn during chain break
-				if (deckManager != null) {
-					deckManager.DecrementDrawPileCount(cardsToDraw);
-					TakiLogger.LogNetwork ($"Draw pile count decremented by {cardsToDraw} for chain break");
-				}
-
-				// Show deck UI message for chain break
-				if (deckManager != null && deckManager.deckUI != null) {
-					deckManager.ShowMessage ($"Opponent drew {cardsToDraw} cards (chain break)", true);
-				}
-
-				TakiLogger.LogNetwork ("PlusTwo chain broken by opponent");
+				TakiLogger.LogNetwork ("Chain break UI feedback shown - ProcessNetworkChainBreak will handle the rest");
 
 			} else {
 				// ENHANCED: Normal single card draw processing
@@ -3675,7 +3657,7 @@ namespace TakiGame {
 		/// <summary>
 		/// Process plus-two chain break from remote player
 		/// </summary>
-		public void ProcessNetworkChainBreak (int remotePlayerActor) {
+		public void ProcessNetworkChainBreak (int remotePlayerActor, int chainDrawCount = -1) {
 			TakiLogger.LogNetwork ($"Processing remote plus-two chain break from actor {remotePlayerActor}");
 
 			if (!isMultiplayerMode) {
@@ -3683,18 +3665,28 @@ namespace TakiGame {
 				return;
 			}
 
-			// CRITICAL FIX: Calculate how many cards the opponent drew to break chain
+			// CRITICAL FIX: Use the provided chain draw count or get it from game state BEFORE breaking chain
 			int cardsToDraw = 2; // Default for single PlusTwo
-			if (gameState != null && gameState.IsPlusTwoChainActive) {
+
+			if (chainDrawCount > 0) {
+				// Use the draw count sent from the network message (preferred)
+				cardsToDraw = chainDrawCount;
+				TakiLogger.LogNetwork ($"Using chain draw count from network: {cardsToDraw} cards");
+			} else if (gameState != null && gameState.IsPlusTwoChainActive) {
+				// Fallback: get from local game state (before breaking it)
 				cardsToDraw = gameState.ChainDrawCount;
 				int chainLength = gameState.NumberOfChainedCards;
-				TakiLogger.LogNetwork ($"Opponent broke chain: {chainLength} PlusTwo cards, drew {cardsToDraw} cards");
+				TakiLogger.LogNetwork ($"Using local chain state: {chainLength} PlusTwo cards, {cardsToDraw} cards to draw");
+			} else {
+				TakiLogger.LogWarning ("Chain break processed but no chain info available - using default 2 cards");
+			}
 
-				// Break the chain locally to sync game state
+			TakiLogger.LogNetwork ($"Opponent broke chain by drawing {cardsToDraw} cards");
+
+			// Break the chain locally to sync game state (after getting the card count)
+			if (gameState != null && gameState.IsPlusTwoChainActive) {
 				gameState.BreakPlusTwoChain();
 				gameState.ChangeInteractionState(InteractionState.Normal);
-			} else {
-				TakiLogger.LogNetwork ("Chain break processed but chain was not active locally");
 			}
 
 			// CRITICAL FIX: Update opponent hand count for chain break draw
@@ -3891,10 +3883,11 @@ namespace TakiGame {
 			if (gameState.IsPlusTwoChainActive) {
 				TakiLogger.LogTurnFlow ("=== PLAYER BREAKING PLSTWO CHAIN BY DRAWING (MULTIPLAYER) ===", TakiLogger.LogLevel.Debug);
 
-				// Send network notification for chain breaking
-				SendLocalCardDrawToNetwork ();
+				// CRITICAL FIX: Don't send CARD_DRAW message for chain breaks!
+				// The CHAIN_BREAK message will handle everything
+				// SendLocalCardDrawToNetwork(); // REMOVED - causes double messages
 
-				// Process chain breaking locally
+				// Process chain breaking locally (this will send CHAIN_BREAK message)
 				BreakPlusTwoChainByDrawing ();
 
 				TakiLogger.LogNetwork ("Multiplayer PlusTwo chain break completed");

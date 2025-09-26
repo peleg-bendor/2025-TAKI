@@ -735,13 +735,20 @@ namespace TakiGame {
 		public void SendChainBreak () {
 			if (turnMgr == null || turnMgr.IsFinishedByMe) return;
 
+			// CRITICAL FIX: Include chain draw count in the message
+			int chainDrawCount = 2; // Default for single PlusTwo
+			if (gameManager != null && gameManager.gameState != null && gameManager.gameState.IsPlusTwoChainActive) {
+				chainDrawCount = gameManager.gameState.ChainDrawCount;
+				TakiLogger.LogNetwork ($"Sending chain break with draw count: {chainDrawCount}");
+			}
+
 			var moveData = new ExitGames.Client.Photon.Hashtable {
 				{"actionType", "CHAIN_BREAK"},
-				{"cardIdentifier", ""}
+				{"cardIdentifier", chainDrawCount.ToString()}
 			};
 
 			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
-			TakiLogger.LogNetwork ("Sent plus-two chain break");
+			TakiLogger.LogNetwork ($"Sent plus-two chain break with {chainDrawCount} cards");
 		}
 
 		/// <summary>
@@ -772,6 +779,8 @@ namespace TakiGame {
 				string actionType = (string)networkMove["actionType"];
 				string cardIdentifier = (string)networkMove["cardIdentifier"];
 
+				TakiLogger.LogNetwork($"Processing network move: actionType='{actionType}', cardIdentifier='{cardIdentifier}'");
+
 				switch (actionType) {
 					case "PLAY_CARD":
 						gameManager.ProcessNetworkCardPlay (cardIdentifier, player.ActorNumber);
@@ -800,7 +809,16 @@ namespace TakiGame {
 						gameManager.ProcessNetworkDirectionChange (player.ActorNumber);
 						break;
 					case "CHAIN_BREAK":
-						gameManager.ProcessNetworkChainBreak (player.ActorNumber);
+						TakiLogger.LogNetwork($"CHAIN_BREAK message received from actor {player.ActorNumber}");
+						// Parse chain draw count from cardIdentifier
+						int chainDrawCount = -1;
+						if (!string.IsNullOrEmpty(cardIdentifier) && int.TryParse(cardIdentifier, out int parsedCount)) {
+							chainDrawCount = parsedCount;
+							TakiLogger.LogNetwork($"Parsed chain draw count from network: {chainDrawCount}");
+						} else {
+							TakiLogger.LogNetwork($"Failed to parse chain draw count from: '{cardIdentifier}'");
+						}
+						gameManager.ProcessNetworkChainBreak (player.ActorNumber, chainDrawCount);
 						break;
 					case "PLUS_TWO_EFFECT":
 						// Parse chain info from cardIdentifier
