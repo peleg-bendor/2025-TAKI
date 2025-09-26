@@ -244,17 +244,49 @@ if (gameManager != null) {
 
 **Result**: ✅ **Client card actions**: Both master and client can now draw and play basic cards successfully
 
+### **Strict Button Flow Fix:**
+**Problem**: Actions like PLAY/DRAW would automatically advance turns without requiring END TURN button press, breaking special card effects flow.
+**Root Cause**: All network actions (`SendCardPlay`, `SendCardDraw`, `SendEndTurn`) called `SendMove(data, true)` which marked turns as finished, auto-advancing to opponent.
+
+**Solution Applied**: Multi-part fix to enforce strict button flow
+- **NetworkGameManager.cs**: Changed non-ending actions to use `SendMove(data, false)`:
+  - `SendCardPlay()` → `SendMove(data, false)`
+  - `SendCardDraw()` → `SendMove(data, false)`
+  - `SendColorSelection()` → `SendMove(data, false)`
+  - `SendEndTurn()` → Still uses `SendMove(data, true)` ✅
+- **TurnManager.cs**: Added multiplayer mode awareness to prevent computer AI scheduling:
+  - Added `isMultiplayerMode` field and `SetMultiplayerMode(bool)` method
+  - Modified `StartTurn()` to only schedule computer turns in singleplayer mode
+- **GameManager.cs**: Configure TurnManager mode in both game mode initializations
+- **NetworkGameManager.cs**: Implemented `OnPlayerMove()` to handle non-finishing moves (was empty)
+
+**Implementation**:
+```csharp
+// Network flow after fix:
+// 1. Card Play: SendMove(PLAY_CARD, false) → EvMove → OnPlayerMove → Process action, no turn advance
+// 2. End Turn: SendMove(END_TURN, true) → EvFinalMove → OnPlayerFinished → Process action + advance turn
+```
+
+**Result**: ✅ **Strict Button Flow**: Players MUST press END TURN to advance turns, essential for special effect cards
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
-✅ **Multiplayer**: Complete & Working - All systems operational
-- Card assignment: 8/8 cards ✅
-- UI display: Correct hand counts ✅
-- Game logic: Card validation & turns ✅
-- Network sync: RPC communication ✅
-- **Network serialization: FIXED** ✅
-- **Opponent hand display: FIXED** ✅ Consistent count synchronization with proper card back sprites
-- **Draw pile synchronization: FIXED** ✅ Draw pile counts stay synchronized across clients
-- **Client card actions: FIXED** ✅ Both master and client can draw and play basic cards
+🔄 **Multiplayer**: Core Systems Complete - Special Cards In Progress
+- **Core multiplayer functionality**: ✅ Complete
+  - Card assignment: 8/8 cards ✅
+  - UI display: Correct hand counts ✅
+  - Game logic: Card validation & turns ✅
+  - Network sync: RPC communication ✅
+  - **Network serialization: FIXED** ✅
+  - **Opponent hand display: FIXED** ✅ Consistent count synchronization with proper card back sprites
+  - **Draw pile synchronization: FIXED** ✅ Draw pile counts stay synchronized across clients
+  - **Client card actions: FIXED** ✅ Both master and client can draw and play basic cards
+  - **Strict button flow: FIXED** ✅ Actions don't auto-advance turns, END TURN required
+  - **Hand count synchronization: FIXED** ✅ Fixed double-counting bugs in network processing
+- **Card types**:
+  - **Basic number cards**: ✅ Working perfectly
+  - **PlusTwo cards**: 🔄 Mostly working (chain logic functional, minor sync improvements pending)
+  - **Special effect cards**: ⏳ Pending investigation
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -267,7 +299,46 @@ if (gameManager != null) {
 - [x] ✅ **FIXED: Opponent hand display synchronization** - Real card data synchronization with consistent display architecture
 - [x] ✅ **FIXED: Draw pile synchronization** - Added DecrementDrawPileCount() for network card draw processing
 - [x] ✅ **FIXED: Client draw/play issue** - Added SetGameActive() method and proper multiplayer game activation
-- [x] ✅ **Multiplayer testing** - Game functionality verified
+- [x] ✅ **FIXED: Strict button flow** - Actions no longer auto-advance turns, END TURN required for special cards
+- [x] ✅ **FIXED: OnComputerTurnReady multiplayer error** - TurnManager now multiplayer-aware
+- [x] ✅ **FIXED: Card play sync missing** - Implemented OnPlayerMove() for non-finishing network actions
+- [x] ✅ **FIXED: Hand count synchronization** - Fixed double-counting bugs in ProcessNetworkCardPlay/Draw
+- [x] ✅ **FIXED: PlusTwo chain break sync** - Enhanced ProcessNetworkChainBreak with proper opponent count updates
+- [x] ✅ **Multiplayer testing** - Game functionality verified with strict turn flow
+
+## Special Cards Multiplayer Investigation Todo
+
+### 🎯 Next Priority: ChangeDirection
+- [ ] **ChangeDirection cards**: Investigate multiplayer network synchronization
+  - Check if direction changes are properly synced between clients
+  - Verify turn order updates correctly after direction change
+  - Test in combination with other special cards
+
+### 📋 Special Cards Status & Todo List
+- [x] ✅ **Basic Number Cards (1-9)**: Working perfectly in multiplayer
+- [x] 🔄 **PlusTwo Cards**: Mostly functional (chain logic works, minor sync improvements completed)
+- [ ] ⏳ **ChangeDirection Cards**: Pending investigation - next priority
+- [ ] ⏳ **ChangeColor Cards**: Pending investigation
+  - Color selection synchronization
+  - UI color picker in multiplayer context
+- [ ] ⏳ **Plus Cards**: Pending investigation
+  - Additional turn logic in multiplayer
+  - Turn flow synchronization
+- [ ] ⏳ **Stop Cards**: Pending investigation
+  - Skip turn logic in multiplayer
+  - Turn advance synchronization
+- [ ] ⏳ **TAKI Cards**: Pending investigation
+  - Sequence initiation in multiplayer
+  - Sequence end button synchronization (partially fixed)
+  - Color selection during TAKI sequences
+
+### 🔍 Investigation Approach
+For each special card type:
+1. **Trace network flow** - Check if proper RPCs are sent/received
+2. **Verify state synchronization** - Ensure both clients maintain identical game state
+3. **Test UI synchronization** - Confirm visual elements update consistently
+4. **Validate turn flow** - Check strict button flow compliance
+5. **Test edge cases** - Special card combinations and error scenarios
 
 ## Side Notes
 - **No Unicode**: Avoid special characters in code/files

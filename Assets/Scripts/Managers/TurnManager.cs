@@ -27,6 +27,9 @@ namespace TakiGame {
 		private bool isComputerTurnScheduled = false;
 		private float computerTurnStartTime = 0f;
 
+		// Multiplayer mode flag
+		private bool isMultiplayerMode = false;
+
 		// Events
 		public System.Action<PlayerType> OnTurnChanged;
 		public System.Action<PlayerType> OnTurnTimeOut;
@@ -68,8 +71,8 @@ namespace TakiGame {
 				StopTurnTimer ();
 			}
 
-			// Schedule computer turn with delay 
-			if (player == PlayerType.Computer) {
+			// Schedule computer turn with delay (only in singleplayer mode)
+			if (player == PlayerType.Computer && !isMultiplayerMode) {
 				ScheduleComputerTurn ();
 			} else {
 				CancelComputerTurn ();
@@ -312,6 +315,20 @@ namespace TakiGame {
 		/// <returns>Remaining seconds, or -1 if no timer</returns>
 		public float GetRemainingTurnTime () {
 			return isTurnTimerActive ? turnTimer : -1f;
+		}
+
+		/// <summary>
+		/// Set multiplayer mode to prevent computer turn scheduling
+		/// </summary>
+		/// <param name="isMultiplayer">True if in multiplayer mode</param>
+		public void SetMultiplayerMode (bool isMultiplayer) {
+			isMultiplayerMode = isMultiplayer;
+			TakiLogger.LogTurnManagement ($"Turn manager multiplayer mode set to: {isMultiplayer}");
+
+			// Cancel any scheduled computer turns when switching to multiplayer
+			if (isMultiplayer) {
+				CancelComputerTurn ();
+			}
 		}
 
 		/// <summary>

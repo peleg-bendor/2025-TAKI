@@ -586,6 +586,11 @@ namespace TakiGame {
 			isMultiplayerMode = false;
 			TakiLogger.LogNetwork ("Multiplayer mode disabled", TakiLogger.LogLevel.Debug);
 
+			// Configure turn manager for singleplayer
+			if (turnManager != null) {
+				turnManager.SetMultiplayerMode (false);
+			}
+
 			// Enable AI (AI replaces remote human)
 			if (computerAI != null) {
 				computerAI.enabled = true;
@@ -630,6 +635,11 @@ namespace TakiGame {
 			// Set multiplayer mode
 			isMultiplayerMode = true;
 			TakiLogger.LogNetwork ("Multiplayer mode enabled", TakiLogger.LogLevel.Debug);
+
+			// Configure turn manager for multiplayer
+			if (turnManager != null) {
+				turnManager.SetMultiplayerMode (true);
+			}
 
 			// Disable AI (remote human replaces AI)
 			if (computerAI != null) {
@@ -3238,12 +3248,11 @@ namespace TakiGame {
 					TakiLogger.LogWarning ($"Could not find played card in opponent hand: {playedCard.GetDisplayText ()}", TakiLogger.LogCategory.Network);
 				}
 
-				// Update count (RemoveCardEnhanced should handle this, but ensure consistency)
-				int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
-				if (currentCount > 0) {
-					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount - 1);
-					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount - 1}");
-				}
+				// CRITICAL FIX: Don't manually decrement count - RemoveCardEnhanced already did it!
+				// The old code was double-decrementing: RemoveCardEnhanced decrements, then we decremented again
+				TakiLogger.LogNetwork ($"Opponent hand count after card play: {activeOpponentHandManager.NetworkOpponentHandCount}");
+
+				// Note: RemoveCardEnhanced already updated networkOpponentHandCount via networkOpponentHandCount--
 			}
 
 			// ENHANCED: Handle special card effects from remote player
@@ -3276,6 +3285,12 @@ namespace TakiGame {
 
 			// Update UI for both players
 			UpdateAllUIWithNetworkSupport ();
+
+			// CRITICAL FIX: Update deck display after discard pile changes
+			if (networkGameManager != null) {
+				networkGameManager.UpdateMultiplayerDeckDisplay();
+				TakiLogger.LogNetwork ("Deck display updated after remote card play");
+			}
 
 			TakiLogger.LogNetwork ($"Remote card play fully processed: {playedCard.GetDisplayText ()}");
 		}
@@ -3312,13 +3327,37 @@ namespace TakiGame {
 
 				case CardType.PlusTwo:
 					TakiLogger.LogNetwork ("Remote PLUS TWO card");
-					if (gameState != null && gameState.IsPlusTwoChainActive) {
+
+					// CRITICAL FIX: Handle PlusTwo chain state synchronization for remote player
+					if (gameState != null && !gameState.IsPlusTwoChainActive) {
+						// Remote player started new chain
+						gameState.StartPlusTwoChain (PlayerType.Computer); // Remote player in multiplayer context
+
+						// CRITICAL FIX: Only change interaction state if NOT in TAKI sequence
+						if (!gameState.IsInTakiSequence) {
+							gameState.ChangeInteractionState (InteractionState.PlusTwoChain);
+						}
+
+						TakiLogger.LogNetwork ("CHAIN STARTED by remote player: First PlusTwo played - local player must draw 2 or continue chain");
+
+						// Show local UI feedback for new chain
+						GetActiveUI ()?.ShowOpponentMessage ("Opponent started PlusTwo chain - draw 2 or play PlusTwo!");
+						GetActiveUI ()?.ShowPlusTwoChainStatus (1, 2, true); // local player is now target
+
+					} else if (gameState != null && gameState.IsPlusTwoChainActive) {
+						// Remote player continued existing chain
+						gameState.ContinuePlusTwoChain ();
+
+						int chainCount = gameState.NumberOfChainedCards;
 						int drawCount = gameState.ChainDrawCount;
-						GetActiveUI ()?.ShowOpponentMessage ($"Opponent played PlusTwo - draw {drawCount} or continue chain!");
-					} else {
-						GetActiveUI ()?.ShowOpponentMessage ("Opponent played PlusTwo - draw 2 or play PlusTwo!");
+						TakiLogger.LogNetwork ($"CHAIN CONTINUED by remote player: Now {chainCount} PlusTwo cards, local player must draw {drawCount} or continue");
+
+						// Show local UI feedback for continued chain
+						GetActiveUI ()?.ShowOpponentMessage ($"Opponent continued PlusTwo chain - draw {drawCount} or play PlusTwo!");
+						GetActiveUI ()?.ShowPlusTwoChainStatus (chainCount, drawCount, true); // local player is target
 					}
-					// The actual PlusTwo effect is handled by the dedicated ProcessNetworkPlusTwoEffect method
+
+					TakiLogger.LogNetwork ($"Remote PlusTwo chain status: {gameState?.NumberOfChainedCards} cards, {gameState?.ChainDrawCount} total draw");
 					break;
 
 				case CardType.Taki:
@@ -3403,12 +3442,12 @@ namespace TakiGame {
 					CardData placeholderCard = CreatePlaceholderCard();
 					if (placeholderCard != null) {
 						activeOpponentHandManager.AddCardEnhanced (placeholderCard, true); // true = force privacy mode
-						TakiLogger.LogNetwork ($"Added placeholder card to opponent hand for draw");
+						TakiLogger.LogNetwork ($"Added placeholder card to opponent hand for draw - count auto-incremented to {activeOpponentHandManager.NetworkOpponentHandCount}");
 					}
 
-					int currentCount = activeOpponentHandManager.NetworkOpponentHandCount;
-					activeOpponentHandManager.UpdateNetworkOpponentHandCount (currentCount + 1);
-					TakiLogger.LogNetwork ($"Updated opponent hand count: {currentCount + 1}");
+					// CRITICAL FIX: Don't manually increment count - AddCardEnhanced already did it!
+					// The old code was double-counting: AddCardEnhanced increments, then we incremented again
+					TakiLogger.LogNetwork ($"Opponent hand count after draw: {activeOpponentHandManager.NetworkOpponentHandCount}");
 				}
 
 				// FIXED: Decrement draw pile count for single card draw
@@ -3425,6 +3464,12 @@ namespace TakiGame {
 
 			// Update UI for both players using network-safe method
 			UpdateAllUIWithNetworkSupport ();
+
+			// CRITICAL FIX: Update deck display after draw pile count changes
+			if (networkGameManager != null) {
+				networkGameManager.UpdateMultiplayerDeckDisplay();
+				TakiLogger.LogNetwork ("Deck display updated after remote card draw");
+			}
 
 			TakiLogger.LogNetwork ("Remote card draw fully processed");
 		}
@@ -3564,14 +3609,53 @@ namespace TakiGame {
 				return;
 			}
 
+			// CRITICAL FIX: Calculate how many cards the opponent drew to break chain
+			int cardsToDraw = 2; // Default for single PlusTwo
+			if (gameState != null && gameState.IsPlusTwoChainActive) {
+				cardsToDraw = gameState.ChainDrawCount;
+				int chainLength = gameState.NumberOfChainedCards;
+				TakiLogger.LogNetwork ($"Opponent broke chain: {chainLength} PlusTwo cards, drew {cardsToDraw} cards");
+
+				// Break the chain locally to sync game state
+				gameState.BreakPlusTwoChain();
+				gameState.ChangeInteractionState(InteractionState.Normal);
+			} else {
+				TakiLogger.LogNetwork ("Chain break processed but chain was not active locally");
+			}
+
+			// CRITICAL FIX: Update opponent hand count for chain break draw
+			var activeOpponentHandManager = GetActiveOpponentHandManager();
+			if (activeOpponentHandManager?.IsOpponentHand == true) {
+				// Add placeholder cards for the cards drawn to break chain
+				for (int i = 0; i < cardsToDraw; i++) {
+					CardData placeholderCard = CreatePlaceholderCard();
+					if (placeholderCard != null) {
+						activeOpponentHandManager.AddCardEnhanced(placeholderCard, true); // true = force privacy mode
+					}
+				}
+				TakiLogger.LogNetwork ($"Added {cardsToDraw} placeholder cards for chain break - opponent count now: {activeOpponentHandManager.NetworkOpponentHandCount}");
+			}
+
+			// CRITICAL FIX: Update draw pile count for cards drawn during chain break
+			if (deckManager != null) {
+				deckManager.DecrementDrawPileCount(cardsToDraw);
+				TakiLogger.LogNetwork($"Draw pile count decremented by {cardsToDraw} for chain break");
+			}
+
 			// Show feedback to local player
-			GetActiveUI ()?.ShowOpponentAction ("broke plus-two chain by drawing");
-			GetActiveUI ()?.ShowOpponentMessage ("Opponent drew cards and broke the plus-two chain");
+			GetActiveUI()?.ShowOpponentAction($"broke plus-two chain by drawing {cardsToDraw} cards");
+			GetActiveUI()?.ShowOpponentMessage($"Opponent drew {cardsToDraw} cards and broke the plus-two chain");
 
 			// Update UI
-			UpdateAllUIWithNetworkSupport ();
+			UpdateAllUIWithNetworkSupport();
 
-			TakiLogger.LogNetwork ("Remote plus-two chain break processed");
+			// CRITICAL FIX: Update deck display after chain break
+			if (networkGameManager != null) {
+				networkGameManager.UpdateMultiplayerDeckDisplay();
+				TakiLogger.LogNetwork("Deck display updated after remote chain break");
+			}
+
+			TakiLogger.LogNetwork($"Remote plus-two chain break processed: {cardsToDraw} cards drawn");
 		}
 
 		/// <summary>

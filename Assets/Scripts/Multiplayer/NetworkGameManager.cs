@@ -439,7 +439,7 @@ namespace TakiGame {
 		/// INTEGRATES: With DeckManager to show draw/discard piles
 		/// OBJECTIVE: Make both players see the same deck state
 		/// </summary>
-		void UpdateMultiplayerDeckDisplay () {
+		public void UpdateMultiplayerDeckDisplay () {
 			if (gameManager?.deckManager == null) {
 				TakiLogger.LogWarning ("Cannot update deck display: Missing components", TakiLogger.LogCategory.Network);
 				return;
@@ -591,7 +591,16 @@ namespace TakiGame {
 		}
 
 		public void OnTurnCompleted (int turn) { }
-		public void OnPlayerMove (Player player, int turn, object move) { }
+		public void OnPlayerMove (Player player, int turn, object move) {
+		TakiLogger.LogNetwork ($"=== PLAYER {player.ActorNumber} MADE MOVE IN TURN {turn} ===");
+
+		// Process remote player action (non-finishing move)
+		if (player.ActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && move != null) {
+			ProcessRemoteAction (player, move);
+		}
+
+		// Note: Turn does NOT advance for non-finishing moves
+	}
 		public void OnTurnTimeEnds (int turn) { }
 
 		/// <summary>
@@ -626,7 +635,7 @@ namespace TakiGame {
 				{"cardIdentifier", cardId}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);
 			TakiLogger.LogNetwork ($"Sent card play: {cardId}");
 		}
 
@@ -641,7 +650,7 @@ namespace TakiGame {
 				{"cardIdentifier", ""}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);
 			TakiLogger.LogNetwork ("Sent card draw");
 		}
 
@@ -656,7 +665,7 @@ namespace TakiGame {
 				{"cardIdentifier", selectedColor.ToString ()}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);
 			TakiLogger.LogNetwork ($"Sent color selection: {selectedColor}");
 		}
 
@@ -686,7 +695,7 @@ namespace TakiGame {
 				{"cardIdentifier", ""}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
 			TakiLogger.LogNetwork ("Sent end TAKI sequence");
 		}
 
@@ -701,7 +710,7 @@ namespace TakiGame {
 				{"cardIdentifier", ""}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
 			TakiLogger.LogNetwork ("Sent STOP effect");
 		}
 
@@ -716,7 +725,7 @@ namespace TakiGame {
 				{"cardIdentifier", ""}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
 			TakiLogger.LogNetwork ("Sent direction change");
 		}
 
@@ -731,7 +740,7 @@ namespace TakiGame {
 				{"cardIdentifier", ""}
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
 			TakiLogger.LogNetwork ("Sent plus-two chain break");
 		}
 
@@ -746,7 +755,7 @@ namespace TakiGame {
 				{"cardIdentifier", $"{chainCount},{drawCount}"} // Encode chain info in identifier
 			};
 
-			turnMgr.SendMove (moveData, true);
+			turnMgr.SendMove (moveData, false);  // CRITICAL FIX: Don't auto-advance turns
 			TakiLogger.LogNetwork ($"Sent PlusTwo effect: {chainCount} cards, {drawCount} total draw");
 		}
 

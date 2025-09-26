@@ -2235,3 +2235,79 @@ Read `CLAUDE.md`.
 
 `^(?!\[).*\n`
 
+### Screen 1, the client, in unity engine run:
+- `Player1HandPanel` has 10 cards, as card fronts
+- `Player1HandSizeText` is "Your Cards: 10"
+- `Player2HandPanel` has 7 cards, as card backs
+- `Player2HandSizeText` is "Opponent Cards: 7"
+- `DrawPilePanel` visually shows a card back (matching to master!)
+- `DrawPileCountText` is "Draw: 85"
+- `DiscardPilePanel` has a blue plusTwo, visually shows a card front (matching to master!)
+- `DiscardPileCountText` is "Discard: 4"
+- `TurnIndicatorText` is "Your Turn"
+- `CurrentColorIndicator` is the color blue
+- `Btn_Player1EndTakiSequence` is disabled
+- `Btn_Player1PlayCard` is enabled
+- `Btn_Player1DrawCard` is enabled
+- `ColorSelectionPanel` is disabled
+
+### Screen 2, the master, a build:
+- `Player1HandPanel` has 11 cards, as card fronts
+- `Player1HandSizeText` is "Your Cards: 11"
+- `Player2HandPanel` has 9 cards, as card backs
+- `Player2HandSizeText` is "Opponent Cards: 9"
+- `DrawPilePanel` visually shows a card back
+- `DrawPileCountText` is "Draw: 85"
+- `DiscardPilePanel` has a blue plusTwo, visually shows a card front
+- `DiscardPileCountText` is "Discard: 4"
+- `TurnIndicatorText` is "Opponent's Turn"
+- `CurrentColorIndicator` is the color blue
+- `Btn_Player1EndTakiSequence` is disabled
+- `Btn_Player1PlayCard` is disabled
+- `Btn_Player1DrawCard` is disabled
+- `ColorSelectionPanel` is disabled
+
+# Dictionary
+- `Scr1` -> Screen 1, the master, a build
+- `Scr2` -> Screen 2, the client, in unity engine run
+- `Player1HandSizeText` = `H1` -> number
+- `Player2HandSizeText` = `H2` -> number
+- `DrawPileCountText` = `Dra` -> number
+- `DiscardPileCountText` = `Dis` -> number
+- `TurnIndicatorText` = `TI` -> "Your Turn" = `YOU` or "Opponent's Turn" = `OPP`
+- `CurrentColorIndicator` = `CI` -> color
+- `Btn_Player1PlayCard` = `PLAY` -> "disabled" = `DIS` or "enabled" = `EN`
+- `Btn_Player1DrawCard` = `DRAW` -> "disabled" = `DIS` or "enabled" = `EN`
+- `Btn_Player1EndTurn` = `END` -> "disabled" = `DIS` or "enabled" = `EN`
+
+## State tables:
+
+|    Scr_1   |  H1  |  H2  | Dra  | Dis  |  TI  |  CI  | PLAY | DRAW | END  |  Dis_Card  |
+|------------|------|------|------|------|------|------|------|------|------|------------|
+|  Start     |  8   |  8   |  93  |  1   | YOU  | GRE  | EN   | EN   | DIS  | green_five |
+|  State 1   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 2   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 3   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 4   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 5   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+
+|    Scr_2   |  H1  |  H2  | Dra  | Dis  |  TI  |  CI  | PLAY | DRAW | END  |  Dis_Card  |
+|------------|------|------|------|------|------|------|------|------|------|------------|
+|  Start     |  8   |  8   |  93  |  1   | OPP  | GRE  | DIS  | DIS  | DIS  | green_five |
+|  State 1   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 2   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 3   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 4   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+|  State 5   |  0   |  0   |  00  |  0   | Y/O  | CLR  | D/E  | D/E  | D/E  | _ |
+
+## State tracking:
+
+|   State    | Scr's Turn | Btn click  |    Notes and Input     |
+|------------|------------|------------|------------------------|
+|   Start    |   Scr_1    | BUTTON     | Umm |
+|  State 1   |   Scr_0    | BUTTON     | Umm |
+|  State 2   |   Scr_0    | BUTTON     | Umm |
+|  State 3   |   Scr_0    | BUTTON     | Umm |
+|  State 4   |   Scr_0    | BUTTON     | Umm |
+|  State 5   |   Scr_0    | BUTTON     | Umm |
+

@@ -1,72 +1,68 @@
 # investigating!
 
-`MOST_RECENT_RUN_LOGS_SIMPLE.md` amd `MOST_RECENT_RUN_LOGS_SIMPLE.md` show the logs from unity engine console as the client.
+`MOST_RECENT_RUN_LOGS_SIMPLE.md` amd `MOST_RECENT_RUN_LOGS_DETAILED.md` show the logs from unity engine console as the client.
 
-## Here is what I'm seeing visually in the screens BEFORE master draws a card (as an action for the first turn):
+## Dictionary
+- `Scr1` -> Screen 1, the master, a build
+- `Scr2` -> Screen 2, the client, in unity engine run
+- `Player1HandSizeText` = `H1` -> number
+- `Player2HandSizeText` = `H2` -> number
+- `DrawPileCountText` = `Dra` -> number
+- `DiscardPileCountText` = `Dis` -> number
+- `TurnIndicatorText` = `TI` -> "Your Turn" = `YOU` or "Opponent's Turn" = `OPP`
+- `CurrentColorIndicator` = `CI` -> color
+- `Btn_Player1PlayCard` = `PLAY` -> "disabled" = `DIS` or "enabled" = `EN`
+- `Btn_Player1DrawCard` = `DRAW` -> "disabled" = `DIS` or "enabled" = `EN`
+- `Btn_Player1EndTurn` = `END` -> "disabled" = `DIS` or "enabled" = `EN`
+- Current card in discard pile = `Dis_Card` 
 
-### Screen 1, the client, in unity engine run:
-- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be [<- good]
-- `Player1HandSizeText` is "Your Cards: 8" [<- good]
-- `Player2HandPanel` has 8 cards, as card backs, as is supposed to be [<- good]
-- `Player2HandSizeText` is "Opponent Cards: 8" [<- good]
-- `DrawPilePanel` has `DrawPileCard` , visually shows a card back (matching to master!) [<- good]
-- `DrawPileCountText` is "Draw: 93" [<- good]
-- `DiscardPilePanel` has `DiscardPileCard`, visually shows a card front (matching to master!) [<- good]
-- `DiscardPileCountText` is "Discard: 1" [<- good]
-- `TurnIndicatorText` is "Opponent's Turn" [<- good]
-- `CurrentColorIndicator` is the color [<- good]
-- `Btn_Player1EndTakiSequence` is disabled [<- good]
-- `Btn_Player1PlayCard` is disabled [<- good]
-- `Btn_Player1DrawCard` is disabled [<- good]
-- `ColorSelectionPanel` is disabled [<- good]
+## State tables:
 
-### Screen 2, the master, a build:
-- `Player1HandPanel` visually has 8 cards, as card fronts, as is supposed to be (e.g. I can see a yellow 1 to a green 8) [<- good]
-- `Player1HandSizeText` visually is "Your Cards: 8" [<- good]
-- `Player2HandPanel` visually has 8 cards, as card backs, as is supposed to be [<- good]
-- `Player1HandSizeText` visually is "Opponent Cards: 8" [<- good]
-- `DrawPilePanel` visually shows a card back (matching to client!) [<- good]
-- `DrawPileCountText` visually is "Draw: 93" [<- good]
-- `DiscardPilePanel` visually shows a card front (matching to client!) [<- good]
-- `DiscardPileCountText` visually is "Discard: 1" [<- good]
-- `TurnIndicatorText` visually is "Your Turn" [<- good]
-- `CurrentColorIndicator` visually is the color (matching to client!) [<- good]
-- `Btn_Player1EndTakiSequence` is disabled [<- good]
-- `Btn_Player1PlayCard` is enabled [<- good]
-- `Btn_Player1DrawCard` is enabled [<- good]
-- `ColorSelectionPanel` is disabled [<- good]
+|    Scr_1   |  H1  |  H2  | Dra  | Dis  |  TI  |  CI  | PLAY | DRAW | END  |  Dis_Card  |
+|------------|------|------|------|------|------|------|------|------|------|------------|
+|  Start     |  8   |  8   |  93  |  1   | YOU  | GRE  | EN   | EN   | DIS  | green_six  |
+|  State 1   |  7   |  8   |  93  |  2   | YOU  | GRE  | DIS  | DIS  | EN   | green_eight |
+|  State 2   |  7   |  8   |  93  |  2   | OPP  | GRE  | DIS  | DIS  | DIS  | green_eight |
+|  State 3   |  7   |  7   |  93  |  3   | OPP  | YEL  | DIS  | DIS  | DIS  | yellow_eight |
+|  State 4   |  7   |  7   |  93  |  3   | YOU  | YEL  | EN   | EN   | DIS  | yellow_eight |
+|  State 5   |  8   |  7   |  92  |  3   | YOU  | YEL  | DIS  | DIS  | EN   | yellow_eight |
+|  State 6   |  8   |  7   |  92  |  3   | OPP  | YEL  | DIS  | DIS  | DIS  | yellow_changeDirection |
+|  State 7   |  8   |  6   |  92  |  4   | OPP  | YEL  | DIS  | DIS  | DIS  | yellow_changeDirection |
 
-## Here is what I'm seeing visually in the screens AFTER master draws a card (as an action for the first turn), and my turn (client) begins:
+|    Scr_2   |  H1  |  H2  | Dra  | Dis  |  TI  |  CI  | PLAY | DRAW | END  |  Dis_Card  |
+|------------|------|------|------|------|------|------|------|------|------|------------|
+|  Start     |  8   |  8   |  93  |  1   | OPP  | GRE  | DIS  | DIS  | DIS  | green_six  |
+|  State 1   |  8   |  7   |  92  |  1   | OPP  | GRE  | DIS  | DIS  | DIS  | green_eight |
+|  State 2   |  8   |  7   |  93  |  2   | YOU  | GRE  | EN   | EN   | DIS  | green_eight |
+|  State 3   |  7   |  7   |  93  |  3   | YOU  | YEL  | DIS  | DIS  | EN   | yellow_eight |
+|  State 4   |  7   |  7   |  93  |  3   | OPP  | YEL  | DIS  | DIS  | DIS  | yellow_eight |
+|  State 5   |  7   |  8   |  92  |  3   | OPP  | YEL  | DIS  | DIS  | DIS  | yellow_eight |
+|  State 6   |  7   |  8   |  92  |  3   | YOU  | YEL  | EN   | EN   | DIS  | yellow_changeDirection |
+|  State 7   |  6   |  8   |  92  |  4   | YOU  | YEL  | DIS  | DIS  | EN   | yellow_changeDirection |
 
-### Screen 1, the client, in unity engine run:
-- `Player1HandPanel` has 8 cards, as card fronts, as is supposed to be [<- good]
-- `Player1HandSizeText` is "Your Cards: 8" [<- good]
-- `Player2HandPanel` has 9 cards, as card backs, as is supposed to be [<- good]
-- `Player2HandSizeText` is "Opponent Cards: 9" [<- good]
-- `DrawPilePanel` has `DrawPileCard` , visually shows a card back (matching to master!) [<- good]
-- `DrawPileCountText` is "Draw: 93" [<- a problem]
-- `DiscardPilePanel` has `DiscardPileCard`, visually shows a card front (matching to master!) [<- good]
-- `DiscardPileCountText` is "Discard: 1" [<- good]
-- `TurnIndicatorText` is "Your Turn" [<- good]
-- `CurrentColorIndicator` is the color [<- good]
-- `Btn_Player1EndTakiSequence` is disabled [<- good]
-- `Btn_Player1PlayCard` is enabled [<- good]
-- `Btn_Player1DrawCard` is enabled [<- good]
-- `ColorSelectionPanel` is disabled [<- good]
+## State tracking:
 
-### Screen 2, the master, a build:
-- `Player1HandPanel` visually has 9 cards, as card fronts, as is supposed to be (e.g. I can see a yellow 1 to a green 8) [<- good]
-- `Player1HandSizeText` visually is "Your Cards: 9" [<- good]
-- `Player2HandPanel` visually has 8 cards, as card backs, as is supposed to be [<- good]
-- `Player1HandSizeText` visually is "Opponent Cards: 8" [<- a problem!]
-- `DrawPilePanel` visually shows a card back (matching to client!) [<- good]
-- `DrawPileCountText` visually is "Draw: 92" [<- good]
-- `DiscardPilePanel` visually shows a card front (matching to client!) [<- good]
-- `DiscardPileCountText` visually is "Discard: 1" [<- good]
-- `TurnIndicatorText` visually is "Opponent's Turn" [<- good]
-- `CurrentColorIndicator` visually is the color (matching to client!) [<- good]
-- `Btn_Player1EndTakiSequence` is disabled [<- good]
-- `Btn_Player1PlayCard` is disabled [<- good]
-- `Btn_Player1DrawCard` is disabled [<- good]
-- `ColorSelectionPanel` is disabled [<- good]
+|   State    | Scr's Turn | Btn click  |    Notes and Input     |
+|------------|------------|------------|------------------------|
+|   Start    |   Scr_1    |   PLAY     | Played green_eight |
+|  State 1   |   Scr_1    |   END TURN | ... |
+|  State 2   |   Scr_2    |   PLAY     | Played yellow_eight |
+|  State 3   |   Scr_2    |   END TURN | ... |
+|  State 4   |   Scr_1    |   DRAW     | ... |
+|  State 5   |   Scr_1    |   END TURN | ... |
+|  State 6   |   Scr_2    |   PLAY     | Played yellow_changeDirection |
+|  State 7   |   Scr_2    |   END TURN | ... |
+
+## Notes:
+Everything seems alright and functional.
+But the messages for the players really seem off (I'm talking about `Player1MessageText` and `Player2MessageText`):
+- When playing the `yellow_changeDirection` I didn't see any messages at all
+- Sometimes we don't see any messages
+- Sometimes we see the messages for only a moment, not long enough
+- Sometimes we see the messages in reverse - A message that's supposed to be for client's screen appears on master's screen, and message that's supposed to be for master's screen appears on client's screen
+
+In State 6, both screens were supposed to be showing appropriate messages, neither of them did.
+
+We need to investigate our Player/Opponent Messages system in multiplayer
+
 
