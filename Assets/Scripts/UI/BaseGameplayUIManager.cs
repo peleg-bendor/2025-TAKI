@@ -24,10 +24,17 @@ namespace TakiGame {
         public System.Action<CardColor> OnColorSelected;
         public System.Action OnEndTakiSequenceClicked;
 
-        // Button state tracking
-        protected bool playButtonEnabled = false;
+		[Header ("Message Settings")]
+		[Tooltip ("How long to display temporary deck messages")]
+		public float messageDisplayTime = 10.0f;
+
+		// Button state tracking
+		protected bool playButtonEnabled = false;
         protected bool drawButtonEnabled = false;
         protected bool endTurnButtonEnabled = false;
+
+        // Activation state tracking - prevents Start() from overriding GameManager activation
+        protected bool explicitlyActivatedByGameManager = false;
 
         // Abstract properties - implemented by derived classes
         public abstract TextMeshProUGUI TurnIndicatorText { get; }
@@ -50,7 +57,15 @@ namespace TakiGame {
         public abstract TextMeshProUGUI TakiSequenceStatusText { get; }
 
         protected virtual void Start() {
-            // Check if this UI manager should be active based on game mode
+            // CRITICAL FIX: Don't disable if GameManager has explicitly activated this UI manager
+            if (explicitlyActivatedByGameManager) {
+                TakiLogger.LogSystem($"New UI Architecture - {GetType().Name} explicitly activated by GameManager - skipping Start() check");
+                TakiLogger.LogInfo($"New UI Architecture starting", TakiLogger.LogCategory.UI);
+                SetupInitialState();
+                return;
+            }
+
+            // Check if this UI manager should be active based on game mode (fallback for initial state)
             if (!ShouldBeActive()) {
                 TakiLogger.LogSystem($"New UI Architecture - {GetType().Name} DISABLED (not active for current game mode)");
                 // SAFETY FIX: Disable only this component, not the entire GameObject
@@ -221,6 +236,12 @@ namespace TakiGame {
 		public virtual void ActivateForMode() {
 			TakiLogger.LogUI($"Activating {GetType().Name} for current game mode");
 
+			// Mark as explicitly activated by GameManager
+			explicitlyActivatedByGameManager = true;
+
+			// Ensure component is enabled
+			this.enabled = true;
+
 			// Double-check we should be active (safety measure)
 			if (!ShouldBeActive()) {
 				TakiLogger.LogWarning($"{GetType().Name} asked to activate but not appropriate for current mode!", TakiLogger.LogCategory.UI);
@@ -238,6 +259,12 @@ namespace TakiGame {
 		/// </summary>
 		public virtual void DeactivateFromMode() {
 			TakiLogger.LogUI($"Deactivating {GetType().Name} from current game mode");
+
+			// Clear explicit activation flag
+			explicitlyActivatedByGameManager = false;
+
+			// Disable the component
+			this.enabled = false;
 
 			// Disconnect button events to prevent pollution
 			DisconnectButtonEvents();
@@ -422,9 +449,9 @@ namespace TakiGame {
 		/// <param name="toPlayer">If true, show to player; if false, show to opponent area</param>
 		public virtual void ShowImmediateFeedback (string message, bool toPlayer = true) {
 			if (toPlayer) {
-				ShowPlayerMessageTimed (message, 2.0f);
+				ShowPlayerMessageTimed (message, messageDisplayTime);
 			} else {
-				ShowOpponentMessageTimed (message, 2.0f);
+				ShowOpponentMessageTimed (message, messageDisplayTime);
 			}
 
 			TakiLogger.LogUI ($"Immediate feedback: '{message}' -> {(toPlayer ? "Player" : "Opponent")}");
@@ -456,7 +483,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
-		public virtual void ShowPlayerMessageTimed(string message, float duration = 3.0f) {
+		public virtual void ShowPlayerMessageTimed (string message, float duration = 10.0f) {
             if (PlayerMessageText != null) {
                 PlayerMessageText.text = message;
                 TakiLogger.LogUI($"Player message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
@@ -475,7 +502,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
-		public virtual void ShowOpponentMessageTimed(string message, float duration = 3.0f) {
+		public virtual void ShowOpponentMessageTimed(string message, float duration = 10.0f) {
             if (OpponentMessageText != null) {
                 OpponentMessageText.text = message;
                 TakiLogger.LogUI($"Opponent message: '{message}' (duration: {duration}s)", TakiLogger.LogLevel.Trace);
@@ -582,7 +609,7 @@ namespace TakiGame {
 			if (initiator == PlayerType.Human) {
 				ShowPlayerMessageTimed (message, 0f); // Permanent until sequence ends
 			} else {
-				ShowOpponentMessageTimed (message, 4.0f);
+				ShowOpponentMessageTimed (message, messageDisplayTime);
 			}
 		}
 
@@ -602,8 +629,8 @@ namespace TakiGame {
 				$"Opponent ended sequence: {finalCardCount} {sequenceColor} cards" :
 				"";
 
-			ShowPlayerMessageTimed (playerMessage, 3.0f);
-			ShowOpponentMessageTimed (computerMessage, 3.0f);
+			ShowPlayerMessageTimed (playerMessage, messageDisplayTime);
+			ShowOpponentMessageTimed (computerMessage, messageDisplayTime);
 
 			// Clear sequence status
 			HideTakiSequenceStatus ();
@@ -621,7 +648,7 @@ namespace TakiGame {
 		TakiLogger.LogLevel.Info);
 
 			// Default implementation - basic message
-			ShowPlayerMessageTimed ($"TAKI Sequence: {cardCount} {sequenceColor} cards played", 2.0f);
+			ShowPlayerMessageTimed ($"TAKI Sequence: {cardCount} {sequenceColor} cards played", messageDisplayTime);
 		}
 
 		/// <summary>
@@ -634,7 +661,7 @@ namespace TakiGame {
 			TakiLogger.LogUI ($"Special card effect: {cardType} by {playedBy} - {effectDescription}", TakiLogger.LogLevel.Info);
 
 			// Default implementation - basic message
-			ShowPlayerMessageTimed ($"{cardType} played: {effectDescription}", 4.0f);
+			ShowPlayerMessageTimed ($"{cardType} played: {effectDescription}", messageDisplayTime);
 		}
 
 		/// <summary>
@@ -648,7 +675,7 @@ namespace TakiGame {
 		TakiLogger.LogLevel.Info);
 
 			// Default implementation - basic message
-			ShowPlayerMessageTimed ($"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw}", 3.0f);
+			ShowPlayerMessageTimed ($"PlusTwo Chain: {chainCount} cards -> Draw {accumulatedDraw}", messageDisplayTime);
 		}
 
 		/// <summary>
@@ -660,7 +687,7 @@ namespace TakiGame {
 			TakiLogger.LogUI ($"Chain broken: {cardsDrawn} cards drawn by {who}", TakiLogger.LogLevel.Info);
 
 			// Default implementation - basic message
-			ShowPlayerMessageTimed ($"PlusTwo chain broken: Drew {cardsDrawn} cards", 3.0f);
+			ShowPlayerMessageTimed ($"PlusTwo chain broken: Drew {cardsDrawn} cards", messageDisplayTime);
 		}
 
 		/// <summary>

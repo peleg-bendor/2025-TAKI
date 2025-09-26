@@ -76,6 +76,10 @@ namespace TakiGame {
 		[Tooltip ("Text element to show TAKI sequence status")]
 		public TextMeshProUGUI takiSequenceStatusText;
 
+		[Header ("Message Settings")]
+		[Tooltip ("How long to display temporary deck messages")]
+		public float messageDisplayTime = 10f;
+
 		// Events for external systems
 		public System.Action OnPlayCardClicked;
 		public System.Action OnDrawCardClicked;
@@ -389,7 +393,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
-		public void ShowPlayerMessageTimed (string message, float duration = 3.0f) {
+		public void ShowPlayerMessageTimed (string message, float duration = 10.0f) {
 			if (playerMessageText != null) {
 				playerMessageText.text = message;
 				TakiLogger.LogUI ($"Player message: '{message}' (duration: {duration}s)");
@@ -408,7 +412,7 @@ namespace TakiGame {
 		/// </summary>
 		/// <param name="message">Message to show</param>
 		/// <param name="duration">How long to show before clearing (0 = permanent)</param>
-		public void ShowComputerMessageTimed (string message, float duration = 3.0f) {
+		public void ShowComputerMessageTimed (string message, float duration = 10.0f) {
 			if (computerMessageText != null) {
 				computerMessageText.text = message;
 				TakiLogger.LogUI ($"Computer message: '{message}' (duration: {duration}s)");
@@ -901,7 +905,7 @@ namespace TakiGame {
 			if (targetPlayer == PlayerType.Human) {
 				ShowPlayerMessageTimed (message, 0f); // Permanent until action taken
 			} else {
-				ShowComputerMessageTimed (message, 4.0f);
+				ShowComputerMessageTimed (message, messageDisplayTime);
 			}
 		}
 
@@ -919,8 +923,8 @@ namespace TakiGame {
 				$"Chain broken! Opponent drew {cardsDrawn} cards" :
 				$"";
 
-			ShowPlayerMessageTimed (playerMessage, 3.0f);
-			ShowComputerMessageTimed (computerMessage, 3.0f);
+			ShowPlayerMessageTimed (playerMessage, messageDisplayTime);
+			ShowComputerMessageTimed (computerMessage, messageDisplayTime);
 
 			// Clear chain status
 			HidePlusTwoChainStatus ();
@@ -950,7 +954,7 @@ namespace TakiGame {
 			if (initiator == PlayerType.Human) {
 				ShowPlayerMessageTimed (message, 0f); // Permanent until sequence ends
 			} else {
-				ShowComputerMessageTimed (message, 4.0f);
+				ShowComputerMessageTimed (message, messageDisplayTime);
 			}
 		}
 
@@ -969,8 +973,8 @@ namespace TakiGame {
 				$"I ended sequence: {finalCardCount} {sequenceColor} cards" :
 				$"Opponent ended sequence: {finalCardCount} {sequenceColor} cards";
 
-			ShowPlayerMessageTimed (playerMessage, 3.0f);
-			ShowComputerMessageTimed (computerMessage, 3.0f);
+			ShowPlayerMessageTimed (playerMessage, messageDisplayTime);
+			ShowComputerMessageTimed (computerMessage, messageDisplayTime);
 
 			// Clear sequence status
 			HideTakiSequenceStatus ();
@@ -989,19 +993,19 @@ namespace TakiGame {
 			// Route message to appropriate UI element based on who played
 			if (playedBy == PlayerType.Human) {
 				// Human played - show in computer message area what happened to computer
-				ShowComputerMessageTimed ($"You played {cardType}: {effectDescription}", 4.0f);
+				ShowComputerMessageTimed ($"You played {cardType}: {effectDescription}", messageDisplayTime);
 				// Also show in player area what human should do next
 				if (cardType == CardType.Plus) {
 					ShowPlayerMessageTimed ("PLUS effect: Take 1 more action (PLAY or DRAW)!", 0f); // Permanent until action taken
 				}
 			} else {
 				// Computer played - show in player message area what happened to player
-				ShowPlayerMessageTimed ($"AI played {cardType}: {effectDescription}", 4.0f);
+				ShowPlayerMessageTimed ($"AI played {cardType}: {effectDescription}", messageDisplayTime);
 				// Also show in computer area what AI is doing
 				if (cardType == CardType.Plus) {
-					ShowComputerMessageTimed ("PLUS: I get one more action!", 2.0f);
+					ShowComputerMessageTimed ("PLUS: I get one more action!", messageDisplayTime);
 				} else if (cardType == CardType.Stop) {
-					ShowComputerMessageTimed ("STOP: Your turn is skipped!", 3.0f);
+					ShowComputerMessageTimed ("STOP: Your turn is skipped!", messageDisplayTime);
 				}
 			}
 		}
@@ -1013,9 +1017,9 @@ namespace TakiGame {
 		/// <param name="toPlayer">If true, show to player; if false, show to computer area</param>
 		public void ShowImmediateFeedback (string message, bool toPlayer = true) {
 			if (toPlayer) {
-				ShowPlayerMessageTimed (message, 2.0f);
+				ShowPlayerMessageTimed (message, messageDisplayTime);
 			} else {
-				ShowComputerMessageTimed (message, 2.0f);
+				ShowComputerMessageTimed (message, messageDisplayTime);
 			}
 
 			TakiLogger.LogUI ($"Immediate feedback: '{message}' -> {(toPlayer ? "Player" : "Computer")}");
@@ -1078,7 +1082,7 @@ namespace TakiGame {
 		/// MILESTONE 1: Show network connection status
 		/// </summary>
 		public void ShowNetworkStatus (string status) {
-			ShowPlayerMessageTimed ($"Network: {status}", 3.0f);
+			ShowPlayerMessageTimed ($"Network: {status}", messageDisplayTime);
 			TakiLogger.LogNetwork ($"Network status displayed: {status}");
 		}
 
@@ -1086,7 +1090,7 @@ namespace TakiGame {
 		/// MILESTONE 1: Show deck synchronization status
 		/// </summary>
 		public void ShowDeckSyncStatus (string message) {
-			ShowComputerMessageTimed ($"Deck: {message}", 2.0f);
+			ShowComputerMessageTimed ($"Deck: {message}", messageDisplayTime);
 			TakiLogger.LogNetwork ($"Deck sync status: {message}");
 		}
 
@@ -1103,7 +1107,7 @@ namespace TakiGame {
 		/// MILESTONE 1: Show opponent hand privacy feedback
 		/// </summary>
 		public void ShowOpponentHandPrivacy (int cardCount) {
-			ShowComputerMessageTimed ($"Opponent has {cardCount} cards (hidden)", 2.0f);
+			ShowComputerMessageTimed ($"Opponent has {cardCount} cards (hidden)", messageDisplayTime);
 			TakiLogger.LogNetwork ($"Opponent hand privacy feedback: {cardCount} cards");
 		}
 

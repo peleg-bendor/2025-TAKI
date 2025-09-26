@@ -2311,3 +2311,10 @@ Read `CLAUDE.md`.
 |  State 4   |   Scr_0    | BUTTON     | Umm |
 |  State 5   |   Scr_0    | BUTTON     | Umm |
 
+
+> reading the logs - it looks like both STOP and CHANGEDIRECTION cards work perfectly!
+  1. Update `CLAUDE/md`
+  2. We need to create a starting prompt, not unlike the one I gave you at the start, our next target is the PLUS card (where player get's
+  another action). We should also note that it's very important to properly search what happens in singleplayer mode, and by that much more
+  easily know what we need to do.
+  The log files have been updated with

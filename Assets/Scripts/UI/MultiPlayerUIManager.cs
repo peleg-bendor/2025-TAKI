@@ -67,22 +67,22 @@ namespace TakiGame {
 
 		public override void ShowSequenceEndedMessage (int finalCardCount, CardColor sequenceColor, PlayerType who) {
 			if (IsLocalPlayer (who)) {
-				ShowPlayerMessageTimed ($"Sequence ended! You played {finalCardCount} {sequenceColor} cards", 3.0f);
+				ShowPlayerMessageTimed ($"Sequence ended! You played {finalCardCount} {sequenceColor} cards", messageDisplayTime);
 				ClearOpponentMessage ();
 			} else {
-				ShowOpponentMessageTimed ($"Opponent ended sequence: {finalCardCount} {sequenceColor} cards", 3.0f);
+				ShowOpponentMessageTimed ($"Opponent ended sequence: {finalCardCount} {sequenceColor} cards", messageDisplayTime);
 				ClearPlayerMessage ();
 			}
 
 			HideTakiSequenceStatus ();
 		}
-
+        
 		public override void ShowSequenceProgressMessage (int cardCount, CardColor sequenceColor, PlayerType who) {
 			if (IsLocalPlayer (who)) {
-				ShowPlayerMessageTimed ($"Your TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ShowPlayerMessageTimed ($"Your TAKI: {cardCount} {sequenceColor} cards played", messageDisplayTime);
 				ClearOpponentMessage ();
 			} else {
-				ShowOpponentMessageTimed ($"Opponent TAKI: {cardCount} {sequenceColor} cards played", 2.0f);
+				ShowOpponentMessageTimed ($"Opponent TAKI: {cardCount} {sequenceColor} cards played", messageDisplayTime);
 				ClearPlayerMessage ();
 			}
 		}
@@ -97,32 +97,32 @@ namespace TakiGame {
 		effectDescription) {
 			if (IsLocalPlayer (playedBy)) {
 				// Local player played special card
-				ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription}", 4.0f);
+				ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription}", messageDisplayTime);
 				ClearOpponentMessage ();
 				if (cardType == CardType.Plus) {
 					ShowPlayerMessageTimed ($"You played {cardType}: {effectDescription} - Take 1 more action!", 0f);
 				} else if (cardType == CardType.Stop) {
-					ShowOpponentMessageTimed ("STOP: Opponent's turn is skipped!", 3.0f);
+					ShowOpponentMessageTimed ("STOP: Opponent's turn is skipped!", messageDisplayTime);
 				}
 			} else {
 				// Opponent played special card
-				ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription}", 4.0f);
+				ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription}", messageDisplayTime);
 				ClearPlayerMessage ();
 				if (cardType == CardType.Plus) {
 					ShowOpponentMessageTimed ($"Opponent played {cardType}: {effectDescription} - Takes 1 more action!", 0f);
 				} else if (cardType == CardType.Stop) {
-					ShowPlayerMessageTimed ("STOP: Your turn is skipped!", 3.0f);
+					ShowPlayerMessageTimed ("STOP: Your turn is skipped!", messageDisplayTime);
 				}
 			}
 		}
 
 		public override void ShowChainProgressMessage (int chainCount, int accumulatedDraw, PlayerType who) {
 			if (IsLocalPlayer (who)) {
-				ShowPlayerMessageTimed ($"You added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+				ShowPlayerMessageTimed ($"You added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", messageDisplayTime);
 	  
 		  ClearOpponentMessage ();
 			} else {
-				ShowOpponentMessageTimed ($"Opponent added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", 3.0f);
+				ShowOpponentMessageTimed ($"Opponent added to PlusTwo chain: {chainCount} cards -> Draw { accumulatedDraw}", messageDisplayTime);
 	  
 		  ClearPlayerMessage ();
 			}
@@ -130,10 +130,10 @@ namespace TakiGame {
 
 		public override void ShowChainBrokenMessage (int cardsDrawn, PlayerType who) {
 			if (IsLocalPlayer (who)) {
-				ShowPlayerMessageTimed ($"You broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ShowPlayerMessageTimed ($"You broke PlusTwo chain: Drew {cardsDrawn} cards", messageDisplayTime);
 				ClearOpponentMessage ();
 			} else {
-				ShowOpponentMessageTimed ($"Opponent broke PlusTwo chain: Drew {cardsDrawn} cards", 3.0f);
+				ShowOpponentMessageTimed ($"Opponent broke PlusTwo chain: Drew {cardsDrawn} cards", messageDisplayTime);
 				ClearPlayerMessage ();
 			}
 		}
@@ -297,7 +297,7 @@ namespace TakiGame {
         /// Show network connection status
         /// </summary>
         public void ShowNetworkStatus(string status) {
-            ShowPlayerMessageTimed($"Network: {status}", 3.0f);
+            ShowPlayerMessageTimed($"Network: {status}", messageDisplayTime);
             TakiLogger.LogNetwork($"Network status displayed: {status}");
         }
 
@@ -314,7 +314,7 @@ namespace TakiGame {
         /// Show opponent hand privacy feedback
         /// </summary>
         public void ShowOpponentHandPrivacy(int cardCount) {
-            ShowOpponentMessageTimed($"Opponent has {cardCount} cards (hidden)", 2.0f);
+            ShowOpponentMessageTimed($"Opponent has {cardCount} cards (hidden)", messageDisplayTime);
             TakiLogger.LogNetwork($"Opponent hand privacy feedback: {cardCount} cards");
         }
 
@@ -417,6 +417,49 @@ namespace TakiGame {
             ShowOpponentHandPrivacy(6);
 
             TakiLogger.LogDiagnostics("MultiPlayer message test complete - check UI text elements");
+        }
+
+        [ContextMenu("Debug Message UI Components")]
+        public void DebugMessageUIComponents() {
+            TakiLogger.LogDiagnostics("=== MESSAGE UI COMPONENTS DEBUG ===");
+
+            if (playerMessageText != null) {
+                TakiLogger.LogDiagnostics($"PlayerMessageText:");
+                TakiLogger.LogDiagnostics($"  - Text: '{playerMessageText.text}'");
+                TakiLogger.LogDiagnostics($"  - GameObject Active: {playerMessageText.gameObject.activeSelf}");
+                TakiLogger.LogDiagnostics($"  - Component Enabled: {playerMessageText.enabled}");
+                TakiLogger.LogDiagnostics($"  - Alpha: {playerMessageText.alpha}");
+                TakiLogger.LogDiagnostics($"  - Color: {playerMessageText.color}");
+                TakiLogger.LogDiagnostics($"  - Font Size: {playerMessageText.fontSize}");
+                TakiLogger.LogDiagnostics($"  - Position: {playerMessageText.transform.position}");
+            } else {
+                TakiLogger.LogDiagnostics("PlayerMessageText is NULL!");
+            }
+
+            if (computerMessageText != null) {
+                TakiLogger.LogDiagnostics($"ComputerMessageText:");
+                TakiLogger.LogDiagnostics($"  - Text: '{computerMessageText.text}'");
+                TakiLogger.LogDiagnostics($"  - GameObject Active: {computerMessageText.gameObject.activeSelf}");
+                TakiLogger.LogDiagnostics($"  - Component Enabled: {computerMessageText.enabled}");
+                TakiLogger.LogDiagnostics($"  - Alpha: {computerMessageText.alpha}");
+                TakiLogger.LogDiagnostics($"  - Color: {computerMessageText.color}");
+                TakiLogger.LogDiagnostics($"  - Font Size: {computerMessageText.fontSize}");
+                TakiLogger.LogDiagnostics($"  - Position: {computerMessageText.transform.position}");
+            } else {
+                TakiLogger.LogDiagnostics("ComputerMessageText is NULL!");
+            }
+
+            TakiLogger.LogDiagnostics("=== END MESSAGE UI DEBUG ===");
+        }
+
+        [ContextMenu("Force Test Messages")]
+        public void ForceTestMessages() {
+            TakiLogger.LogDiagnostics("=== FORCE TEST MESSAGES ===");
+
+            ShowPlayerMessageTimed("TEST PLAYER MESSAGE - Should be visible for 10 seconds!", 10.0f);
+            ShowOpponentMessageTimed("TEST OPPONENT MESSAGE - Should be visible for 10 seconds!", 10.0f);
+
+            TakiLogger.LogDiagnostics("Force test messages set - check screen visibility");
         }
 
         public override void LogCompleteUIState() {

@@ -128,6 +128,8 @@ namespace TakiGame {
 		// TAKI sequence state
 		private bool isCurrentCardLastInSequence = false;
 
+		private float averageWaitingTime = 10.0f;
+
 		#endregion
 
 		#region Public Properties
@@ -252,7 +254,7 @@ namespace TakiGame {
 		private System.Collections.IEnumerator WaitForHandManagersInitialization() {
 			TakiLogger.LogSystem("Waiting for HandManager initialization...");
 
-			float timeout = 10f; // 10 second timeout
+			float timeout = averageWaitingTime; // 10 second timeout
 			float elapsed = 0f;
 
 			while (!AreHandManagersInitialized() && elapsed < timeout) {
@@ -515,13 +517,12 @@ namespace TakiGame {
 			TakiLogger.LogSystem ($"singlePlayerUI: {(singlePlayerUI != null ? "ASSIGNED" : "NULL")}", TakiLogger.LogLevel.Debug);
 			TakiLogger.LogSystem ($"multiPlayerUI: {(multiPlayerUI != null ? "ASSIGNED" : "NULL")}", TakiLogger.LogLevel.Debug);
 
-			// Deactivate inactive UI manager first (prevent event pollution)
-			if (isMultiplayerMode) {
-				// Deactivate single player UI
-				if (singlePlayerUI != null) {
-					singlePlayerUI.DeactivateFromMode();
-				}
+			// SAFETY: Disconnect all existing events to prevent duplicate handlers
+			DisconnectUIManagerEvents(singlePlayerUI, "SinglePlayerUIManager");
+			DisconnectUIManagerEvents(multiPlayerUI, "MultiPlayerUIManager");
 
+			// Activate correct UI manager and connect events
+			if (isMultiplayerMode) {
 				// Activate and connect multiplayer UI
 				if (multiPlayerUI != null) {
 					multiPlayerUI.ActivateForMode();
@@ -532,11 +533,6 @@ namespace TakiGame {
 					multiPlayerUI.OnEndTakiSequenceClicked += OnEndTakiSequenceButtonClicked;
 				}
 			} else {
-				// Deactivate multiplayer UI
-				if (multiPlayerUI != null) {
-					multiPlayerUI.DeactivateFromMode();
-				}
-
 				// Activate and connect single player UI
 				if (singlePlayerUI != null) {
 					singlePlayerUI.ActivateForMode();
@@ -585,6 +581,9 @@ namespace TakiGame {
 			// Set multiplayer mode
 			isMultiplayerMode = false;
 			TakiLogger.LogNetwork ("Multiplayer mode disabled", TakiLogger.LogLevel.Debug);
+
+			// CRITICAL FIX: Switch UI managers when mode changes
+			ConnectActiveUIManagerEvents();
 
 			// Configure turn manager for singleplayer
 			if (turnManager != null) {
@@ -635,6 +634,9 @@ namespace TakiGame {
 			// Set multiplayer mode
 			isMultiplayerMode = true;
 			TakiLogger.LogNetwork ("Multiplayer mode enabled", TakiLogger.LogLevel.Debug);
+
+			// CRITICAL FIX: Switch UI managers when mode changes
+			ConnectActiveUIManagerEvents();
 
 			// Configure turn manager for multiplayer
 			if (turnManager != null) {
@@ -903,6 +905,25 @@ namespace TakiGame {
 		/// </summary>
 		void StartPlayerTurnFlow () {
 			TakiLogger.LogTurnFlow ("Starting Player Turn", TakiLogger.LogLevel.Debug);
+
+			// MULTIPLAYER: Check for STOP effect FIRST - must be before all other checks
+			if (isMultiplayerMode && shouldSkipNextTurn) {
+				TakiLogger.LogNetwork ("=== STOP EFFECT DETECTED AT TURN START ===");
+				TakiLogger.LogNetwork ("This player's turn is being skipped due to opponent's STOP card");
+
+				// Clear the STOP flag
+				shouldSkipNextTurn = false;
+
+				// Show skip message
+				GetActiveUI()?.ShowPlayerMessageTimed("STOP effect: Your turn is skipped!", averageWaitingTime);
+
+				// Don't enable any buttons - immediately skip turn
+				TakiLogger.LogNetwork ("Skipping turn - no buttons enabled, advancing to opponent");
+
+				// Skip this turn by ending it immediately (similar to how singleplayer works)
+				Invoke(nameof(EndTurnAfterStopSkip), 0.5f); // Small delay for message visibility
+				return; // Exit early - don't do normal turn processing
+			}
 
 			// Check for active PlusTwo chain FIRST
 			if (gameState.IsPlusTwoChainActive) {
@@ -1328,6 +1349,26 @@ namespace TakiGame {
 				}
 			} else {
 				TakiLogger.LogError ("Cannot trigger AI turn after STOP - missing components", TakiLogger.LogCategory.AI);
+			}
+		}
+
+		/// <summary>
+		/// MULTIPLAYER: End turn immediately due to STOP effect (no player actions taken)
+		/// </summary>
+		void EndTurnAfterStopSkip () {
+			TakiLogger.LogNetwork ("=== ENDING TURN AFTER STOP SKIP ===");
+
+			if (!isMultiplayerMode) {
+				TakiLogger.LogError ("EndTurnAfterStopSkip should not be called in singleplayer mode!", TakiLogger.LogCategory.Network);
+				return;
+			}
+
+			// Send end turn to network (this advances to the next player)
+			if (networkGameManager != null) {
+				networkGameManager.SendEndTurn();
+				TakiLogger.LogNetwork ("Turn ended due to STOP effect - advancing to opponent");
+			} else {
+				TakiLogger.LogError ("Cannot end turn after STOP skip - networkGameManager is null", TakiLogger.LogCategory.Network);
 			}
 		}
 
@@ -2022,9 +2063,18 @@ namespace TakiGame {
 				TakiLogger.LogNetwork ("Sent STOP effect to remote player");
 			}
 
-			// Show local feedback - clear and specific for multiplayer
-			GetActiveUI ()?.ShowPlayerMessage ("STOP: Opponent's next turn will be skipped!");
-			GetActiveUI ()?.ShowOpponentMessage ("You played STOP - opponent turn skip scheduled");
+			// Show multiplayer-aware feedback using ActorNumber-based logic
+			bool iPlayedTheCard = networkGameManager.IsMyTurn;
+
+			if (iPlayedTheCard) {
+				// Local client played the STOP card
+				GetActiveUI()?.ShowPlayerMessageTimed("You played STOP: Opponent's next turn will be skipped!", averageWaitingTime);
+				GetActiveUI()?.ShowOpponentMessage(""); // Clear opponent message area
+			} else {
+				// Opponent played the STOP card
+				GetActiveUI()?.ShowOpponentMessageTimed("Opponent played STOP: Your next turn will be skipped!", averageWaitingTime);
+				GetActiveUI()?.ShowPlayerMessage(""); // Clear player message area
+			}
 
 			TakiLogger.LogNetwork ("Multiplayer STOP effect processed - opponent will be notified");
 		}
@@ -2102,9 +2152,18 @@ namespace TakiGame {
 					TakiLogger.LogNetwork ($"Sent direction change to remote player: {newDirection}");
 				}
 
-				// Show local feedback
-				GetActiveUI ()?.ShowPlayerMessage ($"DIRECTION CHANGED: {oldDirection} -> {newDirection}");
-				GetActiveUI ()?.ShowOpponentMessage ($"You changed turn direction to {newDirection}");
+				// Show multiplayer-aware feedback using ActorNumber-based logic
+				bool iPlayedTheCard = networkGameManager.IsMyTurn;
+
+				if (iPlayedTheCard) {
+					// Local client played the ChangeDirection card
+					GetActiveUI()?.ShowPlayerMessageTimed($"You played ChangeDirection: {oldDirection} → {newDirection}", averageWaitingTime);
+					GetActiveUI()?.ShowOpponentMessage($""); // Clear opponent message area
+				} else {
+					// Opponent played the ChangeDirection card
+					GetActiveUI()?.ShowOpponentMessageTimed($"Opponent played ChangeDirection: {oldDirection} → {newDirection}", averageWaitingTime);
+					GetActiveUI()?.ShowPlayerMessage($""); // Clear player message area
+				}
 
 				TakiLogger.LogNetwork ("Multiplayer direction change processed - opponent will be synchronized");
 			} else {
@@ -2384,9 +2443,19 @@ namespace TakiGame {
 			// In multiplayer, the turn skipping is handled by PunTurnManager
 			// We don't need to manually start AI turns - Photon handles turn switching
 
-			// Show feedback about the skip effect being processed
-			GetActiveUI ()?.ShowPlayerMessage ("STOP effect: Opponent's turn was skipped!");
-			GetActiveUI ()?.ShowOpponentMessage ("Turn skip processed - continuing game");
+			// Show multiplayer-aware feedback about the skip effect
+			// In multiplayer, whoever's turn is being skipped is not the current player
+			bool myTurnWasSkipped = !networkGameManager.IsMyTurn;
+
+			if (myTurnWasSkipped) {
+				// Local client's turn was skipped
+				GetActiveUI()?.ShowPlayerMessageTimed("STOP effect: Your turn was skipped!", averageWaitingTime);
+				GetActiveUI()?.ShowOpponentMessage(""); // Clear opponent message area
+			} else {
+				// Opponent's turn was skipped
+				GetActiveUI()?.ShowOpponentMessageTimed("STOP effect: Opponent's turn was skipped!", averageWaitingTime);
+				GetActiveUI()?.ShowPlayerMessage(""); // Clear player message area
+			}
 
 			// Clear any selected cards from previous action
 			GetActivePlayerHandManager ()?.ClearSelection ();
@@ -3567,14 +3636,18 @@ namespace TakiGame {
 				return;
 			}
 
+			// CRITICAL FIX: Set flag to skip local player's next turn
+			shouldSkipNextTurn = true;
+			TakiLogger.LogNetwork ("STOP skip flag set - local player's next turn will be skipped");
+
 			// Show feedback to local player
 			GetActiveUI ()?.ShowOpponentAction ("played STOP - skipping your turn");
-			GetActiveUI ()?.ShowOpponentMessage ("Opponent played STOP card - your turn is skipped");
+			GetActiveUI ()?.ShowOpponentMessage ("Opponent played STOP card - your turn will be skipped");
 
 			// Update UI
 			UpdateAllUIWithNetworkSupport ();
 
-			TakiLogger.LogNetwork ("Remote STOP effect processed");
+			TakiLogger.LogNetwork ("Remote STOP effect processed - skip flag set");
 		}
 
 		/// <summary>
@@ -3588,9 +3661,10 @@ namespace TakiGame {
 				return;
 			}
 
-			// Show feedback to local player
-			GetActiveUI ()?.ShowOpponentAction ("changed direction");
-			GetActiveUI ()?.ShowOpponentMessage ("Opponent changed game direction");
+			// Show proper network-aware feedback to local player
+			// Since this is processing a remote direction change, opponent played the card
+			GetActiveUI()?.ShowOpponentMessageTimed("Opponent played ChangeDirection: Direction reversed!", averageWaitingTime);
+			GetActiveUI()?.ShowPlayerMessage(""); // Clear player message area
 
 			// Update UI
 			UpdateAllUIWithNetworkSupport ();

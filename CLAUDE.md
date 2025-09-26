@@ -269,9 +269,76 @@ if (gameManager != null) {
 
 **Result**: ✅ **Strict Button Flow**: Players MUST press END TURN to advance turns, essential for special effect cards
 
+### **Player/Opponent Message System Fix:**
+**Problem**: Messages showed in Inspector but not on screen - multiple issues including UI manager switching, timing conflicts, and transparency
+**Root Causes**:
+1. **UI Manager Mode Switching Bug** - Wrong UI manager active in multiplayer
+2. **Unity Start() Timing Override** - Start() method disabling correctly activated UI managers
+3. **Alpha Transparency Issue** - TextMeshPro components had alpha=0
+4. **Competing Message Calls** - Multiple systems overwriting messages
+
+**Solution Applied**:
+- **UI Manager Activation Tracking** - Added `explicitlyActivatedByGameManager` flag to prevent Start() override
+- **Proper Disconnection Chain** - Added `DisconnectUIManagerEvents()` to prevent duplicate handlers
+- **Message Duration Standardization** - All special card messages now show for 10 seconds
+- **Fixed Message Routing** - Replaced competing message calls with proper multiplayer-aware routing
+
+**Implementation**:
+```csharp
+// GameManager mode switching (lines 590, 643)
+ConnectActiveUIManagerEvents(); // Called on every mode change
+
+// BaseGameplayUIManager activation protection
+explicitlyActivatedByGameManager = true; // Prevents Start() override
+this.enabled = true; // Ensures component stays enabled
+
+// Proper message routing in HandleChangeDirectionCardEffectMultiplayer()
+bool iPlayedTheCard = networkGameManager.IsMyTurn;
+if (iPlayedTheCard) {
+    GetActiveUI()?.ShowPlayerMessageTimed($"You played ChangeDirection: {oldDirection} → {newDirection}", 10.0f);
+} else {
+    GetActiveUI()?.ShowOpponentMessageTimed($"Opponent played ChangeDirection: {oldDirection} → {newDirection}", 10.0f);
+}
+```
+
+**Result**: ✅ **Player/Opponent Messages**: Fully functional - messages display correctly on screen with proper perspective and timing
+
+### **STOP Card Turn Skipping Fix:**
+**Problem**: STOP cards showed visual messages but turn continued normally instead of being skipped
+**Root Cause**: `ProcessStopSkipEffectMultiplayer()` cleared flags and showed messages but didn't implement actual turn skipping logic - incorrectly assumed PunTurnManager would handle it
+
+**Solution Applied**: Implemented correct turn skipping flow matching singleplayer pattern
+- **`StartPlayerTurnFlow()` STOP check**: Added STOP flag detection at start of turn (before PlusTwo chains or other logic)
+- **`ProcessNetworkStopEffect()` flag setting**: Set `shouldSkipNextTurn = true` when receiving opponent's STOP effect
+- **`EndTurnAfterStopSkip()` immediate skip**: Skip flagged turn immediately and advance to opponent
+
+**Correct Flow Implementation**:
+1. Player A plays STOP → END TURN
+2. Turn advances normally to Player B via PunTurnManager
+3. Player B's turn starts → `StartPlayerTurnFlow()` detects STOP flag first
+4. Player B's turn skipped immediately (no buttons enabled)
+5. Turn automatically advances back to Player A
+
+**Implementation**:
+```csharp
+// In StartPlayerTurnFlow() - STOP check FIRST
+if (isMultiplayerMode && shouldSkipNextTurn) {
+    shouldSkipNextTurn = false;
+    GetActiveUI()?.ShowPlayerMessageTimed("STOP effect: Your turn is skipped!", averageWaitingTime);
+    Invoke(nameof(EndTurnAfterStopSkip), 0.5f);
+    return; // Exit early - no normal turn processing
+}
+
+// In ProcessNetworkStopEffect() - Set skip flag
+shouldSkipNextTurn = true;
+TakiLogger.LogNetwork("STOP skip flag set - local player's next turn will be skipped");
+```
+
+**Result**: ✅ **STOP Cards**: Turn skipping works perfectly - opponent's turn is actually skipped, not just visually
+
 ## Current Status
 ✅ **Singleplayer**: Complete & Working
-🔄 **Multiplayer**: Core Systems Complete - Special Cards In Progress
+✅ **Multiplayer**: Core Systems Complete - Special Card Investigation In Progress
 - **Core multiplayer functionality**: ✅ Complete
   - Card assignment: 8/8 cards ✅
   - UI display: Correct hand counts ✅
@@ -282,11 +349,15 @@ if (gameManager != null) {
   - **Draw pile synchronization: FIXED** ✅ Draw pile counts stay synchronized across clients
   - **Client card actions: FIXED** ✅ Both master and client can draw and play basic cards
   - **Strict button flow: FIXED** ✅ Actions don't auto-advance turns, END TURN required
+  - **Player/Opponent message system: FIXED** ✅ Messages display correctly with proper routing and timing
   - **Hand count synchronization: FIXED** ✅ Fixed double-counting bugs in network processing
 - **Card types**:
   - **Basic number cards**: ✅ Working perfectly
-  - **PlusTwo cards**: 🔄 Mostly working (chain logic functional, minor sync improvements pending)
-  - **Special effect cards**: ⏳ Pending investigation
+  - **ChangeDirection cards**: ✅ Working perfectly (network sync and messages confirmed)
+  - **STOP cards**: ✅ Working perfectly (turn skipping logic implemented correctly)
+  - **PLUS cards**: ✅ Working perfectly (additional action flow confirmed in multiplayer)
+  - **PlusTwo cards**: ✅ Working (chain logic functional, sync complete)
+  - **Special effect cards**: 🔄 Investigation in progress
 
 ## Todo List
 - [x] ✅ Multiplayer compatibility investigation - All methods analyzed and fixed
@@ -304,29 +375,26 @@ if (gameManager != null) {
 - [x] ✅ **FIXED: Card play sync missing** - Implemented OnPlayerMove() for non-finishing network actions
 - [x] ✅ **FIXED: Hand count synchronization** - Fixed double-counting bugs in ProcessNetworkCardPlay/Draw
 - [x] ✅ **FIXED: PlusTwo chain break sync** - Enhanced ProcessNetworkChainBreak with proper opponent count updates
+- [x] ✅ **FIXED: STOP card turn skipping** - Implemented correct turn skipping flow matching singleplayer pattern
 - [x] ✅ **Multiplayer testing** - Game functionality verified with strict turn flow
 
 ## Special Cards Multiplayer Investigation Todo
 
-### 🎯 Next Priority: ChangeDirection
-- [ ] **ChangeDirection cards**: Investigate multiplayer network synchronization
-  - Check if direction changes are properly synced between clients
-  - Verify turn order updates correctly after direction change
-  - Test in combination with other special cards
+### 🎯 Next Priority: ChangeColor Cards
+- [ ] **ChangeColor cards**: Investigate multiplayer color selection functionality
+  - Check if color selection synchronization works correctly
+  - Verify UI color picker works in multiplayer context
+  - Test network synchronization of color changes
 
 ### 📋 Special Cards Status & Todo List
 - [x] ✅ **Basic Number Cards (1-9)**: Working perfectly in multiplayer
-- [x] 🔄 **PlusTwo Cards**: Mostly functional (chain logic works, minor sync improvements completed)
-- [ ] ⏳ **ChangeDirection Cards**: Pending investigation - next priority
-- [ ] ⏳ **ChangeColor Cards**: Pending investigation
+- [x] ✅ **PlusTwo Cards**: Working (chain logic functional, sync complete)
+- [x] ✅ **ChangeDirection Cards**: Working perfectly (network sync and messages confirmed)
+- [x] ✅ **STOP Cards**: Working perfectly (turn skipping logic implemented correctly)
+- [x] ✅ **PLUS Cards**: Working perfectly (additional action flow confirmed in multiplayer)
+- [ ] 🔄 **ChangeColor Cards**: Investigation needed - next priority
   - Color selection synchronization
   - UI color picker in multiplayer context
-- [ ] ⏳ **Plus Cards**: Pending investigation
-  - Additional turn logic in multiplayer
-  - Turn flow synchronization
-- [ ] ⏳ **Stop Cards**: Pending investigation
-  - Skip turn logic in multiplayer
-  - Turn advance synchronization
 - [ ] ⏳ **TAKI Cards**: Pending investigation
   - Sequence initiation in multiplayer
   - Sequence end button synchronization (partially fixed)
@@ -342,3 +410,61 @@ For each special card type:
 
 ## Side Notes
 - **No Unicode**: Avoid special characters in code/files
+
+---
+
+# Next Thread Starting Prompt
+
+Summary for Next Thread: ChangeColor Card Investigation
+
+Context: STOP, ChangeDirection, and PLUS cards have been FULLY RESOLVED and confirmed working perfectly in multiplayer. Moving to next special card investigation.
+
+Key Learnings & Patterns from Previous Fixes:
+1. **Always Study Singleplayer Logic First**: Check how the card works in singleplayer mode to understand expected multiplayer behavior
+2. **Network Message Routing Pattern**: Use `networkGameManager.IsMyTurn` for "You/Opponent" perspective, NOT PlayerType
+3. **UI Manager Activation**: Always verify correct UI manager is active via `GetActiveUI()` - don't assume based on game mode
+4. **Turn Flow Integration**: Check where/how singleplayer logic fits into `StartPlayerTurnFlow()` and `HandlePostCardPlayTurnFlow()`
+5. **Flag-Based State Management**: Use flags like `shouldSkipNextTurn` for turn-start processing, not immediate turn manipulation
+
+Technical Implementation Patterns Established:
+```csharp
+// ✅ CORRECT: Network-aware message routing
+bool iPlayedTheCard = networkGameManager.IsMyTurn;
+if (iPlayedTheCard) {
+    GetActiveUI()?.ShowPlayerMessageTimed($"You played {cardName}", 10.0f);
+} else {
+    GetActiveUI()?.ShowOpponentMessageTimed($"Opponent played {cardName}", 10.0f);
+}
+
+// ✅ CORRECT: Turn-start flag processing (like STOP cards)
+if (isMultiplayerMode && specialCardFlag) {
+    // Clear flag, show message, handle special logic
+    specialCardFlag = false;
+    GetActiveUI()?.ShowPlayerMessageTimed("Special effect message", averageWaitingTime);
+    // Handle the special effect
+    return; // Exit early if needed
+}
+```
+
+Critical Files for ChangeColor Card Investigation:
+- GameManager.cs - Look for `HandleChangeColorCardEffect()` and `ChangeColor` case statements
+- NetworkGameManager.cs - Check color selection RPC handling and `SendColorSelection()`
+- MultiPlayerUIManager.cs - Color selection UI synchronization
+- GameStateManager.cs - Color state management in multiplayer
+
+Expected ChangeColor Card Issues (based on patterns):
+- Color selection UI might not sync between clients
+- Network synchronization of color changes
+- Color picker availability in multiplayer context
+- Message routing for color selection effects
+
+Investigation Approach:
+1. **Study singleplayer ChangeColor implementation** - How does color selection work?
+2. **Test ChangeColor behavior in multiplayer mode** - Does color picker appear? Does selection sync?
+3. **Analyze network color selection synchronization** - Check `SendColorSelection()` and `ProcessNetworkColorSelection()`
+4. **Fix any UI synchronization issues** using established patterns
+5. **Verify both players see correct color changes** and proper turn flow
+
+Next Task: Investigate ChangeColor card functionality in multiplayer mode - focus on color selection synchronization and UI behavior.
+
+● Ready for ChangeColor card investigation! Use the established patterns and approach from STOP/ChangeDirection/PLUS fixes.
