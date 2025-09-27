@@ -619,12 +619,16 @@ namespace TakiGame {
 		/// Enhanced multiplayer system initialization with deck coordination
 		/// </summary>
 		public void InitializeMultiPlayerSystems () {
+			TakiLogger.LogNetwork ("=== InitializeMultiPlayerSystems() CALLED ===");
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: areComponentsValidated={areComponentsValidated}");
+			TakiLogger.LogNetwork ($"DIAGNOSTIC: networkGameManager null check: {networkGameManager == null}");
+
 			if (!areComponentsValidated) {
 				TakiLogger.LogError ("Cannot initialize: Components not validated!", TakiLogger.LogCategory.System);
 				return;
 			}
 
-			TakiLogger.LogSystem ("Initializing multiplayer game systems...", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogSystem ("Initializing multiplayer game systems...");
 
 			if (networkGameManager == null) {
 				TakiLogger.LogError ("NetworkGameManager not assigned!", TakiLogger.LogCategory.System);
@@ -633,7 +637,7 @@ namespace TakiGame {
 
 			// Set multiplayer mode
 			isMultiplayerMode = true;
-			TakiLogger.LogNetwork ("Multiplayer mode enabled", TakiLogger.LogLevel.Debug);
+			TakiLogger.LogNetwork ("Multiplayer mode enabled");
 
 			// CRITICAL FIX: Switch UI managers when mode changes
 			ConnectActiveUIManagerEvents();
@@ -777,6 +781,10 @@ namespace TakiGame {
 		/// Coroutine version of StartNewMultiPlayerGame that waits for HandManager initialization
 		/// </summary>
 		private System.Collections.IEnumerator StartNewMultiPlayerGameCoroutine() {
+			// CRITICAL FIX: Reset systems flag for mode switch - singleplayer initialization doesn't apply to multiplayer
+			areSystemsInitialized = false;
+			TakiLogger.LogNetwork ("SYSTEMS RESET: areSystemsInitialized reset for multiplayer mode");
+
 			// Initialize systems if not already done
 			if (!areSystemsInitialized) {
 				InitializeMultiPlayerSystems ();
@@ -823,7 +831,8 @@ namespace TakiGame {
 				}
 			} else {
 				TakiLogger.LogSystem ("Reseting game systems in multiplayer mode", TakiLogger.LogLevel.Info);
-				TakiLogger.LogSystem ("In multiplayer, hands are populated from network data and should NOT be cleared", TakiLogger.LogLevel.Trace);
+				TakiLogger.LogSystem ("Clearing player hand to avoid singleplayer contamination", TakiLogger.LogLevel.Trace);
+				playerHand.Clear (); // CRITICAL FIX: Clear to avoid reference contamination from previous singleplayer games
 			}
 
 			// Always reset core game systems (both modes need this)
@@ -855,8 +864,14 @@ namespace TakiGame {
 		void OnInitialGameSetupComplete (List<CardData> player1Hand, List<CardData> player2Hand, CardData startingCard) {
 
 			// Assign hands (Player1 = Player, Player2 = Opponent)
-			playerHand = player1Hand;
-			if (ShouldUseAI) {
+			// CRITICAL: Create defensive copy in multiplayer to prevent reference contamination
+			if (isMultiplayerMode) {
+				playerHand = new List<CardData>(player1Hand);  // Defensive copy for multiplayer
+				TakiLogger.LogNetwork ("DEFENSIVE COPY: Created playerHand copy in multiplayer mode to prevent reference contamination");
+			} else {
+				playerHand = player1Hand;  // Direct assignment is fine for singleplayer
+			}
+			if (!isMultiplayerMode && computerAI != null) {
 				computerAI.AddCardsToHand (player2Hand);
 			}
 			// In multiplayer, player2Hand would be handled by network synchronization
@@ -1720,7 +1735,13 @@ namespace TakiGame {
 				} else {
 					TakiLogger.LogGameState ("Player wins - hand is empty!");
 				}
-				gameState.DeclareWinner (PlayerType.Human);
+
+				// MODE AWARE: Handle win condition properly for both game modes
+				if (isMultiplayerMode) {
+					HandleLocalPlayerWin ();
+				} else {
+					gameState.DeclareWinner (PlayerType.Human);
+				}
 				return;
 			}
 

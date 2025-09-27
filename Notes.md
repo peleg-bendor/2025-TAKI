@@ -2317,11 +2317,11 @@ Read `CLAUDE.md`.
   2. We need to create a starting prompt, not unlike the one I gave you at the start, our next target is the PLUS card (where player get's
   another action). We should also note that it's very important to properly search what happens in singleplayer mode, and by that much more
   easily know what we need to do.
-  The log files have been updated with
 
 
 1. Update `CLAUDE/md`
 2. We need to create a starting prompt, not unlike the one I gave you at the start, our next target is implementing a timer!
+We need to implement a timer for multiplayer.
 - In the inspector, we have: 
   - `Player1TimerText` which shows the player how long they have left until their turn automatically ends.
   - `Player2TimerText` which shows the player how long their opponent has left until their turn automatically ends.
@@ -2329,9 +2329,12 @@ Read `CLAUDE.md`.
 - The moment a player's turn ends, the `Player1TimerText` will be cleared.
 - Same idea for `Player2TimerText` to keep track on opponent's timer
 - What happens if the timer reaches 0:
-  - that depends on what situation we are in:
-    - If we are in an active TAKI, AKA, if ENDTAKISEQUENCE button is enabled, trigger the clicking on ENDTAKISEQUENCE, wait a moment, then trigger click ENDTURN
-    - If DRAW button is enabled, AKA, it's possible for the player to draw -> we trigger somehow the DRAW button so the logic would be exactlly the same as if the player clicked (why so carefully? because we have complicated draws too, like in plus two chanes), wait a moment, then trigger click ENDTURN
-    - Else, if DRAW button is not enabled, if ENDTURN is enabled trigger click ENDTURN
+  - that depends on what situation we are in - we need to run a check end timer state:
+    - If we are in an active TAKI, AKA, if ENDTAKISEQUENCE button is enabled, trigger the clicking on ENDTAKISEQUENCE, wait a moment, then rerun the check end timer state.
+    - If ENDTURN is enabled, AKA, it's possible for the player to end turn -> we trigger somehow the ENDTURN button so the logic would be exactlly the same as if the player clicked, wait a moment, then rerun the check end timer state.
+    - If DRAW button is enabled, AKA, it's possible for the player to draw -> we trigger somehow the DRAW button so the logic would be exactlly the same as if the player clicked (why so carefully? because we have complicated draws too, like in plus two chanes), wait a moment, then rerun the check end timer state.
     - Else log an error, I can't see how this could happen
+
+We need to create a new starting prompt, our next target is the TAKI card . We should also note that it's very very important to properly and thoroghly search what happens in singleplayer mode, and by that much more easily know what we need to do.
+
 

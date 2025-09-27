@@ -90,8 +90,17 @@ namespace TakiGame {
 			}
 
 			// Deal cards to players
+			TakiLogger.LogNetwork ("SETUP DEBUG: About to draw Player 1 hand");
 			List<CardData> player1Hand = DrawInitialHand (initialHandSize);
+			TakiLogger.LogNetwork ("SETUP DEBUG: About to draw Player 2 hand");
 			List<CardData> player2Hand = DrawInitialHand (initialHandSize);
+
+			// DIAGNOSTIC: Check if hands are the same reference
+			bool sameReference = ReferenceEquals(player1Hand, player2Hand);
+			TakiLogger.LogNetwork ($"SETUP DEBUG: player1Hand == player2Hand reference: {sameReference}");
+			TakiLogger.LogNetwork ($"SETUP DEBUG: player1Hand reference: {player1Hand.GetHashCode()}, player2Hand reference: {player2Hand.GetHashCode()}");
+			TakiLogger.LogNetwork ($"SETUP DEBUG: player1Hand first card: {(player1Hand.Count > 0 ? player1Hand[0]?.GetDisplayText() : "NONE")}");
+			TakiLogger.LogNetwork ($"SETUP DEBUG: player2Hand first card: {(player2Hand.Count > 0 ? player2Hand[0]?.GetDisplayText() : "NONE")}");
 
 			// Select and place starting card
 			CardData startingCard = SelectStartingCard ();
@@ -123,6 +132,9 @@ namespace TakiGame {
 			}
 
 			List<CardData> hand = deck.DrawCards (handSize);
+
+			// DIAGNOSTIC: Debug hand creation to detect reference reuse issues
+			TakiLogger.LogNetwork ($"DrawInitialHand DEBUG: Drew {hand.Count} cards, First card: {(hand.Count > 0 ? hand[0]?.GetDisplayText() : "NONE")}, Hand reference: {hand.GetHashCode()}");
 
 			if (hand.Count < handSize) {
 				TakiLogger.LogWarning ($"Could only draw {hand.Count} out of {handSize} requested cards for initial hand", TakiLogger.LogCategory.GameState);

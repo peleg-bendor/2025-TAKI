@@ -155,15 +155,24 @@ namespace TakiGame {
 		/// Recreate visuals when mode changes to fix timing issues
 		/// </summary>
 		void RecreateVisualsForModeChange() {
+			// Remember if we had a discard pile before clearing
+			bool hadDiscardPile = discardPileCardController != null;
+			CardData previousTopDiscard = discardPileCardController?.CardData;
+
 			// Clear existing visuals
 			ClearPileVisuals();
 
 			// Recreate draw pile visual in correct container
 			CreateDrawPileVisual();
 
-			// If there was a discard pile, recreate it too
-			if (discardPileCardController != null) {
+			// Always recreate discard pile if we had one before, or if there's a top discard card to show
+			if (hadDiscardPile || previousTopDiscard != null) {
 				CreateDiscardPileVisual();
+
+				// If we had a previous top discard card, restore it
+				if (previousTopDiscard != null) {
+					UpdateDiscardPileDisplay(previousTopDiscard);
+				}
 			}
 		}
 

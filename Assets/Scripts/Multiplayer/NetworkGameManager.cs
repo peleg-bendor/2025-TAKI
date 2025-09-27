@@ -136,13 +136,36 @@ namespace TakiGame {
 				TakiLogger.LogNetwork ($"DIAGNOSTIC: Before SetupLocalMultiplayerHands - P1 Count={gameState.player1Hand.Count}, P2 Count={gameState.player2Hand.Count}");
 				if (gameState.player1Hand.Count > 0) {
 					TakiLogger.LogNetwork ($"DIAGNOSTIC: P1 First card exists: {gameState.player1Hand[0] != null}");
+					if (gameState.player1Hand[0] != null) {
+						TakiLogger.LogNetwork ($"DIAGNOSTIC: P1 First card: {gameState.player1Hand[0].GetDisplayText()}");
+					}
 				}
 				if (gameState.player2Hand.Count > 0) {
 					TakiLogger.LogNetwork ($"DIAGNOSTIC: P2 First card exists: {gameState.player2Hand[0] != null}");
+					if (gameState.player2Hand[0] != null) {
+						TakiLogger.LogNetwork ($"DIAGNOSTIC: P2 First card: {gameState.player2Hand[0].GetDisplayText()}");
+					}
 				}
+
+				// MASTER DIAGNOSTIC: Enhanced logging for master client
+				TakiLogger.LogNetwork ($"=== MASTER CLIENT HAND ASSIGNMENT DEBUG ===");
+				TakiLogger.LogNetwork ($"Master ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+				TakiLogger.LogNetwork ($"Master should be isPlayer1=True and get player1Hand");
+				TakiLogger.LogNetwork ($"About to call SetupLocalMultiplayerHands with P1={gameState.player1Hand.Count} cards, P2={gameState.player2Hand.Count} cards");
 
 				// Setup local state using simplified method
 				SetupLocalMultiplayerHands (gameState.player1Hand, gameState.player2Hand);
+
+				// MASTER DIAGNOSTIC: Check GameManager.playerHand after setup
+				if (gameManager != null) {
+					TakiLogger.LogNetwork ($"=== MASTER POST-SETUP DIAGNOSTIC ===");
+					TakiLogger.LogNetwork ($"Master GameManager.playerHand count after setup: {gameManager.playerHand.Count}");
+					if (gameManager.playerHand.Count > 0 && gameManager.playerHand[0] != null) {
+						TakiLogger.LogNetwork ($"Master GameManager.playerHand first card: {gameManager.playerHand[0].GetDisplayText()}");
+					} else {
+						TakiLogger.LogError ($"CRITICAL: Master has NO CARDS after SetupLocalMultiplayerHands!", TakiLogger.LogCategory.Network);
+					}
+				}
 
 				// Update deck display
 				UpdateMultiplayerDeckDisplay ();
@@ -355,8 +378,9 @@ namespace TakiGame {
 				HandManager activePlayerHandManager = gameManager.GetActivePlayerHandManager();
 				if (activePlayerHandManager != null) {
 					activePlayerHandManager.SetNetworkMode (true);
-					activePlayerHandManager.UpdateHandDisplay (myHand);
-					TakiLogger.LogNetwork ($"Local player hand displayed: {myHand.Count} cards (per-screen architecture)");
+					TakiLogger.LogNetwork ($"*** REFERENCE FIX VERIFICATION: Using myHandCopy ({myHandCopy.Count} cards) instead of myHand ({myHand.Count} cards) ***");
+					activePlayerHandManager.UpdateHandDisplay (myHandCopy);  // FIX: Use myHandCopy instead of myHand
+					TakiLogger.LogNetwork ($"Local player hand displayed: {myHandCopy.Count} cards (per-screen architecture) - FIXED VERSION");
 				} else {
 					TakiLogger.LogError ("Active player HandManager not found - check per-screen architecture setup", TakiLogger.LogCategory.Network);
 				}
@@ -373,7 +397,7 @@ namespace TakiGame {
 
 				// Update UI
 				if (gameManager.GetActiveUI() != null) {
-					gameManager.GetActiveUI().UpdateHandSizeDisplay (myHand.Count, opponentHand.Count);
+					gameManager.GetActiveUI().UpdateHandSizeDisplay (myHandCopy.Count, opponentHand.Count);  // FIX: Use myHandCopy instead of myHand
 				}
 			}
 

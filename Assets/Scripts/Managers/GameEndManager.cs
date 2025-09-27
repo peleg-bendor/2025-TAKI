@@ -29,6 +29,9 @@ namespace TakiGame {
 		[Tooltip ("Reference to MenuNavigation for screen transitions")]
 		public MenuNavigation menuNavigation;
 
+		[Tooltip ("Reference to NetworkCleanupManager for multiplayer cleanup")]
+		public NetworkCleanupManager networkCleanup;
+
 		[Header ("Game End Settings")]
 		[Tooltip ("Time to display winner before showing options")]
 		public float winnerDisplayTime = 3f;
@@ -275,6 +278,12 @@ namespace TakiGame {
 			// Reset game end state
 			ResetGameEndState ();
 
+			// Handle network cleanup for multiplayer games
+			if (gameManager != null && gameManager.IsMultiplayerMode && networkCleanup != null) {
+				TakiLogger.LogSystem ("Initiating network cleanup for multiplayer mode");
+				networkCleanup.OnGoingHome ();
+			}
+
 			// Reset game state manager
 			if (gameState != null) {
 				gameState.ResetGameState ();
@@ -327,6 +336,10 @@ namespace TakiGame {
 
 			if (menuNavigation == null) {
 				menuNavigation = FindObjectOfType<MenuNavigation> ();
+			}
+
+			if (networkCleanup == null) {
+				networkCleanup = FindObjectOfType<NetworkCleanupManager> ();
 			}
 
 			// Find UI references if not assigned

@@ -529,10 +529,14 @@ namespace TakiGame {
 			// Hide pause screen first
 			HidePauseScreenOverlay ();
 
-			// Disconnect from Photon if connected
-			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
-				TakiLogger.LogInfo ("Disconnecting from Photon...", TakiLogger.LogCategory.Multiplayer);
+			// Disconnect from Photon ONLY if coming from multiplayer mode
+			// IMPORTANT: Don't disconnect from singleplayer as player may want to play multiplayer next
+			if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton &&
+			    gameManager != null && gameManager.IsMultiplayerMode) {
+				TakiLogger.LogInfo ("Disconnecting from Photon (was in multiplayer mode)...", TakiLogger.LogCategory.Multiplayer);
 				multiplayerMenuLogic.DisconnectFromPhoton ();
+			} else if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
+				TakiLogger.LogInfo ("Staying connected to Photon (was in singleplayer mode)", TakiLogger.LogCategory.Multiplayer);
 			}
 
 			// Use loading screen transition to main menu
@@ -552,10 +556,14 @@ namespace TakiGame {
 			} else {
 				// This is from game end screen - use existing logic with Photon disconnect
 
-				// Disconnect from Photon if connected
-				if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
-					TakiLogger.LogInfo ("Disconnecting from Photon...", TakiLogger.LogCategory.Multiplayer);
+				// Disconnect from Photon ONLY if coming from multiplayer mode
+				// IMPORTANT: Don't disconnect from singleplayer as player may want to play multiplayer next
+				if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton &&
+				    gameManager != null && gameManager.IsMultiplayerMode) {
+					TakiLogger.LogInfo ("Disconnecting from Photon (was in multiplayer mode)...", TakiLogger.LogCategory.Multiplayer);
 					multiplayerMenuLogic.DisconnectFromPhoton ();
+				} else if (multiplayerMenuLogic != null && multiplayerMenuLogic.IsConnectedToPhoton) {
+					TakiLogger.LogInfo ("Staying connected to Photon (was in singleplayer mode)", TakiLogger.LogCategory.Multiplayer);
 				}
 
 				StartCoroutine (GoToMainMenuWithLoadingCoroutine ());

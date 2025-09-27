@@ -773,7 +773,7 @@ namespace TakiGame {
 		/// <param name="winner">Winning player type</param>
 		public void ShowWinnerAnnouncement (PlayerType winner) {
 			string winnerText = winner == PlayerType.Human ?
-								"You Win!" : "Computer Wins!";
+								"You Win!" : "Opponent Wins!";
 
 			if (turnIndicatorText != null) {
 				turnIndicatorText.text = winnerText;

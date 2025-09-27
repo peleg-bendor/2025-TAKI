@@ -283,12 +283,32 @@ namespace TakiGame {
 			hasGameStarted = false;
 		}
 
+		/// <summary>
+		/// Called when we leave a room - continue matchmaking flow
+		/// </summary>
+		public override void OnLeftRoom () {
+			if (enableNetworkLogs) {
+				TakiLogger.LogInfo ("Left room successfully - continuing to lobby for fresh matchmaking", TakiLogger.LogCategory.Multiplayer);
+			}
+
+			UpdateStatus ("Left previous room. Searching for games...");
+
+			// Continue to lobby for fresh matchmaking
+			if (PhotonNetwork.IsConnected) {
+				PhotonNetwork.JoinLobby ();
+			} else {
+				UpdateStatus ("Connection lost. Reconnecting...");
+				PhotonNetwork.ConnectUsingSettings ();
+			}
+		}
+
 		#endregion
 
 		#region Controllers
 
 		/// <summary>
 		/// Button click handler to start matchmaking
+		/// ENHANCED: Now handles already-in-room state for proper re-entry
 		/// </summary>
 		public void Btn_PlayMultiPlayer () {
 			hasGameStarted = false;
@@ -297,8 +317,23 @@ namespace TakiGame {
 				btnPlayMultiPlayer.interactable = false;
 			}
 
-			PhotonNetwork.JoinLobby ();
-			UpdateStatus ("Searching for available TAKI rooms...");
+			// Check if we're already in a room from previous game
+			if (PhotonNetwork.InRoom) {
+				if (enableNetworkLogs) {
+					TakiLogger.LogInfo ($"Already in room {PhotonNetwork.CurrentRoom.Name} - leaving first for fresh matchmaking", TakiLogger.LogCategory.Multiplayer);
+				}
+				UpdateStatus ("Leaving previous room...");
+				PhotonNetwork.LeaveRoom ();
+				// OnLeftRoom callback will continue to lobby joining
+			} else if (PhotonNetwork.IsConnected) {
+				// Normal flow - join lobby for matchmaking
+				PhotonNetwork.JoinLobby ();
+				UpdateStatus ("Searching for available TAKI rooms...");
+			} else {
+				// Not connected - start connection process
+				UpdateStatus ("Connecting to Photon...");
+				PhotonNetwork.ConnectUsingSettings ();
+			}
 		}
 
 		#endregion
