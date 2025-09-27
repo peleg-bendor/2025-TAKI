@@ -30,6 +30,7 @@ namespace TakiGame {
 		private CardData pausedTopDiscardCard = null;
 		private bool wasThinkingWhenPaused = false;
 		private float pausedThinkingTimeRemaining = 0f;
+		
 		private CardData currentChainPlusTwo = null;
 
 		// Events for AI decisions

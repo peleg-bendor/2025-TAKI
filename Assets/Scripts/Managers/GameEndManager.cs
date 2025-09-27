@@ -31,7 +31,7 @@ namespace TakiGame {
 
 		[Header ("Game End Settings")]
 		[Tooltip ("Time to display winner before showing options")]
-		public float winnerDisplayTime = 2.0f;
+		public float winnerDisplayTime = 3f;
 
 		[Tooltip ("Transition time for screen changes")]
 		public float transitionTime = 0.5f;

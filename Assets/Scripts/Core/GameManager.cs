@@ -3306,22 +3306,19 @@ namespace TakiGame {
 			GetActiveUI ()?.ShowOpponentAction ($"played {playedCard.GetDisplayText ()}");
 			GetActiveUI ()?.ShowOpponentMessage ($"Opponent played {playedCard.GetDisplayText ()}");
 
-			// Update opponent hand count AND remove the actual played card
+			// Update opponent hand count by removing any one card (since opponent hand contains placeholders)
 			var activeOpponentHandManager = GetActiveOpponentHandManager ();
 			if (activeOpponentHandManager?.IsOpponentHand == true) {
-				// Remove the actual played card from opponent's hand
-				bool cardRemoved = activeOpponentHandManager.RemoveCardEnhanced (playedCard);
+				// Remove any one card from opponent's placeholder hand (can't find specific card)
+				bool cardRemoved = activeOpponentHandManager.RemoveAnyCard();
 				if (cardRemoved) {
-					TakiLogger.LogNetwork ($"Removed played card from opponent hand: {playedCard.GetDisplayText ()}");
+					TakiLogger.LogNetwork ($"Removed one card from opponent placeholder hand for: {playedCard.GetDisplayText ()}");
 				} else {
-					TakiLogger.LogWarning ($"Could not find played card in opponent hand: {playedCard.GetDisplayText ()}", TakiLogger.LogCategory.Network);
+					TakiLogger.LogWarning ($"Failed to remove any card from opponent hand for: {playedCard.GetDisplayText ()}", TakiLogger.LogCategory.Network);
 				}
 
-				// CRITICAL FIX: Don't manually decrement count - RemoveCardEnhanced already did it!
-				// The old code was double-decrementing: RemoveCardEnhanced decrements, then we decremented again
+				// RemoveAnyCard already decrements count and updates UI - no manual intervention needed
 				TakiLogger.LogNetwork ($"Opponent hand count after card play: {activeOpponentHandManager.NetworkOpponentHandCount}");
-
-				// Note: RemoveCardEnhanced already updated networkOpponentHandCount via networkOpponentHandCount--
 			}
 
 			// ENHANCED: Handle special card effects from remote player

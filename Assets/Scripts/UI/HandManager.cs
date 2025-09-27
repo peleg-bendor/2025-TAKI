@@ -915,6 +915,52 @@ namespace TakiGame {
 			}
 		}
 
+		/// <summary>
+		/// Remove any one card from opponent hand (for network card play synchronization)
+		/// Used when we know opponent played a card but can't find the specific card in placeholder hand
+		/// </summary>
+		public bool RemoveAnyCard() {
+			if (!isNetworkGame || !isDisplayingOpponentHand) {
+				TakiLogger.LogWarning("RemoveAnyCard should only be used for opponent hands in network mode", TakiLogger.LogCategory.Network);
+				return false;
+			}
+
+			if (currentHand.Count == 0) {
+				TakiLogger.LogWarning("Cannot remove card: opponent hand is empty", TakiLogger.LogCategory.Network);
+				return false;
+			}
+
+			// Remove the first card (index 0) - doesn't matter which one since they're all placeholders
+			int cardIndex = 0;
+
+			// Remove from hand list
+			currentHand.RemoveAt(cardIndex);
+			networkOpponentHandCount--;
+
+			// Remove corresponding controller
+			if (cardIndex < cardControllers.Count) {
+				CardController controller = cardControllers[cardIndex];
+				cardControllers.RemoveAt(cardIndex);
+
+				// Destroy prefab
+				if (controller != null && controller.gameObject != null) {
+					Destroy(controller.gameObject);
+				}
+			}
+
+			// Update count display through centralized UI
+			if (activeUI != null) {
+				int localHandCount = gameManager != null ? gameManager.PlayerHandSize : 0;
+				activeUI.UpdateHandSizeDisplay(localHandCount, networkOpponentHandCount);
+			}
+
+			// Rearrange remaining cards
+			ArrangeCards();
+
+			TakiLogger.LogNetwork($"Removed any card from opponent hand, count now: {networkOpponentHandCount}");
+			return true;
+		}
+
 		#endregion
 
 		#region PHASE 2: Integration Methods

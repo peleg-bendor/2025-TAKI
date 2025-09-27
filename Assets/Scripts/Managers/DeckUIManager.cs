@@ -36,7 +36,7 @@ namespace TakiGame {
 
 		[Header ("Message Settings")]
 		[Tooltip ("How long to display temporary deck messages")]
-		public float messageDisplayTime = 2.0f;
+		public float messageDisplayTime = 10f;
 
 		// Message management
 		private float messageTimer = 0f;
