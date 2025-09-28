@@ -22,9 +22,9 @@ namespace TakiGame {
 		[SerializeField] private GameObject screenMultiPlayerGame;
 
 		[Header ("Room Configuration")]
-		private int searchValue = 100;
-		private int maxPlayers = 2;
-		private string password = "taki2025";
+		private int searchValue = 100;      // Used for matchmaking - rooms with same value can find each other
+		private int maxPlayers = 2;         // TAKI is 1v1, so exactly 2 players required
+		private string password = "taki2025"; // Simple room protection
 
 		[Header ("Debug Settings")]
 		public bool enableNetworkLogs = false;     // Toggle for network debug logs
@@ -50,7 +50,7 @@ namespace TakiGame {
 		/// Initialize with direct references (minimal logging)
 		/// </summary>
 		private void InitAwake () {
-			// Try to find references if not assigned in inspector
+			// Auto-find UI components if not assigned in Inspector
 			if (txtStatus == null || btnPlayMultiPlayer == null) {
 				TryFindReferences ();
 			}
@@ -88,17 +88,21 @@ namespace TakiGame {
 		private void InitStart () {
 			hasGameStarted = false;
 
+			// Hide multiplayer game screen initially
 			if (screenMultiPlayerGame != null) {
 				screenMultiPlayerGame.SetActive (false);
 			}
 
+			// Disable play button until connected
 			if (btnPlayMultiPlayer != null) {
 				btnPlayMultiPlayer.interactable = false;
 			}
 
 			UpdateStatus ("Connecting to Photon...");
 
+			// Enable automatic scene synchronization between clients
 			PhotonNetwork.AutomaticallySyncScene = true;
+			// Start connection to Photon servers using project settings
 			PhotonNetwork.ConnectUsingSettings ();
 		}
 
@@ -133,20 +137,23 @@ namespace TakiGame {
 				TakiLogger.LogInfo ("Creating TAKI room...", TakiLogger.LogCategory.Multiplayer);
 			}
 
+			// Room properties that other clients can filter by during matchmaking
 			var roomProperties = new ExitGames.Client.Photon.Hashtable
 			{
-				{"sv", searchValue},
-				{"pwd", password}
+				{"sv", searchValue},  // Search value for room filtering
+				{"pwd", password}     // Password for basic room security
 			};
 
+			// Configure room settings
 			var roomOptions = new RoomOptions {
-				MaxPlayers = maxPlayers,
-				IsVisible = true,
-				IsOpen = true,
-				CustomRoomProperties = roomProperties,
-				CustomRoomPropertiesForLobby = new [] { "sv", "pwd" }
+				MaxPlayers = maxPlayers,                          // Limit to 2 players for TAKI
+				IsVisible = true,                                 // Room appears in lobby
+				IsOpen = true,                                    // New players can join
+				CustomRoomProperties = roomProperties,            // Attach custom properties
+				CustomRoomPropertiesForLobby = new [] { "sv", "pwd" } // Make properties visible for matchmaking
 			};
 
+			// Create room with auto-generated name
 			PhotonNetwork.CreateRoom (null, roomOptions, TypedLobby.Default);
 		}
 
@@ -156,16 +163,17 @@ namespace TakiGame {
 		/// </summary>
 		private void StartGame () {
 			var room = PhotonNetwork.CurrentRoom;
+			// Safety checks before starting game
 			if (room == null || hasGameStarted) {
 				return;
 			}
 
+			// Check if we have enough players to start
 			int players = room.PlayerCount;
 			int max = room.MaxPlayers;
 			bool reachMax = (max > 0) && (players == max);
 
-			// FIXED: Always require 2 players for proper multiplayer coordination
-			// Removed conditional compilation that was causing single-player mode in editor
+			// Always require exactly 2 players for proper TAKI gameplay
 			bool canStart = reachMax;
 
 			if (!canStart) {
@@ -176,17 +184,18 @@ namespace TakiGame {
 			hasGameStarted = true;
 			UpdateStatus ("Starting Game...");
 
-			// Essential network log
+			// Log game start details
 			if (enableNetworkLogs) {
 				TakiLogger.LogInfo ($"Game starting - Players: {players}/{max}, IsMasterClient: {PhotonNetwork.IsMasterClient}", TakiLogger.LogCategory.Multiplayer);
 			}
 
+			// Master client locks the room to prevent new players joining mid-game
 			if (PhotonNetwork.IsMasterClient) {
-				room.IsVisible = false;
-				room.IsOpen = false;
+				room.IsVisible = false;  // Hide from lobby
+				room.IsOpen = false;     // Block new joins
 			}
 
-			// Fire event for ALL players
+			// Notify GameManager to start multiplayer mode on ALL clients
 			OnMultiplayerGameReady?.Invoke ();
 		}
 
@@ -209,55 +218,63 @@ namespace TakiGame {
 
 		#region Server Callbacks
 
+		// Called when successfully connected to Photon master server
 		public override void OnConnectedToMaster () {
 			UpdateStatus ("Connected to server!");
 
+			// Enable play button now that we can start matchmaking
 			if (btnPlayMultiPlayer != null) {
 				btnPlayMultiPlayer.interactable = true;
 			}
 		}
 
+		// Called when successfully joined the lobby - start looking for existing rooms
 		public override void OnJoinedLobby () {
 			UpdateStatus ("Searching for TAKI games...");
 
+			// Define what room properties we're looking for
 			var expected = new ExitGames.Client.Photon.Hashtable
 			{
-				{"sv", searchValue},
-				{"pwd", password}
+				{"sv", searchValue},  // Match our search value
+				{"pwd", password}     // Match our password
 			};
 
+			// Configure random room join parameters
 			var op = new OpJoinRandomRoomParams {
 				ExpectedCustomRoomProperties = expected,
 			};
 
+			// Try to join any existing room with matching properties and space
 			PhotonNetwork.JoinRandomRoom (op.ExpectedCustomRoomProperties, maxPlayers);
 		}
 
+		// Called when no suitable existing room found - create our own
 		public override void OnJoinRandomFailed (short returnCode, string message) {
 			UpdateStatus ("Creating TAKI Room...");
 			CreateRoom ();
 		}
 
+		// Called when successfully joined a room (either existing or newly created)
 		public override void OnJoinedRoom () {
 			UpdateStatus ("Joined Room: " + PhotonNetwork.CurrentRoom.Name);
-			hasGameStarted = false;
+			hasGameStarted = false;  // Reset game state flag
 
-			// Password validation
+			// Verify room password matches what we expect
 			if (!string.IsNullOrEmpty (password)) {
 				var expectedHash = PhotonNetwork.CurrentRoom.CustomProperties ["pwd"].ToString ();
 				var myHash = password;
+				// Leave room if passwords don't match
 				if (!string.IsNullOrEmpty (expectedHash) && myHash != expectedHash) {
 					PhotonNetwork.LeaveRoom ();
 					return;
 				}
 			}
 
+			// Check if we can start the game with current players
 			CheckAndStartGame ();
 		}
 
-		/// <summary>
-		/// Handle player joining room
-		/// </summary>
+		// Called when another player joins our room
 		public override void OnPlayerEnteredRoom (Player newPlayer) {
 			UpdateStatus ($"Player joined! Starting game...");
 
@@ -317,20 +334,24 @@ namespace TakiGame {
 				btnPlayMultiPlayer.interactable = false;
 			}
 
-			// Check if we're already in a room from previous game
+			// Handle different connection scenarios:
+
+			// SCENARIO 1: Still in room from previous game - leave first for clean matchmaking
 			if (PhotonNetwork.InRoom) {
 				if (enableNetworkLogs) {
 					TakiLogger.LogInfo ($"Already in room {PhotonNetwork.CurrentRoom.Name} - leaving first for fresh matchmaking", TakiLogger.LogCategory.Multiplayer);
 				}
 				UpdateStatus ("Leaving previous room...");
 				PhotonNetwork.LeaveRoom ();
-				// OnLeftRoom callback will continue to lobby joining
-			} else if (PhotonNetwork.IsConnected) {
-				// Normal flow - join lobby for matchmaking
+				// OnLeftRoom callback will continue the matchmaking flow
+			}
+			// SCENARIO 2: Connected but not in room - go straight to lobby
+			else if (PhotonNetwork.IsConnected) {
 				PhotonNetwork.JoinLobby ();
 				UpdateStatus ("Searching for available TAKI rooms...");
-			} else {
-				// Not connected - start connection process
+			}
+			// SCENARIO 3: Not connected at all - start from beginning
+			else {
 				UpdateStatus ("Connecting to Photon...");
 				PhotonNetwork.ConnectUsingSettings ();
 			}

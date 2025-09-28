@@ -11,18 +11,18 @@ namespace TakiGame {
 	public class NetworkCleanupManager : MonoBehaviourPunCallbacks {
 
 		[Header("Dependencies")]
-		[SerializeField] private MultiplayerMenuLogic multiplayerMenuLogic;
+		[SerializeField] private MultiplayerMenuLogic multiplayerMenuLogic;  // Reference to menu logic
 
 		[Header("Debug Settings")]
-		public bool enableCleanupLogs = true;
+		public bool enableCleanupLogs = true;                                 // Toggle cleanup logging
 
-		// Cleanup state tracking
-		private bool isCleaningUp = false;
+		// State tracking
+		private bool isCleaningUp = false;  // Prevents concurrent cleanup operations
 
 		#region MonoBehaviour
 
 		void Awake() {
-			// Find MultiplayerMenuLogic if not assigned
+			// Auto-find MultiplayerMenuLogic component if not assigned in Inspector
 			if (multiplayerMenuLogic == null) {
 				multiplayerMenuLogic = FindObjectOfType<MultiplayerMenuLogic>();
 			}
@@ -37,88 +37,90 @@ namespace TakiGame {
 		/// Handles room leaving and connection state reset
 		/// </summary>
 		public void CleanupNetworkStateForMenu() {
+			// Prevent concurrent cleanup operations
 			if (isCleaningUp) {
 				LogCleanup("Network cleanup already in progress");
 				return;
 			}
 
-			LogCleanup("=== STARTING NETWORK CLEANUP FOR MENU RETURN ===");
+			LogCleanup("Starting network cleanup for menu return");
 			isCleaningUp = true;
 
-			// Check if we're in a multiplayer context that needs cleanup
+			// Skip cleanup if not connected to Photon
 			if (!PhotonNetwork.IsConnected) {
-				LogCleanup("Not connected to Photon - no cleanup needed");
+				LogCleanup("Not connected - no cleanup needed");
 				CompleteCleanup();
 				return;
 			}
 
+			// Log current network state
 			LogCleanup($"Network State: Connected={PhotonNetwork.IsConnected}, InRoom={PhotonNetwork.InRoom}");
 
+			// Leave room if we're in one
 			if (PhotonNetwork.InRoom) {
 				LogCleanup($"Leaving room: {PhotonNetwork.CurrentRoom?.Name}");
 				PhotonNetwork.LeaveRoom();
-				// OnLeftRoom callback will complete cleanup
+				// OnLeftRoom callback will complete the cleanup process
 			} else {
+				// Already out of room, cleanup complete
 				LogCleanup("Not in room - cleanup complete");
 				CompleteCleanup();
 			}
 		}
 
 		/// <summary>
-		/// Reset multiplayer menu state for fresh matchmaking
+		/// Reset multiplayer menu for fresh matchmaking after cleanup
 		/// </summary>
 		public void ResetMultiplayerMenuState() {
 			if (multiplayerMenuLogic != null) {
-				LogCleanup("Resetting multiplayer menu state for fresh matchmaking");
-				// The menu logic will handle button states and status updates
-				// when it detects we're back in lobby/connected state
+				LogCleanup("Resetting menu state for fresh matchmaking");
+				// MultiplayerMenuLogic will handle UI updates when connection state changes
 			} else {
-				LogCleanup("MultiplayerMenuLogic not found - cannot reset menu state");
+				LogCleanup("MultiplayerMenuLogic not found - cannot reset menu");
 			}
 		}
 
 		/// <summary>
-		/// Complete cleanup process
+		/// Finalize cleanup process and reset state
 		/// </summary>
 		private void CompleteCleanup() {
 			LogCleanup("Network cleanup completed");
-			isCleaningUp = false;
+			isCleaningUp = false;  // Allow future cleanup operations
 
-			// Reset menu state for fresh multiplayer entry
+			// Prepare menu for fresh multiplayer session
 			ResetMultiplayerMenuState();
 		}
 
 		/// <summary>
-		/// Get current network state for debugging
+		/// Get current network connection state as string (for debugging)
 		/// </summary>
 		public string GetNetworkStateInfo() {
+			// Check basic connection status
 			if (!PhotonNetwork.IsConnected) {
 				return "Not connected to Photon";
 			}
 
+			// Check room status
 			var room = PhotonNetwork.CurrentRoom;
 			if (room != null) {
 				return $"In room: {room.Name}, Players: {room.PlayerCount}/{room.MaxPlayers}";
 			}
 
-			return $"Connected to Photon, State: {PhotonNetwork.NetworkClientState}";
+			// Connected but not in room
+			return $"Connected, State: {PhotonNetwork.NetworkClientState}";
 		}
 
 		#endregion
 
 		#region Photon Callbacks
 
-		/// <summary>
-		/// Called when successfully left the room
-		/// </summary>
+		// Called by Photon when we successfully leave a room
 		public override void OnLeftRoom() {
-			LogCleanup("Successfully left room - network cleanup complete");
+			LogCleanup("Successfully left room - cleanup complete");
 			CompleteCleanup();
 		}
 
-		/// <summary>
-		/// Called if leaving room fails
-		/// </summary>
+		// Called by Photon when connection is lost (also completes cleanup)
 		public override void OnDisconnected(DisconnectCause cause) {
 			LogCleanup($"Disconnected from Photon: {cause}");
 			CompleteCleanup();
@@ -129,7 +131,7 @@ namespace TakiGame {
 		#region Utility Methods
 
 		/// <summary>
-		/// Log cleanup messages if enabled
+		/// Log cleanup messages (if logging enabled)
 		/// </summary>
 		private void LogCleanup(string message) {
 			if (enableCleanupLogs) {
@@ -138,7 +140,7 @@ namespace TakiGame {
 		}
 
 		/// <summary>
-		/// Check if cleanup is currently in progress
+		/// Returns true if cleanup operation is currently running
 		/// </summary>
 		public bool IsCleaningUp => isCleaningUp;
 
@@ -147,21 +149,21 @@ namespace TakiGame {
 		#region Integration Methods
 
 		/// <summary>
-		/// Called by GameEndManager during go home sequence
+		/// Called by GameEndManager when player returns to menu from multiplayer
 		/// </summary>
 		public void OnGoingHome() {
-			LogCleanup("GameEndManager requested network cleanup for menu return");
+			LogCleanup("GameEndManager requesting network cleanup");
 			CleanupNetworkStateForMenu();
 		}
 
 		/// <summary>
-		/// Called by MultiplayerMenuLogic to check if fresh start is needed
+		/// Check if we need fresh matchmaking (still in a room after cleanup)
 		/// </summary>
 		public bool ShouldStartFreshMatchmaking() {
-			// If we're still in a room after cleanup, we need fresh matchmaking
+			// Return true if we're still in a room (cleanup incomplete)
 			bool inRoom = PhotonNetwork.InRoom;
 			if (inRoom) {
-				LogCleanup("Still in room - fresh matchmaking required");
+				LogCleanup("Still in room - need fresh matchmaking");
 			}
 			return inRoom;
 		}
