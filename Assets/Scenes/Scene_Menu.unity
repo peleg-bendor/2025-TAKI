@@ -11045,7 +11045,7 @@ MonoBehaviour:
   exitValidationManager: {fileID: 1026764715}
   networkGameManager: {fileID: 1026764721}
   logLevel: 3
-  productionMode: 0
+  productionMode: 1
 --- !u!114 &1026764714
 MonoBehaviour:
   m_ObjectHideFlags: 0
