@@ -1932,7 +1932,10 @@ namespace TakiGame {
 					if (!gameState.IsInTakiSequence) {
 						// Start new TAKI sequence using the TAKI card's color
 						TakiLogger.LogRules ($"TAKI SEQUENCE START: Starting sequence for color {card.color}");
-						gameState.StartTakiSequence (card.color, turnManager?.CurrentPlayer ?? PlayerType.Human);
+
+						// MULTIPLAYER FIX: Use Human for local player in multiplayer mode
+						PlayerType initiator = isMultiplayerMode ? PlayerType.Human : (turnManager?.CurrentPlayer ?? PlayerType.Human);
+						gameState.StartTakiSequence (card.color, initiator);
 
 						// Add the TAKI card itself to the sequence
 						gameState.AddCardToSequence (card);

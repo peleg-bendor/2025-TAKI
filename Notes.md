@@ -2335,6 +2335,10 @@ We need to implement a timer for multiplayer.
     - If DRAW button is enabled, AKA, it's possible for the player to draw -> we trigger somehow the DRAW button so the logic would be exactlly the same as if the player clicked (why so carefully? because we have complicated draws too, like in plus two chanes), wait a moment, then rerun the check end timer state.
     - Else log an error, I can't see how this could happen
 
+how can we implement this in a way that fits our project smothly and as simple as possible? think deeply of networking and master and clent.
+
+
+
 We need to create a new starting prompt, our next target is the TAKI card . We should also note that it's very very important to properly and thoroghly search what happens in singleplayer mode, and by that much more easily know what we need to do.
 
 
